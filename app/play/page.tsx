@@ -59,7 +59,7 @@ export default async function PlayPage() {
                             <div className="bg-zinc-900/50 border border-white/5 p-6 rounded-2xl backdrop-blur-sm">
                                 <h3 className="font-bold text-white mb-2">📢 Server News</h3>
                                 <p className="text-zinc-500 text-sm leading-relaxed">
-                                    Don't forget to join our Discord for tournament announcements. Season 1 ends in 2 weeks!
+                                    Don&apos;t forget to join our Discord for tournament announcements. Season 1 ends in 2 weeks!
                                 </p>
                             </div>
                         </div>

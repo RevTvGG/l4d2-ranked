@@ -20,7 +20,7 @@ export default async function ProfilePage({ params }: Props) {
                 <Navbar />
                 <div className="container mx-auto text-center text-white">
                     <h1 className="text-4xl font-bold mb-4">Player Not Found</h1>
-                    <p className="text-zinc-500">The player "{decodeURIComponent(username)}" has not registered yet.</p>
+                    <p className="text-zinc-500">The player &quot;{decodeURIComponent(username)}&quot; has not registered yet.</p>
                 </div>
             </div>
         )

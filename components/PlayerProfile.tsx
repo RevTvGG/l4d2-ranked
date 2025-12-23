@@ -171,7 +171,7 @@ export function PlayerProfile({
                         {/* BIO SECTION */}
                         {bio && (
                             <p className="text-zinc-400 text-sm md:text-base max-w-2xl font-medium leading-relaxed border-l-2 border-brand-green pl-4 my-2 italic">
-                                "{bio}"
+                                &quot;{bio}&quot;
                             </p>
                         )}
                         {!bio && <div className="h-2"></div>}
