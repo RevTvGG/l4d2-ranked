@@ -1,6 +1,8 @@
 import { Navbar } from "@/components/Navbar";
 import { CreateTeamForm } from "@/components/CreateTeamForm";
 
+export const dynamic = 'force-dynamic';
+
 export default function CreateTeamPage() {
     return (
         <div className="min-h-screen bg-black pt-32 pb-16 px-4">
