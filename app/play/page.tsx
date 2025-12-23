@@ -4,6 +4,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import OnlineUsersList from "@/components/OnlineUsersList";
 
+export const dynamic = 'force-dynamic';
+
 export default async function PlayPage() {
     const session = await getServerSession(authOptions);
 

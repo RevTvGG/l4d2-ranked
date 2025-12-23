@@ -26,6 +26,8 @@ type Props = {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function TeamProfilePage({ params, searchParams }: Props) {
     const { tag } = await params;
     const resolvedSearchParams = await searchParams;

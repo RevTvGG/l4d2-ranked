@@ -3,6 +3,8 @@ import { TeamCard } from "@/components/TeamCard";
 import { getTeams } from "@/app/actions/team";
 import Link from "next/link";
 
+export const dynamic = 'force-dynamic';
+
 export default async function TeamsPage() {
     const teams = await getTeams();
 

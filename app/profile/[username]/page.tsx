@@ -8,6 +8,8 @@ type Props = {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
+export const dynamic = 'force-dynamic';
+
 export default async function ProfilePage({ params }: Props) {
     const { username } = await params;
 
