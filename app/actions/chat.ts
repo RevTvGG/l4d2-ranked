@@ -10,10 +10,10 @@ export async function sendMessage(content: string) {
         // Fallback: try to find user by SteamID if email is missing (common with Steam)
         // Actually, our session callback puts steamId in user object.
         // Let's rely on finding the user by the session logic.
-        if (!(session?.user as any).steamId) return { error: "Not authenticated" };
+        if (!(session as any)?.user?.steamId) return { error: "Not authenticated" };
     }
 
-    const steamId = (session?.user as any).steamId;
+    const steamId = (session as any)?.user?.steamId;
 
     // Find User ID from Steam ID
     const user = await prisma.user.findUnique({
