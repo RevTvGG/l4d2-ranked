@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import GlobalChat from "@/components/GlobalChat";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import OnlineUsersList from "@/components/OnlineUsersList";
 
 export default async function PlayPage() {

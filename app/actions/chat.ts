@@ -6,7 +6,7 @@ import { authOptions } from "@/lib/auth";
 
 export async function sendMessage(content: string) {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    if (!(session as any)?.user?.email) {
         // Fallback: try to find user by SteamID if email is missing (common with Steam)
         // Actually, our session callback puts steamId in user object.
         // Let's rely on finding the user by the session logic.
