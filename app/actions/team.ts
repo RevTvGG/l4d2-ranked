@@ -78,7 +78,7 @@ export async function leaveTeam(steamId: string) {
         if (!user || !user.teamId) return { success: false, message: "No team to leave." };
 
         const teamId = user.teamId;
-        const isOwner = user.team.ownerId === steamId;
+        const isOwner = user.team?.ownerId === steamId;
 
         if (isOwner) {
             // DISBAND TEAM Logic
