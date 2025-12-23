@@ -3,7 +3,7 @@ import { ProfileEditForm } from "@/components/ProfileEditForm";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +16,8 @@ export default async function EditProfilePage() {
 
     // @ts-expect-error - steamId comes from custom session
     const steamId = session.user?.steamId;
+
+    const { prisma } = await import("@/lib/prisma");
 
     const user = await prisma.user.findUnique({
         where: { steamId }

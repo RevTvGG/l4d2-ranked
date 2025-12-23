@@ -1,6 +1,6 @@
 'use server'
 
-import { prisma } from "@/lib/prisma"
+
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { revalidatePath } from "next/cache"
@@ -40,6 +40,7 @@ export async function updatePreferences(formData: FormData) {
     if (bio && bio.length > 140) return { success: false, message: "Bio too long (max 140)" };
 
     try {
+        const { prisma } = await import("@/lib/prisma");
         await prisma.user.update({
             where: { steamId },
             data: {
@@ -68,6 +69,7 @@ export async function buyPremium() {
     const steamId = session.user.steamId;
 
     try {
+        const { prisma } = await import("@/lib/prisma");
         await prisma.user.update({
             where: { steamId },
             data: { isPremium: true }
@@ -91,6 +93,7 @@ export async function updateTheme(theme: string) {
     if (!validThemes.includes(theme)) return { success: false, message: "Invalid Theme" };
 
     try {
+        const { prisma } = await import("@/lib/prisma");
         // Verify Premium Status
         const user = await prisma.user.findUnique({ where: { steamId } });
         if (!user?.isPremium && theme !== "DEFAULT") {
