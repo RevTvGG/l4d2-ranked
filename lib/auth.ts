@@ -9,13 +9,17 @@ import type { NextAuthOptions } from "next-auth";
 const provider = SteamProvider.default || SteamProvider;
 
 export function getAuthOptions(req?: NextRequest): NextAuthOptions {
+    if (!process.env.STEAM_SECRET) {
+        console.warn("Missing STEAM_SECRET, returning empty providers for build.");
+        return { providers: [] };
+    }
     return {
         providers: [
             provider(req || {
                 headers: new Headers(),
                 url: process.env.NEXTAUTH_URL || 'http://localhost:3000/api/auth/callback'
             } as any, {
-                clientSecret: process.env.STEAM_SECRET!,
+                clientSecret: process.env.STEAM_SECRET,
                 callbackUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/auth/callback`,
                 profile(profile: any) {
                     return {
