@@ -1,0 +1,282 @@
+import Image from "next/image";
+import { PremiumBadge } from "./PremiumBadge";
+import { ShinyText } from "./ShinyText";
+
+interface Team {
+    name: string;
+    tag: string;
+    logoUrl?: string; // Optional team logo
+}
+
+interface PlayerProfileProps {
+    username: string;
+    steamId: string;
+    steamAvatarUrl: string;
+    countryCode: string;
+    totalHours: number;
+    rank: string;
+    role: string;
+    rating: number;
+    winRate: number;
+    mainSide?: string | null;
+    survivorWeapon?: string | null;
+    communication?: string | null;
+    skillLevel?: string | null;
+    bio?: string | null;
+    isPremium?: boolean;
+    profileTheme?: string;
+    team?: Team; // Optional: Player might not have a team
+}
+
+export function PlayerProfile({
+    username,
+    steamId,
+    steamAvatarUrl,
+    totalHours,
+    rank,
+    role,
+    rating,
+    winRate,
+    mainSide,
+    survivorWeapon,
+    communication,
+    skillLevel,
+    bio,
+    isPremium,
+    profileTheme = "DEFAULT",
+    team,
+    countryCode,
+}: PlayerProfileProps) {
+    const themeBg: Record<string, string> = {
+        DEFAULT: "border-white/10 bg-zinc-900",
+        GOLD: "border-yellow-500/50 bg-yellow-950/30 shadow-yellow-500/20",
+        DIAMOND: "border-cyan-500/50 bg-cyan-950/30 shadow-cyan-500/20",
+        RUBY: "border-red-500/50 bg-red-950/30 shadow-red-500/20",
+        EMERALD: "border-emerald-500/50 bg-emerald-950/30 shadow-emerald-500/20",
+        VOID: "border-purple-500/50 bg-purple-950/30 shadow-purple-500/20",
+    };
+
+    const containerStyle = themeBg[profileTheme] || themeBg.DEFAULT;
+
+    return (
+        <div className="w-full max-w-6xl mx-auto space-y-6">
+
+            {/* 1. HERO SECTION */}
+            <div className={`relative rounded-3xl overflow-hidden border shadow-2xl transition-all duration-500 ${containerStyle}`}>
+
+                {/* EDIT BUTTON (Gear Icon) - Absolute Top Right */}
+                <a
+                    href="/profile/edit"
+                    className="absolute top-6 right-6 z-30 h-10 w-10 flex items-center justify-center rounded-full bg-black/50 border border-white/10 text-zinc-400 hover:text-white hover:bg-black/80 hover:rotate-90 transition-all backdrop-blur-md"
+                    title="Edit Profile"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.86z" />
+                    </svg>
+                </a>
+
+                {/* Background Image/Gradient */}
+                <div className="absolute inset-0 bg-[url('/l4d2_bg.jpg')] bg-cover bg-center opacity-40 mix-blend-luminosity"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent"></div>
+
+                <div className="relative p-8 md:p-12 flex flex-col md:flex-row items-end gap-8">
+                    {/* Avatar Hexagon Wrapper */}
+                    <div className="relative shrink-0">
+                        <a
+                            href={`https://steamcommunity.com/profiles/${steamId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`block h-32 w-32 md:h-40 md:w-40 rounded-2xl rotate-3 border-4 overflow-hidden shadow-2xl relative z-10 transition-transform hover:rotate-0 hover:scale-105 duration-300 ${isPremium ? 'border-amber-300 shadow-amber-500/50' : 'border-white/10 bg-zinc-800'}`}
+                        >
+                            <Image
+                                src={steamAvatarUrl}
+                                alt={`${username}'s avatar`}
+                                fill
+                                className="object-cover"
+                            />
+                        </a>
+                        <div className="absolute inset-0 -rotate-3 rounded-2xl bg-brand-green/20 blur-xl z-0"></div>
+                    </div>
+
+                    {/* Main Info */}
+                    <div className="flex-1 space-y-4 mb-2 min-w-0"> {/* min-w-0 ensures flex child shrinks text */}
+                        <div className="flex flex-wrap items-center justify-between gap-4"> {/* Increased Gap */}
+                            <div className="flex flex-wrap items-center gap-2">
+
+                                {/* 1. TEAM BADGE (Highest Priority) */}
+                                {team && (
+                                    <div className="flex items-center gap-2 px-3 py-1 rounded bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer group">
+                                        {team.logoUrl ? (
+                                            <div className="relative w-5 h-5">
+                                                <Image src={team.logoUrl} alt={team.name} fill className="rounded-full object-cover" />
+                                            </div>
+                                        ) : (
+                                            <span className="text-zinc-500 text-xs">🛡️</span>
+                                        )}
+                                        <span className="text-zinc-300 text-xs font-bold uppercase tracking-wider group-hover:text-white">
+                                            [{team.tag}] {team.name}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {/* 2. SKILL LEVEL */}
+                                {skillLevel && (
+                                    <span className="px-2 py-0.5 rounded border border-purple-500/30 bg-purple-500/10 text-purple-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1">
+                                        {skillLevel === 'CASUAL' ? '☕ CASUAL' :
+                                            skillLevel === 'SEMI_COMP' ? '⚔️ SEMI-COMP' :
+                                                skillLevel === 'COMPETITIVE' ? '🏆 COMP' : '👽 TOURNAMENT'}
+                                    </span>
+                                )}
+
+                                {/* 3. MAIN SIDE */}
+                                {mainSide && (
+                                    <span className={`px-2 py-0.5 rounded border text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 ${mainSide === 'INFECTED' ? 'bg-red-900/20 text-red-500 border-red-900/50' : 'bg-blue-900/20 text-blue-400 border-blue-900/50'
+                                        }`}>
+                                        {mainSide === 'INFECTED' ? '🦠 INFECTED' : mainSide === 'SURVIVOR' ? '🧍 SURVIVOR' : '☯️ BOTH SIDES'}
+                                    </span>
+                                )}
+
+                                {/* 4. WEAPON */}
+                                {survivorWeapon && (
+                                    <span className="px-2 py-0.5 rounded border border-zinc-700 bg-zinc-800 text-zinc-300 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1">
+                                        {survivorWeapon === 'SMG' ? '🔫 SMG' : survivorWeapon === 'SHOTGUN' ? '💥 SHOTGUN' : '🔁 FLEXIBLE'}
+                                    </span>
+                                )}
+
+                                {/* 5. COMM */}
+                                {communication && (
+                                    <span className="px-2 py-0.5 rounded border border-yellow-500/20 bg-yellow-500/10 text-yellow-500 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1">
+                                        {communication === 'MIC_ACTIVE' ? '🎙️ MIC ON' :
+                                            communication === 'ONLY_INFO' ? '🎧 INFO ONLY' :
+                                                communication === 'LISTEN' ? '👂 LISTENER' : '❌ NO MIC'}
+                                    </span>
+                                )}
+
+                                {/* 6. COUNTRY */}
+                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-zinc-800/50 text-zinc-400 text-xs border border-white/5" title={countryCode}>
+                                    <span className="text-sm">{getFlagEmoji(countryCode)}</span> {countryCode || "UNK"}
+                                </div>
+                            </div>
+                        </div>
+
+                        <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase italic leading-none flex flex-wrap items-center gap-4 break-words">
+                            {isPremium ? (
+                                <ShinyText text={username} theme={profileTheme} />
+                            ) : (
+                                username
+                            )}
+                            {isPremium && <PremiumBadge theme={profileTheme} />}
+                        </h1>
+
+                        {/* BIO SECTION */}
+                        {bio && (
+                            <p className="text-zinc-400 text-sm md:text-base max-w-2xl font-medium leading-relaxed border-l-2 border-brand-green pl-4 my-2 italic">
+                                "{bio}"
+                            </p>
+                        )}
+                        {!bio && <div className="h-2"></div>}
+
+                        <div className="flex items-center gap-6 text-zinc-400 font-medium">
+                            <div className="flex items-center gap-2">
+                                <div className="p-1.5 rounded bg-zinc-800 text-brand-green">
+                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8zm.293-5.707l-4.596 1.099a1 1 0 0 1-1.192-1.2l1.099-4.596a1 1 0 0 1 .283-.495l7.071-7.071L12.293 6.293l-7.071 7.071a1 1 0 0 1-.495.283L.132 14.747a1 1 0 0 0 1.2 1.192l1.099-4.596 8.525-2.038z" /></svg>
+                                </div>
+                                <span className="text-white font-bold text-lg">{totalHours.toLocaleString()}</span> HOURS
+                            </div>
+                            <div className="h-1 w-1 rounded-full bg-zinc-600"></div>
+                            <span className="text-brand-green font-bold">ONLINE</span>
+                        </div>
+                    </div>
+
+                    {/* Big Rank Badge (Right Side) */}
+                    <div className="hidden md:flex flex-col items-end">
+                        <div className="text-zinc-500 font-bold tracking-widest text-sm mb-[-10px] z-10 uppercase">Current Rank</div>
+                        <div className="text-[120px] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-600 tracking-tighter drop-shadow-2xl">
+                            {rank}
+                        </div>
+                        <div className="text-brand-green font-mono text-xl tracking-wider font-bold">
+                            {rating} ELO
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* 2. STATS GRID & WEAPONS */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                {/* Main Stats Column */}
+                <div className="md:col-span-2 grid grid-cols-2 gap-4">
+                    <StatCard label="Win Rate" value={`${winRate}%`} subDetail="Top 12%" />
+                    <StatCard label="Headshot %" value="64.2%" subDetail="Above Avg" />
+                    <StatCard label="ADR (Dmg/Round)" value="450" subDetail="+25 vs Last Season" highlight />
+                    <StatCard label="MVPs" value="1,240" />
+
+                    {/* Fav Weapon Section */}
+                    <div className="col-span-2 bg-zinc-900/50 border border-white/5 rounded-2xl p-6 mt-4">
+                        <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-wider mb-6">Most Used Weapons</h3>
+                        <div className="space-y-4">
+                            <WeaponBar name="AK-47" usage={42} kills="12,400" />
+                            <WeaponBar name="Sniper Rifle" usage={28} kills="8,200" />
+                            <WeaponBar name="Pump Shotgun" usage={15} kills="4,100" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Sidebar Info */}
+                <div className="space-y-4">
+                    {/* Rank History Graph Placeholder */}
+                    <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 h-48 flex flex-col justify-between">
+                        <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-widest">Rating History</h3>
+                        <div className="flex-1 flex items-end justify-between gap-1 pt-4">
+                            {[40, 55, 45, 60, 75, 65, 80].map((h, i) => (
+                                <div key={i} className="w-full bg-zinc-800 rounded-t-sm hover:bg-brand-green transition-colors" style={{ height: `${h}%` }}></div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Team / Friends */}
+                    <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6">
+                        <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-widest mb-4">Teammates</h3>
+                        <div className="flex -space-x-3 overflow-hidden">
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="h-10 w-10 rounded-full border-2 border-zinc-900 bg-zinc-800 relative z-0 hover:z-10 hover:scale-110 transition-transform cursor-pointer"></div>
+                            ))}
+                            <div className="h-10 w-10 rounded-full border-2 border-zinc-900 bg-zinc-800 flex items-center justify-center text-xs font-bold text-zinc-500">+2</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function StatCard({ label, value, subDetail, highlight = false }: { label: string, value: string, subDetail?: string, highlight?: boolean }) {
+    return (
+        <div className={`p-6 rounded-2xl border transition-all group ${highlight ? 'bg-brand-green text-black border-brand-green' : 'bg-zinc-900/50 border-white/5 hover:border-white/20'}`}>
+            <div className={`text-xs font-bold uppercase tracking-wider mb-2 ${highlight ? 'text-black/60' : 'text-zinc-500 group-hover:text-brand-green'}`}>{label}</div>
+            <div className={`text-4xl font-black ${highlight ? 'text-black' : 'text-white'}`}>{value}</div>
+            {subDetail && <div className={`text-sm mt-1 font-medium ${highlight ? 'text-black/70' : 'text-zinc-500'}`}>{subDetail}</div>}
+        </div>
+    );
+}
+
+function WeaponBar({ name, usage, kills }: { name: string, usage: number, kills: string }) {
+    return (
+        <div className="flex items-center gap-4">
+            <div className="w-24 text-sm font-bold text-zinc-300">{name}</div>
+            <div className="flex-1 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-brand-green to-emerald-600" style={{ width: `${usage}%` }}></div>
+            </div>
+            <div className="w-16 text-right text-xs text-zinc-500 font-mono">{kills}</div>
+        </div>
+    );
+}
+
+function getFlagEmoji(countryCode: string) {
+    if (!countryCode || countryCode === "UNK") return "🏳️";
+    const codePoints = countryCode
+        .toUpperCase()
+        .split('')
+        .map(char => 127397 + char.charCodeAt(0));
+    return String.fromCodePoint(...codePoints);
+}
