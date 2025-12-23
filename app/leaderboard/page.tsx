@@ -1,6 +1,9 @@
 import { Navbar } from "@/components/Navbar";
 import { LeaderboardTable } from "@/components/LeaderboardTable";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default function LeaderboardPage() {
     return (
         <div className="min-h-screen bg-black font-sans selection:bg-brand-green selection:text-black">
