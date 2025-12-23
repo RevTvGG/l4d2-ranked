@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 
 export async function getTeamByTag(tag: string) {
     try {
+        const { prisma } = await import("@/lib/prisma");
         const team = await prisma.team.findUnique({
             where: {
                 tag: tag

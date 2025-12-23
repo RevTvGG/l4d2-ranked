@@ -1,6 +1,6 @@
 'use server'
 
-import { prisma } from "@/lib/prisma"
+
 
 export async function getProfile(username: string) {
     try {
@@ -9,6 +9,7 @@ export async function getProfile(username: string) {
 
         // Find user by name (Note: Names are not unique in Schema, so using findFirst)
         // Ideally we should use SteamID for routing
+        const { prisma } = await import("@/lib/prisma");
         const user = await prisma.user.findFirst({
             where: {
                 name: decodedName

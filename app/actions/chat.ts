@@ -1,11 +1,12 @@
 'use server'
 
-import { prisma } from "@/lib/prisma"
+
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
 export async function sendMessage(content: string) {
     const session = await getServerSession(authOptions);
+    const { prisma } = await import("@/lib/prisma");
     if (!(session as any)?.user?.email) {
         // Fallback: try to find user by SteamID if email is missing (common with Steam)
         // Actually, our session callback puts steamId in user object.
@@ -66,6 +67,7 @@ export async function sendMessage(content: string) {
 
 export async function getMessages() {
     try {
+        const { prisma } = await import("@/lib/prisma");
         const messages = await prisma.message.findMany({
             take: 50,
             orderBy: {
@@ -93,6 +95,7 @@ export async function getMessages() {
 // Fetch users active in the last 15 minutes (or just recently updated for demo)
 export async function getOnlineUsers() {
     try {
+        const { prisma } = await import("@/lib/prisma");
         const users = await prisma.user.findMany({
             take: 20,
             orderBy: {

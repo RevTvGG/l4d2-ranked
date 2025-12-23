@@ -1,9 +1,10 @@
 'use server'
 
-import { prisma } from "@/lib/prisma"
+
 
 export async function getLeaderboard() {
     try {
+        const { prisma } = await import("@/lib/prisma");
         const players = await prisma.user.findMany({
             orderBy: {
                 rating: 'desc'

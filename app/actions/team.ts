@@ -1,6 +1,6 @@
 'use server'
 
-import { prisma } from "@/lib/prisma"
+
 import { revalidatePath } from "next/cache"
 
 // Mock Payment Validation
@@ -28,6 +28,8 @@ export async function createTeam(formData: FormData) {
     }
 
     try {
+        const { prisma } = await import("@/lib/prisma");
+
         // 3. Verify User exists and has no team
         const user = await prisma.user.findUnique({
             where: { steamId: ownerSteamId }
@@ -70,6 +72,7 @@ export async function leaveTeam(steamId: string) {
     if (!steamId) return { success: false, message: "Invalid user." };
 
     try {
+        const { prisma } = await import("@/lib/prisma");
         const user = await prisma.user.findUnique({
             where: { steamId },
             include: { team: true }
@@ -111,6 +114,7 @@ export async function leaveTeam(steamId: string) {
 
 export async function getTeams() {
     try {
+        const { prisma } = await import("@/lib/prisma");
         const teams = await prisma.team.findMany({
             include: {
                 _count: {
@@ -129,6 +133,8 @@ export async function kickMember(ownerSteamId: string, memberSteamId: string) {
     if (!ownerSteamId || !memberSteamId) return { success: false, message: "Invalid IDs" };
 
     try {
+        const { prisma } = await import("@/lib/prisma");
+
         // 1. Verify Requesting User is Owner of the Team
         const owner = await prisma.user.findUnique({
             where: { steamId: ownerSteamId },
@@ -167,6 +173,7 @@ export async function updateTeam(ownerSteamId: string, formData: FormData) {
     const countryCodes = formData.get("countryCodes") as string;
 
     try {
+        const { prisma } = await import("@/lib/prisma");
         const owner = await prisma.user.findUnique({
             where: { steamId: ownerSteamId },
             include: { team: true }
@@ -198,6 +205,8 @@ export async function joinTeam(steamId: string, teamId: string) {
     if (!steamId || !teamId) return { success: false, message: "Invalid request." };
 
     try {
+        const { prisma } = await import("@/lib/prisma");
+
         // 1. Verify User (must be authenticated and potentially check session in real app)
         // For MVP we trust the checking happens via UI state/session, but double check DB
         const user = await prisma.user.findUnique({
@@ -239,6 +248,7 @@ export async function buySlot(ownerSteamId: string, teamId: string) {
     if (!ownerSteamId || !teamId) return { success: false, message: "Invalid request." };
 
     try {
+        const { prisma } = await import("@/lib/prisma");
         const team = await prisma.team.findUnique({
             where: { id: teamId }
         });
