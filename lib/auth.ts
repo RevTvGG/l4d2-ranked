@@ -1,7 +1,6 @@
 // @ts-nocheck
 import SteamProvider from "next-auth-steam";
 import type { NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
 import type { NextAuthOptions } from "next-auth";
 
 // Workaround for CJS/ESM mismatch
@@ -56,6 +55,8 @@ export function getAuthOptions(req?: NextRequest): NextAuthOptions {
                     try {
                         // MANUAL SYNC: Save user to DB without relying on Adapter
                         const steamId = p.steamid;
+
+                        const { prisma } = await import("@/lib/prisma");
 
                         // Fetch L4D2 Hours from Steam API
                         let hours = 0;
