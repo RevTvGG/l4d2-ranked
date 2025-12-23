@@ -28,7 +28,7 @@ export default async function PlayPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* LEFT COLUMN: Chat */}
                         <div className="lg:col-span-2">
-                            <GlobalChat currentUser={session?.user} />
+                            <GlobalChat currentUser={(session as any)?.user} />
                         </div>
 
                         {/* RIGHT COLUMN: Queue/Status (Placeholder for now) */}
