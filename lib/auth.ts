@@ -8,10 +8,20 @@ import type { NextAuthOptions } from "next-auth";
 // @ts-expect-error - checking for default export property
 const provider = SteamProvider.default || SteamProvider;
 
+import CredentialsProvider from "next-auth/providers/credentials";
+
 export function getAuthOptions(req?: NextRequest): NextAuthOptions {
     if (!process.env.STEAM_SECRET) {
-        console.warn("Missing STEAM_SECRET, returning empty providers for build.");
-        return { providers: [] };
+        console.warn("Missing STEAM_SECRET, returning dummy credentials provider for build.");
+        return {
+            providers: [
+                CredentialsProvider({
+                    name: "BuildPlaceholder",
+                    credentials: {},
+                    authorize: async () => null
+                })
+            ]
+        };
     }
     return {
         providers: [
