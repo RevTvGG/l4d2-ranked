@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { joinQueue, leaveQueue, getQueueStatus } from '@/app/actions/queue';
-import { acceptMatch, voteMap, getMatch } from '@/app/actions/match';
+// import { acceptMatch, voteMap, getMatch } from '@/app/actions/match'; // Temporarily disabled
 import { getOnlineUsers } from '@/app/actions/chat';
 import { redirect } from 'next/navigation';
 import GlobalChat from '@/components/GlobalChat';

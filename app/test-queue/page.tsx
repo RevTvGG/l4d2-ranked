@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { joinQueue, leaveQueue, getQueueStatus } from '@/app/actions/queue';
-import { acceptMatch, voteMap, getMatch, getAvailableMaps } from '@/app/actions/match';
+// import { acceptMatch, voteMap, getMatch, getAvailableMaps } from '@/app/actions/match'; // Temporarily disabled
 
 export default function TestQueuePage() {
     const [queueStatus, setQueueStatus] = useState<any>(null);
