@@ -29,8 +29,7 @@ export async function GET(request: NextRequest) {
                         user: {
                             select: {
                                 steamId: true,
-                                name: true,
-                                rating: true
+                                name: true
                             }
                         }
                     }
@@ -49,16 +48,14 @@ export async function GET(request: NextRequest) {
             .filter(p => p.team === 1)
             .map(p => ({
                 steamId: p.user.steamId,
-                name: p.user.name,
-                rating: p.user.rating
+                name: p.user.name
             }));
 
         const teamB = match.players
             .filter(p => p.team === 2)
             .map(p => ({
                 steamId: p.user.steamId,
-                name: p.user.name,
-                rating: p.user.rating
+                name: p.user.name
             }));
 
         return successResponse({
