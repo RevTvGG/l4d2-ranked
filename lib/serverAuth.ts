@@ -59,6 +59,6 @@ export function errorResponse(
 export function successResponse(data: any) {
     return NextResponse.json({
         success: true,
-        ...data
+        data
     });
 }
