@@ -22,32 +22,11 @@ export function getAuthOptions(req?: NextRequest): NextAuthOptions {
             ]
         };
     }
-    // Dynamic Base URL detection for Vercel
-    let baseUrl = process.env.NEXTAUTH_URL;
-
-    if (!baseUrl) {
-        if (process.env.VERCEL_URL) {
-            baseUrl = `https://${process.env.VERCEL_URL}`;
-        } else if (req) {
-            try {
-                const url = new URL(req.url);
-                baseUrl = `${url.protocol}//${url.host}`;
-            } catch (e) {
-                baseUrl = 'http://localhost:3000';
-            }
-        } else {
-            baseUrl = 'http://localhost:3000';
-        }
-    }
 
     return {
         providers: [
-            provider(req || {
-                headers: new Headers(),
-                url: `${baseUrl}/api/auth/callback`
-            } as any, {
-                clientSecret: process.env.STEAM_SECRET,
-                callbackUrl: `${baseUrl}/api/auth/callback`,
+            provider(req, {
+                clientSecret: process.env.STEAM_SECRET!,
                 profile(profile: any) {
                     return {
                         id: profile.steamid,
