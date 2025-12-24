@@ -36,11 +36,6 @@ export default function GlobalChat({ currentUser }: { currentUser: any }) {
         return () => clearInterval(interval);
     }, []);
 
-    // Scroll to bottom when messages change
-    useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
-
     const fetchMessages = async () => {
         const msgs = await getMessages();
         // Simple diff check could happen here, but React handles reconciling reasonably well.
@@ -66,6 +61,10 @@ export default function GlobalChat({ currentUser }: { currentUser: any }) {
         if (result.success) {
             // Immediate fetch to see own message
             fetchMessages();
+            // Scroll to bottom after sending
+            setTimeout(() => {
+                chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
         } else {
             alert("Failed to send message: " + result.error);
             setInput(tempContent); // Revert on fail

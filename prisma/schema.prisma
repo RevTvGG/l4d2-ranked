@@ -12,18 +12,18 @@ datasource db {
 
 // NEXT-AUTH REQUIRED MODELS
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -58,76 +58,265 @@ model User {
   sessions      Session[]
 
   // Custom Competitive Stats
-  steamId       String?   @unique
-  totalHours    Int       @default(0)
-  countryCode   String?
-  
-  // Customization
-  mainSide      String?   // "SURVIVOR", "INFECTED", "BOTH"
-  survivorWeapon String?  // "SMG", "SHOTGUN", "BOTH"
-  
-  communication String?   // "MIC_ACTIVE", "ONLY_INFO", "LISTEN", "NO_MIC"
-  skillLevel    String?   // "CASUAL", "SEMI_COMP", "COMPETITIVE", "TOURNAMENT"
-  bio           String?   // Max 140 chars
-  
-  isPremium     Boolean   @default(false)
-  profileTheme  String    @default("DEFAULT") // "DEFAULT", "GOLD", "DIAMOND", "RUBY", "EMERALD", "VOID"
+  steamId     String? @unique
+  totalHours  Int     @default(0)
+  countryCode String?
 
-  rating        Int       @default(1000) // ELO
-  rank          String    @default("Unranked")
-  role          String    @default("Newcomer")
-  
-  wins          Int       @default(0)
-  losses        Int       @default(0)
-  winRate       Float     @default(0.0)
-  
+  // Customization
+  mainSide       String? // "SURVIVOR", "INFECTED", "BOTH"
+  survivorWeapon String? // "SMG", "SHOTGUN", "BOTH"
+
+  communication String? // "MIC_ACTIVE", "ONLY_INFO", "LISTEN", "NO_MIC"
+  skillLevel    String? // "CASUAL", "SEMI_COMP", "COMPETITIVE", "TOURNAMENT"
+  bio           String? // Max 140 chars
+
+  isPremium    Boolean @default(false)
+  profileTheme String  @default("DEFAULT") // "DEFAULT", "GOLD", "DIAMOND", "RUBY", "EMERALD", "VOID"
+
+  rating Int    @default(1000) // ELO
+  rank   String @default("Unranked")
+  role   String @default("Newcomer")
+
+  wins    Int   @default(0)
+  losses  Int   @default(0)
+  winRate Float @default(0.0)
+
   // Relations
-  teamId        String?
-  team          Team?     @relation(fields: [teamId], references: [id])
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  messages      Message[]
+  teamId String?
+  team   Team?   @relation(fields: [teamId], references: [id])
+
+  // Matchmaking relations
+  queueEntries QueueEntry[]  @relation("QueueEntries")
+  matchPlayers MatchPlayer[] @relation("MatchPlayers")
+  bans         Ban[]         @relation("Bans")
+  banCount     Int           @default(0) // Para penalidades progresivas
+  mapVotes     MapVote[]     @relation("MapVotes")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages Message[] @relation("Messages")
 }
 
 model Team {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  tag         String   @unique
-  logoUrl     String?
-  description String?
+  id           String  @id @default(cuid())
+  name         String  @unique
+  tag          String  @unique
+  logoUrl      String?
+  description  String?
   countryCodes String? // Comma separated ISO codes: "MX,PE,AR"
-  maxMembers    Int      @default(5)
-  
-  ownerId     String // Captain SteamID
-  
-  members     User[]
-  
-  rating      Int      @default(1000)
-  wins        Int      @default(0)
-  losses      Int      @default(0)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  maxMembers   Int     @default(5)
+
+  ownerId String // Captain SteamID
+
+  members User[]
+
+  rating Int @default(1000)
+  wins   Int @default(0)
+  losses Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// MATCHMAKING SYSTEM
+
+enum QueueStatus {
+  WAITING
+  MATCHED
+  ACCEPTED
+  DECLINED
+  TIMEOUT
+}
+
+model QueueEntry {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation("QueueEntries", fields: [userId], references: [id], onDelete: Cascade)
+
+  mmr    Int // Para matchmaking
+  status QueueStatus @default(WAITING)
+
+  matchId String?
+  match   Match?  @relation(fields: [matchId], references: [id])
+
+  createdAt DateTime @default(now())
+  expiresAt DateTime // Timeout después de 30 min
+}
+
+enum MatchStatus {
+  VETO // Votando mapas
+  READY // Esperando conexión de jugadores
+  IN_PROGRESS // Partida en curso
+  PAUSED
+  COMPLETED
+  CANCELLED
 }
 
 model Match {
-  id          String   @id @default(cuid())
-  mapName     String
-  winnerTeam  String?  // ID of winning team or "draw"
+  id     String      @id @default(cuid())
+  status MatchStatus @default(VETO)
+
+  // Servidor
+  serverId       String?
+  server         GameServer? @relation(fields: [serverId], references: [id])
+  serverIp       String?
+  serverPort     Int?
+  serverPassword String?
+
+  // Jugadores (8 total)
+  players      MatchPlayer[]
+  queueEntries QueueEntry[]
+
+  // Mapa seleccionado
+  selectedMap String?
+  mapVotes    MapVote[]
+
+  // Resultados
+  team1Score Int     @default(0)
+  team2Score Int     @default(0)
+  winnerId   String? // "team1" o "team2"
+
+  rounds Round[]
+
+  // Timestamps
+  createdAt    DateTime  @default(now())
+  startedAt    DateTime?
+  completedAt  DateTime?
   
-  teamAId     String?
-  teamBId     String?
-  
-  createdAt   DateTime @default(now())
+  // Additional fields
+  cancelReason String?
+  winnerTeam   String? // teamAId or teamBId
+  teamAId      String?
+  teamBId      String?
+  mapName      String?
 }
+
+model MatchPlayer {
+  id      String @id @default(cuid())
+  matchId String
+  match   Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation("MatchPlayers", fields: [userId], references: [id], onDelete: Cascade)
+
+  team      Int // 1 o 2
+  accepted  Boolean @default(false)
+  connected Boolean @default(false)
+
+  // Disconnect tracking
+  disconnectedAt   DateTime?
+  disconnectReason String?
+
+  // Stats finales
+  kills  Int @default(0)
+  damage Int @default(0)
+  deaths Int @default(0)
+
+  roundStats PlayerRoundStats[]
+}
+
+model MapVote {
+  id      String @id @default(cuid())
+  matchId String
+  match   Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation("MapVotes", fields: [userId], references: [id], onDelete: Cascade)
+
+  map String // "c1m1_hotel", "c2m1_highway", etc.
+
+  createdAt DateTime @default(now())
+
+  @@unique([matchId, userId]) // Un voto por jugador
+}
+
+model Round {
+  id      String @id @default(cuid())
+  matchId String
+  match   Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  roundNumber Int // 1-4 (o 1-3 para Dead Center)
+  map         String
+
+  team1Score Int @default(0)
+  team2Score Int @default(0)
+
+  playerStats PlayerRoundStats[]
+
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+}
+
+model PlayerRoundStats {
+  id      String @id @default(cuid())
+  roundId String
+  round   Round  @relation(fields: [roundId], references: [id], onDelete: Cascade)
+
+  matchPlayerId String
+  matchPlayer   MatchPlayer @relation(fields: [matchPlayerId], references: [id], onDelete: Cascade)
+
+  kills     Int @default(0)
+  deaths    Int @default(0)
+  damage    Int @default(0)
+  headshots Int @default(0)
+}
+
+// BAN SYSTEM
+
+enum BanReason {
+  AFK_ACCEPT // No aceptó partida
+  NO_JOIN // No se unió al servidor
+  CRASH // Se desconectó durante partida
+  MANUAL // Ban manual por admin
+}
+
+model Ban {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation("Bans", fields: [userId], references: [id], onDelete: Cascade)
+
+  reason   BanReason
+  duration Int // Minutos
+
+  matchId String? // Match relacionado (si aplica)
+
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  active    Boolean  @default(true)
+}
+
+// GAME SERVERS
+
+enum ServerStatus {
+  AVAILABLE
+  IN_USE
+  OFFLINE
+  MAINTENANCE
+}
+
+model GameServer {
+  id           String @id @default(cuid())
+  name         String
+  ipAddress    String
+  port         Int
+  rconPassword String?
+  serverKey    String @unique // For API authentication
+  isActive     Boolean @default(true)
+
+  status         ServerStatus @default(AVAILABLE)
+  currentMatches Match[]
+
+  createdAt DateTime @default(now())
+}
+
+// CHAT SYSTEM
 
 model Message {
   id        String   @id @default(cuid())
   content   String
   createdAt DateTime @default(now())
-  
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation("Messages", fields: [userId], references: [id], onDelete: Cascade)
 }
