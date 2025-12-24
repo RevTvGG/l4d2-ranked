@@ -23,9 +23,17 @@ export function getAuthOptions(req?: NextRequest): NextAuthOptions {
         };
     }
 
+    // Create a valid request object for build time
+    const buildTimeReq = {
+        headers: new Headers(),
+        url: process.env.NEXTAUTH_URL
+            ? `${process.env.NEXTAUTH_URL}/api/auth/callback/steam`
+            : 'http://localhost:3000/api/auth/callback/steam'
+    } as any;
+
     return {
         providers: [
-            provider(req, {
+            provider(req || buildTimeReq, {
                 clientSecret: process.env.STEAM_SECRET!,
                 profile(profile: any) {
                     return {
