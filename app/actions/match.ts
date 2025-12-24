@@ -11,11 +11,11 @@ import { revalidatePath } from 'next/cache';
 export async function acceptMatch(matchId: string) {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.id) {
+    if (!session?.user) {
         return { error: 'No autenticado' };
     }
 
-    const userId = session.user.id;
+    const userId = (session.user as any).id;
 
     // Verificar que el jugador esté en la partida
     const matchPlayer = await prisma.matchPlayer.findFirst({
