@@ -52,9 +52,12 @@ export async function POST() {
             _count: true
         });
 
-        const winningMap = votes.reduce((prev, current) =>
-            current._count > prev._count ? current : prev
-        ).map;
+        // Select winning map (or default if no votes)
+        const winningMap = votes.length > 0
+            ? votes.reduce((prev, current) =>
+                current._count > prev._count ? current : prev
+            ).map
+            : MAPS[0]; // Default to first map if no votes
 
         // Update match with selected map
         await prisma.match.update({
