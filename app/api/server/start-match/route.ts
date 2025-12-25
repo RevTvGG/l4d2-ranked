@@ -83,8 +83,17 @@ export async function POST(request: NextRequest) {
             await rcon.execute(`changelevel ${mapToLoad}`);
             console.log(`[RCON] Changed map to: ${mapToLoad}`);
 
+            // Disconnect because server will restart
+            await rcon.disconnect();
+            console.log('[RCON] Disconnected for map change');
+
             // Wait for map to load completely
-            await new Promise((resolve) => setTimeout(resolve, 8000));
+            console.log('[RCON] Waiting for map to load...');
+            await new Promise((resolve) => setTimeout(resolve, 10000));
+
+            // Reconnect after map loads
+            await rcon.connect();
+            console.log('[RCON] Reconnected after map change');
 
             // Start ZoneMod match menu (equivalent to !match)
             await rcon.execute('sm_match');
