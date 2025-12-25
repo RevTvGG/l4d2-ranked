@@ -18,6 +18,7 @@ export default function PlayPage() {
     const [timeLeft, setTimeLeft] = useState(30);
     const [isAccepted, setIsAccepted] = useState(false);
     const [onlineCount, setOnlineCount] = useState(0);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
     // Redirect if not authenticated (client-side check)
     useEffect(() => {
@@ -33,12 +34,12 @@ export default function PlayPage() {
         const pollInterval = setInterval(async () => {
             try {
                 // Get Queue Status
-                const status = await getQueueStatus(session.user.id);
+                const status = await getQueueStatus();
                 setQueueStatus(status);
 
                 // If match is ready or in progress, get match details
-                if (status?.matchId) {
-                    const match = await getMatch(status.matchId);
+                if (status?.queueEntry?.matchId) {
+                    const match = await getMatch(status.queueEntry.matchId);
                     setMatchData(match);
                 } else {
                     setMatchData(null);
@@ -59,35 +60,46 @@ export default function PlayPage() {
 
     const handleJoinQueue = async () => {
         if (!session?.user) return;
-        await joinQueue(session.user.id);
-        const status = await getQueueStatus(session.user.id);
-        setQueueStatus(status);
+        setErrorMsg(null);
+
+        try {
+            const result = await joinQueue();
+            if (result?.error) {
+                setErrorMsg(result.error);
+                return;
+            }
+            const status = await getQueueStatus();
+            setQueueStatus(status);
+        } catch (e) {
+            setErrorMsg("Error joining queue");
+        }
     };
 
     const handleLeaveQueue = async () => {
         if (!session?.user) return;
-        await leaveQueue(session.user.id);
+        await leaveQueue();
         setQueueStatus(null);
+        setErrorMsg(null);
     };
 
     const handleAcceptMatch = async () => {
-        if (!queueStatus?.matchId) return;
+        if (!queueStatus?.queueEntry?.matchId) return;
         setIsAccepted(true);
-        await acceptMatch(queueStatus.matchId);
+        await acceptMatch(queueStatus.queueEntry.matchId);
     };
 
     const handleVoteMap = async (mapName: string) => {
-        if (!queueStatus?.matchId) return;
-        await voteMap(queueStatus.matchId, mapName);
+        if (!queueStatus?.queueEntry?.matchId) return;
+        await voteMap(queueStatus.queueEntry.matchId, mapName);
         // Refresh match data immediately
-        const match = await getMatch(queueStatus.matchId);
+        const match = await getMatch(queueStatus.queueEntry.matchId);
         setMatchData(match);
     };
 
     if (status === 'loading') return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-brand-green">Loading...</div>;
 
-    const isQueued = queueStatus?.inQueue;
-    const isMatchReady = queueStatus?.matchId && matchData?.status === 'READY';
+    const isQueued = queueStatus?.queueEntry?.status === 'WAITING' || queueStatus?.queueEntry?.status === 'MATCHED';
+    const isMatchReady = queueStatus?.queueEntry?.matchId && matchData?.status === 'READY';
     const isVeto = matchData?.status === 'VETO';
     const isLive = matchData?.status === 'IN_PROGRESS';
 
@@ -140,20 +152,25 @@ export default function PlayPage() {
                                     <div className="h-px bg-white/10"></div>
 
                                     {/* QUEUE ACTION BUTTON */}
-                                    {!queueStatus?.matchId && (
+                                    {errorMsg && (
+                                        <div className="bg-red-500/20 text-red-400 p-3 rounded-lg text-sm text-center border border-red-500/30 mb-2">
+                                            {errorMsg}
+                                        </div>
+                                    )}
+                                    {!queueStatus?.queueEntry?.matchId && (
                                         <button
                                             onClick={isQueued ? handleLeaveQueue : handleJoinQueue}
                                             className={`w-full py-4 font-black uppercase tracking-widest rounded-xl transition-all shadow-lg transform hover:-translate-y-1 ${isQueued
-                                                    ? 'bg-red-500 hover:bg-red-400 text-white shadow-red-500/20'
-                                                    : 'bg-brand-green hover:bg-lime-400 text-black shadow-brand-green/20'
+                                                ? 'bg-red-500 hover:bg-red-400 text-white shadow-red-500/20'
+                                                : 'bg-brand-green hover:bg-lime-400 text-black shadow-brand-green/20'
                                                 }`}
                                         >
-                                            {isQueued ? 'Leave Queue' : 'Find Match'}
+                                            {isQueued ? 'Leave Queue' : 'Buscar Partida'}
                                         </button>
                                     )}
 
                                     {/* MATCH FOUND / ACCEPT */}
-                                    {queueStatus?.matchId && !isVeto && !isLive && !isMatchReady && (
+                                    {queueStatus?.queueEntry?.matchId && !isVeto && !isLive && !isMatchReady && (
                                         <div className="animate-pulse bg-brand-green/20 border border-brand-green/50 p-4 rounded-xl text-center space-y-3">
                                             <div className="text-brand-green font-bold text-xl">MATCH FOUND!</div>
                                             <div className="text-sm text-zinc-300">Accept to join the lobby</div>
@@ -161,8 +178,8 @@ export default function PlayPage() {
                                                 onClick={handleAcceptMatch}
                                                 disabled={isAccepted}
                                                 className={`w-full py-3 font-bold rounded-lg uppercase ${isAccepted
-                                                        ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
-                                                        : 'bg-brand-green text-black hover:scale-105 transition-transform'
+                                                    ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
+                                                    : 'bg-brand-green text-black hover:scale-105 transition-transform'
                                                     }`}
                                             >
                                                 {isAccepted ? 'Waiting for others...' : 'ACCEPT MATCH'}
