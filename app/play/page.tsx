@@ -59,19 +59,36 @@ export default function PlayPage() {
     }, [status, session?.user?.id]);
 
     const handleJoinQueue = async () => {
-        if (!session?.user) return;
+        console.log('[DEBUG] Join Queue clicked');
+        console.log('[DEBUG] Session:', session);
+        console.log('[DEBUG] User:', session?.user);
+
+        if (!session?.user) {
+            console.error('[DEBUG] No session or user');
+            setErrorMsg('Please login first');
+            return;
+        }
+
         setErrorMsg(null);
+        console.log('[DEBUG] Calling joinQueue...');
 
         try {
             const result = await joinQueue();
+            console.log('[DEBUG] Join queue result:', result);
+
             if (result?.error) {
+                console.error('[DEBUG] Error from joinQueue:', result.error);
                 setErrorMsg(result.error);
                 return;
             }
+
+            // Refresh status
             const status = await getQueueStatus();
+            console.log('[DEBUG] Queue status after join:', status);
             setQueueStatus(status);
         } catch (e) {
-            setErrorMsg("Error joining queue");
+            console.error('[DEBUG] Exception in handleJoinQueue:', e);
+            setErrorMsg('Error joining queue');
         }
     };
 
