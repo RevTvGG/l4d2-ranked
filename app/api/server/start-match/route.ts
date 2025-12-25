@@ -84,25 +84,8 @@ export async function POST(request: NextRequest) {
             const apiUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
             await rcon.execute(`sm_set_match_id ${matchId} ${apiUrl}`);
             console.log(`[RCON] Match ID set: ${matchId}`);
-
-            // Announce match
-            await rcon.say(`[Ranked] Match ${matchId.substring(0, 8)} starting...`);
-            await rcon.say(`[Ranked] ${steamIds.length} players whitelisted`);
-
-            // Execute ranked config (if exists)
-            try {
-                await rcon.executeConfig('ranked.cfg');
-                console.log('[RCON] Loaded ranked.cfg');
-            } catch (e) {
-                console.log('[RCON] ranked.cfg not found, skipping');
-            }
-
-            // Wait for config to load
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-
-            // Change to match map
-            await rcon.changeMap(mapToLoad);
-            console.log(`[RCON] Changed map to: ${mapToLoad}`);
+            await rcon.execute(`sm_set_match_id ${match.id} ${apiUrl}`);
+            console.log('[RCON] Configured match reporter');
 
             // Disconnect
             await rcon.disconnect();
