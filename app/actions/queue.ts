@@ -1,3 +1,5 @@
+'use server';
+
 // Queue Management and Match Creation Logic
 
 import { prisma } from '@/lib/prisma';
