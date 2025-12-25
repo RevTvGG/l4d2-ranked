@@ -3,7 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { balanceTeams } from '@/lib/matchmaking/teamBalancer';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 
 /**
  * Check queue for 8+ waiting players and create match
@@ -257,3 +257,59 @@ export async function leaveQueue() {
 
     return { success: true };
 }
+
+/**
+ * Get queue status for current user
+ */
+export async function getQueueStatus() {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return null;
+
+    const queueEntry = await prisma.queueEntry.findFirst({
+        where: {
+            userId: session.user.id,
+            status: { in: ['WAITING', 'READY_CHECK'] },
+        },
+        include: {
+            match: true,
+        },
+    });
+
+    return queueEntry;
+}
+
+/**
+ * Join queue
+ */
+export async function joinQueue() {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) throw new Error('Not authenticated');
+
+    // Check if already in queue
+    const existing = await prisma.queueEntry.findFirst({
+        where: {
+            userId: session.user.id,
+            status: { in: ['WAITING', 'READY_CHECK'] },
+        },
+    });
+
+    if (existing) {
+        return { success: true, message: 'Already in queue' };
+    }
+
+    // Create queue entry
+    await prisma.queueEntry.create({
+        data: {
+            userId: session.user.id,
+            status: 'WAITING',
+            mmr: session.user.rating || 1000,
+            expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
+        },
+    });
+
+    // Check if we can create a match
+    await checkQueueAndCreateMatch();
+
+    return { success: true, message: 'Joined queue' };
+}
+```
