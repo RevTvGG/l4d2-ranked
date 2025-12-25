@@ -79,32 +79,19 @@ export async function POST(request: NextRequest) {
             // Connect to server
             await rcon.connect();
 
-            // Change to match map first
+            // Load ranked config first (this will force ZoneMod)
+            await rcon.execute('exec ranked.cfg');
+            console.log('[RCON] Loaded ranked.cfg');
+
+            // Wait for config to load
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+
+            // Change to match map
             await rcon.execute(`changelevel ${mapToLoad}`);
             console.log(`[RCON] Changed map to: ${mapToLoad}`);
 
             // Wait for map to load
             await new Promise((resolve) => setTimeout(resolve, 5000));
-
-            // Start ZoneMod match (equivalent to !match in chat)
-            await rcon.execute('sm_match');
-            console.log('[RCON] Started ZoneMod match menu');
-
-            // Wait for menu
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-
-            // Select ZoneMod config (option 1)
-            await rcon.execute('sm_match 1');
-            console.log('[RCON] Selected ZoneMod config');
-
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            // Confirm selection (option 1 again)
-            await rcon.execute('sm_match 1');
-            console.log('[RCON] Confirmed ZoneMod config');
-
-            // Wait for ZoneMod to load
-            await new Promise((resolve) => setTimeout(resolve, 2000));
 
             // Set match whitelist (restrict server to match players only)
             const whitelistCmd = `sm_set_match_players ${matchId} ${steamIds.join(' ')}`;
