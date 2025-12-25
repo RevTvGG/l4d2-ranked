@@ -3,13 +3,22 @@ import { prisma } from '@/lib/prisma';
 import { verifyServerKey, errorResponse, successResponse } from '@/lib/serverAuth';
 
 /**
- * GET /api/server/check-match
+ * POST /api/server/check-match
  * Server polls this endpoint to check if there's a match assigned to it
  */
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
     try {
-        const { searchParams } = new URL(request.url);
-        const serverKey = searchParams.get('serverKey');
+        let serverKey: string | null = null;
+
+        // Try parsing JSON first
+        if (request.headers.get('content-type')?.includes('application/json')) {
+            const body = await request.json();
+            serverKey = body.server_key; // Note: plugin uses underscore
+        } else {
+            // Fallback to FormData (SteamWorks default)
+            const formData = await request.formData();
+            serverKey = formData.get('server_key') as string;
+        }
 
         // Verify server authentication
         const server = await verifyServerKey(serverKey || '');
