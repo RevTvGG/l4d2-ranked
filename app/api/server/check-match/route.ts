@@ -9,15 +9,16 @@ import { verifyServerKey, errorResponse, successResponse } from '@/lib/serverAut
 export async function POST(request: NextRequest) {
     try {
         let serverKey: string | null = null;
+        const text = await request.text();
 
-        // Try parsing JSON first
-        if (request.headers.get('content-type')?.includes('application/json')) {
-            const body = await request.json();
-            serverKey = body.server_key; // Note: plugin uses underscore
-        } else {
-            // Fallback to FormData (SteamWorks default)
-            const formData = await request.formData();
-            serverKey = formData.get('server_key') as string;
+        try {
+            // Try parsing as JSON first
+            const json = JSON.parse(text);
+            serverKey = json.server_key;
+        } catch {
+            // If failed, try parsing as URLSearchParams (form data)
+            const params = new URLSearchParams(text);
+            serverKey = params.get('server_key');
         }
 
         // Verify server authentication
