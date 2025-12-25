@@ -144,6 +144,12 @@ export default function PlayPage() {
                                         <span className="text-brand-green font-mono font-bold">{onlineCount}</span>
                                     </div>
                                     <div className="flex justify-between items-center text-sm">
+                                        <span className="text-zinc-400">Players in Queue</span>
+                                        <span className="text-brand-green font-mono font-bold">
+                                            {queueStatus?.totalInQueue || 0}/8
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
                                         <span className="text-zinc-400">Active Matches</span>
                                         <span className="text-brand-green font-mono font-bold">
                                             {queueStatus?.activeMatches || 0}

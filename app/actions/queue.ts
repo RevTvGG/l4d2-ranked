@@ -208,6 +208,13 @@ export async function getQueueStatus() {
         }
     });
 
+    // Count active matches
+    const activeMatches = await prisma.match.count({
+        where: {
+            status: { in: ['VETO', 'READY', 'IN_PROGRESS', 'PAUSED'] }
+        }
+    });
+
     // Obtener info del usuario actual
     const currentUser = await prisma.user.findUnique({
         where: { id: userId },
@@ -222,7 +229,8 @@ export async function getQueueStatus() {
     return {
         queueEntry,
         totalInQueue,
-        match: queueEntry.match,
+        activeMatches,
+        match: queueEntry?.match,
         currentUser
     };
 }
