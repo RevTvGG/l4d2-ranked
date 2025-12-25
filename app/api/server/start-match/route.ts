@@ -79,7 +79,14 @@ export async function POST(request: NextRequest) {
             // Connect to server
             await rcon.connect();
 
-            // Change to match map first
+            // Load ranked config (forces ZoneMod)
+            await rcon.execute('exec ranked.cfg');
+            console.log('[RCON] Loaded ranked.cfg with ZoneMod');
+
+            // Wait for config to apply
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+
+            // Change to match map
             await rcon.execute(`changelevel ${mapToLoad}`);
             console.log(`[RCON] Changed map to: ${mapToLoad}`);
 
@@ -89,34 +96,13 @@ export async function POST(request: NextRequest) {
 
             // Wait for map to load completely
             console.log('[RCON] Waiting for map to load...');
-            await new Promise((resolve) => setTimeout(resolve, 10000));
+            await new Promise((resolve) => setTimeout(resolve, 12000));
 
             // Reconnect after map loads
             await rcon.connect();
             console.log('[RCON] Reconnected after map change');
 
-            // Start ZoneMod match menu (equivalent to !match)
-            await rcon.execute('sm_match');
-            console.log('[RCON] Opened match menu');
-
-            // Wait for menu to appear
-            await new Promise((resolve) => setTimeout(resolve, 3000));
-
-            // Select ZoneMod (option 1)
-            await rcon.execute('sm_match 1');
-            console.log('[RCON] Selected ZoneMod');
-
-            // Wait for version menu
-            await new Promise((resolve) => setTimeout(resolve, 3000));
-
-            // Select latest version (option 1)
-            await rcon.execute('sm_match 1');
-            console.log('[RCON] Selected latest ZoneMod version');
-
-            // Wait for ZoneMod to fully load
-            await new Promise((resolve) => setTimeout(resolve, 5000));
-
-            // Set match whitelist
+            // Set match whitelist with real player SteamIDs
             const whitelistCmd = `sm_set_match_players ${matchId} ${steamIds.join(' ')}`;
             await rcon.execute(whitelistCmd);
             console.log(`[RCON] Whitelist set for ${steamIds.length} players`);
