@@ -270,28 +270,34 @@ export async function getQueueStatus() {
     const queueEntry = await prisma.queueEntry.findFirst({
         where: {
             userId: session.user.id,
-            status: { in: ['WAITING', 'READY_CHECK'] },
+            status: { in: ['WAITING', 'READY_CHECK', 'MATCHED'] },
         },
         include: {
             match: true,
         },
     });
 
-    return queueEntry;
+    // Return queue entry with all its properties
+    if (queueEntry) {
+        return queueEntry;
+    }
+
+    // Return null if not in queue
+    return null;
 }
 
 /**
- * Join queue
+ * Join the matchmaking queue
  */
 export async function joinQueue() {
     const session = await getServerSession(authOptions);
-    if (!session?.user) throw new Error('Not authenticated');
+    if (!session?.user) return { success: false, message: 'Not authenticated' };
 
     // Check if already in queue
     const existing = await prisma.queueEntry.findFirst({
         where: {
             userId: session.user.id,
-            status: { in: ['WAITING', 'READY_CHECK'] },
+            status: { in: ['WAITING', 'READY_CHECK', 'MATCHED'] },
         },
     });
 
@@ -299,12 +305,18 @@ export async function joinQueue() {
         return { success: true, message: 'Already in queue' };
     }
 
+    // Get user rating for MMR
+    const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { rating: true },
+    });
+
     // Create queue entry
     await prisma.queueEntry.create({
         data: {
             userId: session.user.id,
             status: 'WAITING',
-            mmr: session.user.rating || 1000,
+            mmr: user?.rating || 1000,
             expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
         },
     });
