@@ -75,6 +75,33 @@ export async function POST(request: NextRequest) {
             // Connect to server
             await rcon.connect();
 
+            // Change to match map first
+            await rcon.execute(`changelevel ${mapToLoad}`);
+            console.log(`[RCON] Changed map to: ${mapToLoad}`);
+
+            // Wait for map to load
+            await new Promise((resolve) => setTimeout(resolve, 5000));
+
+            // Start ZoneMod match (equivalent to !match in chat)
+            await rcon.execute('sm_match');
+            console.log('[RCON] Started ZoneMod match menu');
+
+            // Wait for menu
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
+            // Select ZoneMod config (option 1)
+            await rcon.execute('sm_match 1');
+            console.log('[RCON] Selected ZoneMod config');
+
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+
+            // Confirm selection (option 1 again)
+            await rcon.execute('sm_match 1');
+            console.log('[RCON] Confirmed ZoneMod config');
+
+            // Wait for ZoneMod to load
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
             // Set match whitelist (restrict server to match players only)
             const whitelistCmd = `sm_set_match_players ${matchId} ${steamIds.join(' ')}`;
             await rcon.execute(whitelistCmd);
@@ -84,8 +111,6 @@ export async function POST(request: NextRequest) {
             const apiUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
             await rcon.execute(`sm_set_match_id ${matchId} ${apiUrl}`);
             console.log(`[RCON] Match ID set: ${matchId}`);
-            await rcon.execute(`sm_set_match_id ${match.id} ${apiUrl}`);
-            console.log('[RCON] Configured match reporter');
 
             // Disconnect
             await rcon.disconnect();
