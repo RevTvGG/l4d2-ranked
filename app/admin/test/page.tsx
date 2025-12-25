@@ -350,8 +350,8 @@ export default function AdminTestPage() {
                         <h3 className="font-bold text-lg">📖 How to Use</h3>
                         <div className="space-y-2 text-sm text-zinc-400">
                             <p><strong className="text-white">Individual Tests:</strong> Run steps 1-4 in order to test each phase separately</p>
-                            <p><strong className="text-white">Complete Flow:</strong> Click "Run Complete Flow Test" to simulate the entire matchmaking process automatically</p>
-                            <p><strong className="text-white">Cleanup:</strong> Use "Cleanup Test Data" to remove all test players and matches from the database</p>
+                            <p><strong className="text-white">Complete Flow:</strong> Click &quot;Run Complete Flow Test&quot; to simulate the entire matchmaking process automatically</p>
+                            <p><strong className="text-white">Cleanup:</strong> Use &quot;Cleanup Test Data&quot; to remove all test players and matches from the database</p>
                         </div>
                     </div>
                 </div>
