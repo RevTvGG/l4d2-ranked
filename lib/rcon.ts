@@ -14,7 +14,7 @@ class RconService {
     constructor(config: RconConfig) {
         this.config = {
             ...config,
-            timeout: config.timeout || 5000,
+            timeout: config.timeout || 10000, // Increased to 10 seconds for menu operations
         };
     }
 

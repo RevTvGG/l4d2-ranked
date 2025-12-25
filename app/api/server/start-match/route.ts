@@ -79,26 +79,40 @@ export async function POST(request: NextRequest) {
             // Connect to server
             await rcon.connect();
 
-            // Load ranked config first (this will force ZoneMod)
-            await rcon.execute('exec ranked.cfg');
-            console.log('[RCON] Loaded ranked.cfg');
-
-            // Wait for config to load
-            await new Promise((resolve) => setTimeout(resolve, 3000));
-
-            // Change to match map
+            // Change to match map first
             await rcon.execute(`changelevel ${mapToLoad}`);
             console.log(`[RCON] Changed map to: ${mapToLoad}`);
 
-            // Wait for map to load
+            // Wait for map to load completely
+            await new Promise((resolve) => setTimeout(resolve, 8000));
+
+            // Start ZoneMod match menu (equivalent to !match)
+            await rcon.execute('sm_match');
+            console.log('[RCON] Opened match menu');
+
+            // Wait for menu to appear
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+
+            // Select ZoneMod (option 1)
+            await rcon.execute('sm_match 1');
+            console.log('[RCON] Selected ZoneMod');
+
+            // Wait for version menu
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+
+            // Select latest version (option 1)
+            await rcon.execute('sm_match 1');
+            console.log('[RCON] Selected latest ZoneMod version');
+
+            // Wait for ZoneMod to fully load
             await new Promise((resolve) => setTimeout(resolve, 5000));
 
-            // Set match whitelist (restrict server to match players only)
+            // Set match whitelist
             const whitelistCmd = `sm_set_match_players ${matchId} ${steamIds.join(' ')}`;
             await rcon.execute(whitelistCmd);
             console.log(`[RCON] Whitelist set for ${steamIds.length} players`);
 
-            // Set match ID for reporter plugin
+            // Set match ID for reporter
             const apiUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
             await rcon.execute(`sm_set_match_id ${matchId} ${apiUrl}`);
             console.log(`[RCON] Match ID set: ${matchId}`);
