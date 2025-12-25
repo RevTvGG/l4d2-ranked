@@ -312,4 +312,3 @@ export async function joinQueue() {
 
     return { success: true, message: 'Joined queue' };
 }
-```
