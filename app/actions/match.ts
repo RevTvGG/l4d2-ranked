@@ -1,10 +1,11 @@
 'use server';
 
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { revalidatePath } from 'next/cache';
 
+// Get match details
 export async function getMatch(matchId: string) {
     const session = await getServerSession(authOptions);
     if (!session?.user) return null;
