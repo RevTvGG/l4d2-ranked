@@ -20,24 +20,75 @@ export async function checkQueueAndCreateMatch() {
     });
 
     if (waitingPlayers.length < 8) {
-        return { message: 'Not enough players', count: waitingPlayers.length };
+        return; // Not enough players
     }
 
-    // Create pre-match (ready check phase)
+    console.log(`[Queue] Found ${waitingPlayers.length} waiting players, creating match...`);
+
+    // Balance teams
+    const players = waitingPlayers.map(entry => ({
+        id: entry.user.id,
+        name: entry.user.name,
+        rating: entry.user.rating,
+        steamId: entry.user.steamId || undefined
+    }));
+
+    const { teamA, teamB } = balanceTeams(players as any);
+
+    // Get available server
+    const server = await prisma.gameServer.findFirst({
+        where: { isActive: true }
+    });
+
+    if (!server) {
+        console.error('[Queue] No active game server available');
+        return;
+    }
+
+    // Create match with server assigned
     const match = await prisma.match.create({
         data: {
             status: 'READY_CHECK',
-            queueEntries: {
-                connect: waitingPlayers.map((p) => ({ id: p.id })),
-            },
+            serverId: server.id,
+            serverIp: server.ip,
+            serverPort: server.port,
+            serverPassword: Math.random().toString(36).substring(2, 10),
         },
     });
 
-    // Update queue entries to ready check status
+    console.log(`[Queue] Created match ${match.id} on server ${server.ip}:${server.port}`);
+
+    // Create match players with team assignments
+    for (const player of teamA) {
+        await prisma.matchPlayer.create({
+            data: {
+                matchId: match.id,
+                userId: player.id,
+                team: 'TEAM_A',
+            },
+        });
+    }
+
+    for (const player of teamB) {
+        await prisma.matchPlayer.create({
+            data: {
+                matchId: match.id,
+                userId: player.id,
+                team: 'TEAM_B',
+            },
+        });
+    }
+
+    // Update queue entries to MATCHED status
     await prisma.queueEntry.updateMany({
-        where: { id: { in: waitingPlayers.map((p) => p.id) } },
-        data: { status: 'READY_CHECK', matchId: match.id },
+        where: { id: { in: waitingPlayers.map(p => p.id) } },
+        data: {
+            status: 'MATCHED',
+            matchId: match.id
+        },
     });
+
+    console.log(`[Queue] Match ${match.id} created with ${teamA.length + teamB.length} players`);
 
     // Start 30-second ready timer
     setTimeout(() => checkReadyTimeout(match.id), 30000);
@@ -137,38 +188,13 @@ export async function readyUp(matchId: string) {
 async function proceedToMapVoting(matchId: string) {
     const match = await prisma.match.findUnique({
         where: { id: matchId },
-        include: { queueEntries: { include: { user: true } } },
+        include: { matchPlayers: { include: { user: true } } }, // Use matchPlayers
     });
 
     if (!match) return;
 
-    // Balance teams using ELO algorithm
-    const players = match.queueEntries.map((q) => ({
-        id: q.userId,
-        name: q.user.name || 'Unknown',
-        rating: q.user.rating,
-        steamId: q.user.steamId,
-    }));
-
-    const { teamA, teamB, avgEloA, avgEloB, eloDifference } = balanceTeams(players);
-
-    // Create MatchPlayer records with team assignments
-    await prisma.matchPlayer.createMany({
-        data: [
-            ...teamA.map((p) => ({
-                matchId,
-                userId: p.id,
-                team: 'TEAM_A',
-            })),
-            ...teamB.map((p) => ({
-                matchId,
-                userId: p.id,
-                team: 'TEAM_B',
-            })),
-        ],
-    });
-
-    // Update match status to map voting
+    // Teams are already balanced and assigned in checkQueueAndCreateMatch
+    // Just update match status to map voting
     await prisma.match.update({
         where: { id: matchId },
         data: { status: 'VETO' },
