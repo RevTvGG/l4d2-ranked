@@ -1,404 +1,259 @@
-'use server';
+// Queue Management and Match Creation Logic
 
 import { prisma } from '@/lib/prisma';
+import { balanceTeams } from '@/lib/matchmaking/teamBalancer';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { revalidatePath } from 'next/cache';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 /**
- * Join the matchmaking queue
+ * Check queue for 8+ waiting players and create match
+ * Called periodically (every 5 seconds via cron or polling)
  */
-export async function joinQueue() {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user) {
-        return { error: 'No autenticado' };
-    }
-
-    // @ts-ignore - steamId is custom field
-    const steamId = session.user.steamId;
-
-    if (!steamId) {
-        return { error: 'SteamID no encontrado' };
-    }
-
-    // Obtener usuario de la base de datos
-    const user = await prisma.user.findUnique({
-        where: { steamId },
-        select: { id: true, rating: true }
-    });
-
-    if (!user) {
-        return { error: 'Usuario no encontrado en la base de datos' };
-    }
-
-    const userId = user.id;
-
-    // Verificar si está baneado
-    const activeBan = await prisma.ban.findFirst({
-        where: {
-            userId,
-            active: true,
-            expiresAt: { gt: new Date() }
-        }
-    });
-
-    if (activeBan) {
-        const remainingMinutes = Math.ceil(
-            (activeBan.expiresAt.getTime() - Date.now()) / (60 * 1000)
-        );
-        return {
-            error: `Estás baneado por ${remainingMinutes} minutos más. Razón: ${getBanReasonText(activeBan.reason)}`
-        };
-    }
-
-    // Verificar si ya está en cola
-    const existingEntry = await prisma.queueEntry.findFirst({
-        where: {
-            userId,
-            status: { in: ['WAITING', 'MATCHED'] }
-        }
-    });
-
-    if (existingEntry) {
-        return { error: 'Ya estás en la cola' };
-    }
-
-    // Verificar si ya está en una partida activa
-    const activeMatch = await prisma.matchPlayer.findFirst({
-        where: {
-            userId,
-            match: {
-                status: { in: ['VETO', 'READY', 'IN_PROGRESS', 'PAUSED'] }
-            }
-        },
-        include: { match: true }
-    });
-
-    if (activeMatch) {
-        return {
-            error: 'Ya estás en una partida activa',
-            matchId: activeMatch.matchId
-        };
-    }
-
-    // Crear entrada en cola
-    const queueEntry = await prisma.queueEntry.create({
-        data: {
-            userId,
-            mmr: user.rating,
-            status: 'WAITING',
-            expiresAt: new Date(Date.now() + 30 * 60 * 1000) // 30 minutos
-        }
-    });
-
-    // Intentar encontrar match
-    await findMatch();
-
-    revalidatePath('/play');
-
-    return { success: true, queueEntry };
-}
-
-/**
- * Leave the matchmaking queue
- */
-export async function leaveQueue() {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user) {
-        return { error: 'No autenticado' };
-    }
-
-    // @ts-ignore - steamId is custom field
-    const steamId = session.user.steamId;
-
-    if (!steamId) {
-        return { error: 'SteamID no encontrado' };
-    }
-
-    // Obtener usuario de la base de datos
-    const user = await prisma.user.findUnique({
-        where: { steamId },
-        select: { id: true }
-    });
-
-    if (!user) {
-        return { error: 'Usuario no encontrado' };
-    }
-
-    const userId = user.id;
-
-    // Eliminar entrada de cola
-    await prisma.queueEntry.deleteMany({
-        where: {
-            userId,
-            status: 'WAITING'
-        }
-    });
-
-    revalidatePath('/play');
-
-    return { success: true };
-}
-
-/**
- * Get current queue status
- */
-export async function getQueueStatus() {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user) {
-        return null;
-    }
-
-    // @ts-ignore - steamId is custom field
-    const steamId = session.user.steamId;
-
-    if (!steamId) {
-        return null;
-    }
-
-    // Obtener usuario de la base de datos
-    const user = await prisma.user.findUnique({
-        where: { steamId },
-        select: { id: true }
-    });
-
-    if (!user) {
-        return null;
-    }
-
-    const userId = user.id;
-
-    // Buscar entrada en cola
-    const queueEntry = await prisma.queueEntry.findFirst({
-        where: {
-            userId,
-            status: { in: ['WAITING', 'MATCHED'] }
-        },
-        include: {
-            match: {
-                include: {
-                    players: {
-                        include: {
-                            user: {
-                                select: {
-                                    id: true,
-                                    name: true,
-                                    image: true,
-                                    rating: true
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    });
-
-    if (!queueEntry) {
-        return null;
-    }
-
-    // Contar jugadores en cola
-    const totalInQueue = await prisma.queueEntry.count({
-        where: {
-            status: 'WAITING'
-        }
-    });
-
-    // Count active matches
-    const activeMatches = await prisma.match.count({
-        where: {
-            status: { in: ['VETO', 'READY', 'IN_PROGRESS', 'PAUSED'] }
-        }
-    });
-
-    // Obtener info del usuario actual
-    const currentUser = await prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-            id: true,
-            name: true,
-            image: true,
-            rating: true
-        }
-    });
-
-    return {
-        queueEntry,
-        totalInQueue,
-        activeMatches,
-        match: queueEntry?.match,
-        currentUser
-    };
-}
-
-/**
- * Find match for waiting players
- */
-export async function findMatch() {
-    // Obtener jugadores en espera
+export async function checkQueueAndCreateMatch() {
     const waitingPlayers = await prisma.queueEntry.findMany({
-        where: {
-            status: 'WAITING',
-            expiresAt: { gt: new Date() }
-        },
+        where: { status: 'WAITING' },
+        include: { user: true },
         orderBy: { createdAt: 'asc' },
-        include: {
-            user: {
-                select: {
-                    id: true,
-                    name: true,
-                    rating: true
-                }
-            }
-        }
+        take: 8,
     });
 
-    // Necesitamos al menos 8 jugadores
     if (waitingPlayers.length < 8) {
-        return { success: false, message: 'No hay suficientes jugadores' };
+        return { message: 'Not enough players', count: waitingPlayers.length };
     }
 
-    // Ordenar por MMR
-    waitingPlayers.sort((a, b) => a.mmr - b.mmr);
-
-    // Tomar los primeros 8 jugadores con MMR similar
-    const matched = waitingPlayers.slice(0, 8);
-
-    // Verificar que la diferencia de MMR no sea muy grande
-    const mmrDiff = matched[7].mmr - matched[0].mmr;
-    if (mmrDiff > 500) {
-        return { success: false, message: 'Diferencia de MMR muy grande' };
-    }
-
-    // Crear match
+    // Create pre-match (ready check phase)
     const match = await prisma.match.create({
         data: {
-            status: 'VETO',
-            players: {
-                create: matched.map((entry, index) => ({
-                    userId: entry.userId,
-                    team: index < 4 ? 1 : 2, // Primeros 4 en team 1, resto en team 2
-                    accepted: false,
-                    connected: false
-                }))
-            }
-        }
-    });
-
-    // Actualizar queue entries
-    await prisma.queueEntry.updateMany({
-        where: {
-            id: { in: matched.map(p => p.id) }
+            status: 'READY_CHECK',
+            queueEntries: {
+                connect: waitingPlayers.map((p) => ({ id: p.id })),
+            },
         },
-        data: {
-            status: 'MATCHED',
-            matchId: match.id
-        }
     });
 
-    // Programar timeout de aceptación (30 segundos)
-    setTimeout(() => checkAcceptanceTimeout(match.id), 30 * 1000);
+    // Update queue entries to ready check status
+    await prisma.queueEntry.updateMany({
+        where: { id: { in: waitingPlayers.map((p) => p.id) } },
+        data: { status: 'READY_CHECK', matchId: match.id },
+    });
 
-    revalidatePath('/play');
+    // Start 30-second ready timer
+    setTimeout(() => checkReadyTimeout(match.id), 30000);
 
-    return { success: true, matchId: match.id };
+    return { matchId: match.id, message: 'Ready check started', players: 8 };
 }
 
 /**
- * Check if all players accepted the match
+ * Check if all players are ready after 30 seconds
+ * If not all ready: kick non-ready players, ban them, retry with next players
  */
-async function checkAcceptanceTimeout(matchId: string) {
+async function checkReadyTimeout(matchId: string) {
     const match = await prisma.match.findUnique({
         where: { id: matchId },
-        include: { players: true }
+        include: { queueEntries: { include: { user: true } } },
     });
 
-    if (!match || match.status !== 'VETO') {
-        return; // Match ya fue procesado
+    if (!match) return;
+
+    const readyPlayers = match.queueEntries.filter((q) => q.isReady);
+    const notReadyPlayers = match.queueEntries.filter((q) => !q.isReady);
+
+    if (readyPlayers.length === 8) {
+        // All ready! Proceed to team balancing and map voting
+        await proceedToMapVoting(matchId);
+        return;
     }
 
-    // Verificar si todos aceptaron
-    const allAccepted = match.players.every(p => p.accepted);
+    // Kick non-ready players from queue
+    await prisma.queueEntry.updateMany({
+        where: { id: { in: notReadyPlayers.map((p) => p.id) } },
+        data: { status: 'TIMEOUT' },
+    });
 
-    if (allAccepted) {
-        return; // Todos aceptaron, continuar con veto
-    }
-
-    // Encontrar jugadores que no aceptaron
-    const afkPlayers = match.players.filter(p => !p.accepted);
-
-    // Banear jugadores AFK
-    for (const player of afkPlayers) {
+    // Ban AFKers for 5 minutes
+    for (const player of notReadyPlayers) {
         await prisma.ban.create({
             data: {
                 userId: player.userId,
                 reason: 'AFK_ACCEPT',
                 duration: 5,
-                matchId: match.id,
                 expiresAt: new Date(Date.now() + 5 * 60 * 1000),
-                active: true
-            }
-        });
-
-        // Incrementar contador de bans
-        await prisma.user.update({
-            where: { id: player.userId },
-            data: { banCount: { increment: 1 } }
+            },
         });
     }
 
-    // Cancelar match
+    // Cancel this match
     await prisma.match.update({
         where: { id: matchId },
-        data: { status: 'CANCELLED' }
+        data: {
+            status: 'CANCELLED',
+            cancelReason: 'Not all players ready',
+        },
     });
 
-    // Devolver jugadores que sí aceptaron a la cola
-    const acceptedPlayers = match.players.filter(p => p.accepted);
-    for (const player of acceptedPlayers) {
-        const user = await prisma.user.findUnique({
-            where: { id: player.userId },
-            select: { rating: true }
-        });
+    console.log(`[Queue] Match ${matchId} cancelled - ${notReadyPlayers.length} players not ready`);
 
-        if (user) {
-            await prisma.queueEntry.create({
-                data: {
-                    userId: player.userId,
-                    mmr: user.rating,
-                    status: 'WAITING',
-                    expiresAt: new Date(Date.now() + 30 * 60 * 1000)
-                }
-            });
-        }
-    }
-
-    // Eliminar queue entries del match cancelado
-    await prisma.queueEntry.deleteMany({
-        where: { matchId }
-    });
-
-    revalidatePath('/play');
+    // Retry with next players in queue
+    await checkQueueAndCreateMatch();
 }
 
 /**
- * Helper function to get ban reason text
+ * Player ready-up action
  */
-function getBanReasonText(reason: string): string {
-    switch (reason) {
-        case 'AFK_ACCEPT':
-            return 'No aceptaste la partida a tiempo';
-        case 'NO_JOIN':
-            return 'No te uniste al servidor en 5 minutos';
-        case 'CRASH':
-            return 'Te desconectaste durante una partida';
-        case 'MANUAL':
-            return 'Ban manual por administrador';
-        default:
-            return 'Razón desconocida';
+export async function readyUp(matchId: string) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) throw new Error('Not authenticated');
+
+    await prisma.queueEntry.updateMany({
+        where: {
+            matchId,
+            userId: session.user.id,
+        },
+        data: { isReady: true },
+    });
+
+    // Check if all ready
+    const match = await prisma.match.findUnique({
+        where: { id: matchId },
+        include: { queueEntries: true },
+    });
+
+    const allReady = match?.queueEntries.every((q) => q.isReady);
+
+    if (allReady && match) {
+        // All ready before timeout! Proceed immediately
+        await proceedToMapVoting(match.id);
     }
+
+    return { success: true, allReady };
+}
+
+/**
+ * Proceed to map voting phase
+ * Balance teams and change status to VETO
+ */
+async function proceedToMapVoting(matchId: string) {
+    const match = await prisma.match.findUnique({
+        where: { id: matchId },
+        include: { queueEntries: { include: { user: true } } },
+    });
+
+    if (!match) return;
+
+    // Balance teams using ELO algorithm
+    const players = match.queueEntries.map((q) => ({
+        id: q.userId,
+        name: q.user.name || 'Unknown',
+        rating: q.user.rating,
+        steamId: q.user.steamId,
+    }));
+
+    const { teamA, teamB, avgEloA, avgEloB, eloDifference } = balanceTeams(players);
+
+    // Create MatchPlayer records with team assignments
+    await prisma.matchPlayer.createMany({
+        data: [
+            ...teamA.map((p) => ({
+                matchId,
+                userId: p.id,
+                team: 'TEAM_A',
+            })),
+            ...teamB.map((p) => ({
+                matchId,
+                userId: p.id,
+                team: 'TEAM_B',
+            })),
+        ],
+    });
+
+    // Update match status to map voting
+    await prisma.match.update({
+        where: { id: matchId },
+        data: { status: 'VETO' },
+    });
+
+    console.log(`[Queue] Match ${matchId} - Teams balanced (ELO diff: ${eloDifference})`);
+    console.log(`  Team A (${avgEloA}): ${teamA.map((p) => p.name).join(', ')}`);
+    console.log(`  Team B (${avgEloB}): ${teamB.map((p) => p.name).join(', ')}`);
+
+    // Start map voting timer (30 seconds)
+    setTimeout(() => finalizeMapVoting(matchId), 30000);
+}
+
+/**
+ * Vote for a map
+ */
+export async function voteForMap(matchId: string, mapId: string) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) throw new Error('Not authenticated');
+
+    await prisma.mapVote.upsert({
+        where: {
+            matchId_userId: {
+                matchId,
+                userId: session.user.id,
+            },
+        },
+        update: { map: mapId },
+        create: {
+            matchId,
+            userId: session.user.id,
+            map: mapId,
+        },
+    });
+
+    // Check if all players voted
+    const votes = await prisma.mapVote.count({ where: { matchId } });
+    if (votes >= 8) {
+        await finalizeMapVoting(matchId);
+    }
+
+    return { success: true };
+}
+
+/**
+ * Finalize map voting and start match
+ */
+async function finalizeMapVoting(matchId: string) {
+    // Count votes
+    const votes = await prisma.mapVote.groupBy({
+        by: ['map'],
+        where: { matchId },
+        _count: { map: true },
+        orderBy: { _count: { map: 'desc' } },
+    });
+
+    const winningMap = votes[0]?.map || 'c1m1_hotel'; // Default to Dead Center
+
+    // Update match with selected map
+    await prisma.match.update({
+        where: { id: matchId },
+        data: {
+            selectedMap: winningMap,
+            mapName: winningMap,
+            status: 'READY', // Ready to start
+        },
+    });
+
+    console.log(`[Queue] Match ${matchId} - Map selected: ${winningMap}`);
+
+    // Trigger server setup (this will be called by the match start API)
+    // The /api/server/start-match endpoint will handle RCON communication
+}
+
+/**
+ * Leave queue
+ */
+export async function leaveQueue() {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) throw new Error('Not authenticated');
+
+    await prisma.queueEntry.deleteMany({
+        where: {
+            userId: session.user.id,
+            status: { in: ['WAITING', 'READY_CHECK'] },
+        },
+    });
+
+    return { success: true };
 }

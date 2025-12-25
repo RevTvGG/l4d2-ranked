@@ -123,6 +123,7 @@ model Team {
 
 enum QueueStatus {
   WAITING
+  READY_CHECK // New: Ready-up phase
   MATCHED
   ACCEPTED
   DECLINED
@@ -136,6 +137,7 @@ model QueueEntry {
 
   mmr    Int // Para matchmaking
   status QueueStatus @default(WAITING)
+  isReady Boolean @default(false) // Ready-up status
 
   matchId String?
   match   Match?  @relation(fields: [matchId], references: [id])
@@ -145,6 +147,7 @@ model QueueEntry {
 }
 
 enum MatchStatus {
+  READY_CHECK // Waiting for players to ready up
   VETO // Votando mapas
   READY // Esperando conexión de jugadores
   IN_PROGRESS // Partida en curso
@@ -173,9 +176,9 @@ model Match {
   mapVotes    MapVote[]
 
   // Resultados
-  team1Score Int     @default(0)
-  team2Score Int     @default(0)
-  winnerId   String? // "team1" o "team2"
+  teamAScore Int     @default(0)
+  teamBScore Int     @default(0)
+  winnerTeam String? // "TEAM_A" or "TEAM_B"
 
   rounds Round[]
 
@@ -186,9 +189,6 @@ model Match {
   
   // Additional fields
   cancelReason String?
-  winnerTeam   String? // teamAId or teamBId
-  teamAId      String?
-  teamBId      String?
   mapName      String?
 }
 
@@ -200,20 +200,22 @@ model MatchPlayer {
   userId String
   user   User   @relation("MatchPlayers", fields: [userId], references: [id], onDelete: Cascade)
 
-  team      Int // 1 o 2
-  accepted  Boolean @default(false)
-  connected Boolean @default(false)
+  team      String  @default("TEAM_A") // "TEAM_A" or "TEAM_B"
+  hasJoined Boolean @default(false) // Tracked when player connects to server
+
+  // Stats
+  kills     Int @default(0)
+  deaths    Int @default(0)
+  damage    Int @default(0)
+  headshots Int @default(0)
 
   // Disconnect tracking
   disconnectedAt   DateTime?
   disconnectReason String?
 
-  // Stats finales
-  kills  Int @default(0)
-  damage Int @default(0)
-  deaths Int @default(0)
-
   roundStats PlayerRoundStats[]
+
+  @@unique([matchId, userId])
 }
 
 model MapVote {
