@@ -29,7 +29,6 @@ async function addServer() {
         console.log('✅ Server added/updated:', server.id);
         console.log('   Name:', server.name);
         console.log('   IP:', server.ipAddress + ':' + server.port);
-        console.log('   RCON Port:', server.rconPort);
     } catch (error) {
         console.error('❌ Error:', error);
         process.exit(1);
