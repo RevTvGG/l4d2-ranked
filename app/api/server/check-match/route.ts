@@ -1,87 +1,96 @@
-import { NextRequest, NextResponse } from 'next/server';
+
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyServerKey, errorResponse, successResponse } from '@/lib/serverAuth';
+import { z } from 'zod';
+import { verifyServerKey } from '@/lib/serverAuth';
+import { successResponse, errorResponse, validationError, unauthorizedResponse } from '../../../../lib/api-response';
+
+export const dynamic = 'force-dynamic';
+
+// Strict input schema
+const requestSchema = z.object({
+    server_key: z.string().min(1)
+});
 
 /**
  * POST /api/server/check-match
- * Server polls this endpoint to check if there's a match assigned to it
+ * Strictly JSON only. No FormData fallback.
  */
 export async function POST(request: NextRequest) {
     try {
-        let serverKey: string | null = null;
-        const text = await request.text();
+        console.log('DEBUG: DATABASE_URL exists?', !!process.env.DATABASE_URL);
+        console.log('DEBUG: DATABASE_URL length:', process.env.DATABASE_URL?.length);
 
+        // 1. Validate Content-Type
+        if (!request.headers.get('content-type')?.includes('application/json')) {
+            return errorResponse('Content-Type must be application/json', 'INVALID_CONTENT_TYPE', 400);
+        }
+
+        // 2. Parse & Validate Body
+        let body;
         try {
-            // Try parsing as JSON first
-            const json = JSON.parse(text);
-            serverKey = json.server_key;
+            body = await request.json();
         } catch {
-            // If failed, try parsing as URLSearchParams (form data)
-            const params = new URLSearchParams(text);
-            serverKey = params.get('server_key');
+            return errorResponse('Invalid JSON body', 'INVALID_JSON', 400);
         }
 
-        // Verify server authentication
-        const server = await verifyServerKey(serverKey || '');
+        const parseResult = requestSchema.safeParse(body);
+        if (!parseResult.success) {
+            return validationError(parseResult.error);
+        }
+
+        const { server_key } = parseResult.data;
+
+        // 3. Verify Server Auth
+        const server = await verifyServerKey(server_key);
         if (!server) {
-            return errorResponse('Invalid server key', 'UNAUTHORIZED', 401);
+            return unauthorizedResponse();
         }
 
-        // Check if there's a match assigned to this server
+        // 4. Logic: Find READY Match
         const match = await prisma.match.findFirst({
             where: {
                 serverId: server.id,
-                status: 'READY' // Match is ready but not started yet
+                status: 'READY'
             },
             include: {
                 players: {
                     include: {
-                        user: {
-                            select: {
-                                steamId: true,
-                                name: true
-                            }
-                        }
+                        user: { select: { steamId: true, name: true, rating: true } }
                     }
                 }
             }
         });
 
+        // 5. Success Response (Even if no match)
         if (!match) {
             return successResponse({
-                hasMatch: false
+                match_id: null
             });
         }
 
-        // Separate players by team
-        const teamA = match.players
-            .filter(p => p.team === 1)
-            .map(p => ({
-                steamId: p.user.steamId,
-                name: p.user.name
-            }));
-
-        const teamB = match.players
-            .filter(p => p.team === 2)
-            .map(p => ({
-                steamId: p.user.steamId,
-                name: p.user.name
-            }));
+        // 6. Format Match Data
+        const teams = {
+            A: match.players.filter(p => p.team === 1).map(p => ({
+                steam_id: p.user.steamId,
+                name: p.user.name,
+                mmr: p.user.rating
+            })),
+            B: match.players.filter(p => p.team === 2).map(p => ({
+                steam_id: p.user.steamId,
+                name: p.user.name,
+                mmr: p.user.rating
+            }))
+        };
 
         return successResponse({
-            hasMatch: true,
-            match: {
-                id: match.id,
-                mapName: match.mapName || 'c1m1_hotel',
-                teamA,
-                teamB,
-                serverPassword: match.serverPassword || '',
-                readyTimeout: 120
-            }
+            match_id: match.id,
+            map: match.mapName || 'c1m1_hotel',
+            teams
         });
 
     } catch (error) {
-        console.error('Check match error:', error);
-        return errorResponse('Internal server error', 'INTERNAL_ERROR', 500);
+        console.error('[API] /server/check-match failed:', error);
+        return errorResponse('Internal Server Error', 'INTERNAL_ERROR', 500);
     }
 }
