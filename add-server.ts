@@ -17,10 +17,11 @@ async function addServer() {
                 status: 'AVAILABLE',
             },
             create: {
+                serverKey: 'ranked-server-k9cc0n0k4rc',
+                name: 'L4D2 Ranked Server #1',
+                ipAddress: '50.20.249.93',
                 port: 9190,
                 rconPassword: 'server1rankedonlinexx26',
-                rconPort: 9190,
-                serverKey: 'ranked-server-k9cc0n0k4rc',
                 isActive: true,
                 status: 'AVAILABLE',
             },
