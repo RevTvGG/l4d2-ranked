@@ -90,10 +90,8 @@ export async function checkQueueAndCreateMatch() {
 
     console.log(`[Queue] Match ${match.id} created with ${teamA.length + teamB.length} players`);
 
-    // Start 30-second ready timer
-    setTimeout(() => checkReadyTimeout(match.id), 30000);
-
-    return { matchId: match.id, message: 'Ready check started', players: 8 };
+    // Disable ready-check timeout for testing
+    // setTimeout(() => checkReadyTimeout(match.id), 30000);
 }
 
 /**
