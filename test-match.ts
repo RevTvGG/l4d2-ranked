@@ -27,6 +27,15 @@ async function createTestMatch() {
 
         console.log('✅ User found:', user.name);
 
+        console.log('✅ User found:', user.name);
+
+        // CLEANUP: Cancel pending matches to avoid conflicts
+        await prisma.match.updateMany({
+            where: { status: { in: ['VETO', 'READY', 'IN_PROGRESS'] } },
+            data: { status: 'CANCELLED', cancelReason: 'Test script override' }
+        });
+        console.log('🧹 Cleaned up old matches');
+
         // Create simple test match
         const match = await prisma.match.create({
             data: {
@@ -56,6 +65,17 @@ async function createTestMatch() {
                         }
                     }
                 }
+            }
+        });
+
+        // Create Queue Entry so UI sees it
+        await prisma.queueEntry.create({
+            data: {
+                userId: user.id,
+                status: 'MATCHED',
+                matchId: match.id,
+                mmr: user.rating,
+                expiresAt: new Date(Date.now() + 30 * 60 * 1000)
             }
         });
 
