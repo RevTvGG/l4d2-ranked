@@ -105,6 +105,23 @@ export function getAuthOptions(req?: NextRequest): NextAuthOptions {
                     // @ts-expect-error - Custom fields
                     session.user.steamId = token.steamId;
                     session.user.image = token.picture;
+
+                    // Get user ID from database
+                    try {
+                        const { prisma } = await import("@/lib/prisma");
+                        const user = await prisma.user.findUnique({
+                            where: { steamId: token.steamId as string },
+                            select: { id: true, rating: true }
+                        });
+                        if (user) {
+                            // @ts-expect-error - Custom fields
+                            session.user.id = user.id;
+                            // @ts-expect-error - Custom fields
+                            session.user.rating = user.rating;
+                        }
+                    } catch (e) {
+                        console.error("Failed to fetch user ID:", e);
+                    }
                 }
                 return session;
             },
