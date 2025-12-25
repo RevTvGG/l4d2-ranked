@@ -114,8 +114,12 @@ export default function PlayPage() {
     };
 
     if (status === 'loading') return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-brand-green">Loading...</div>;
+    // Check if user is in queue
+    const inQueue = queueStatus?.status === 'WAITING' || queueStatus?.status === 'MATCHED';
 
-    const isQueued = queueStatus?.queueEntry?.status === 'WAITING' || queueStatus?.queueEntry?.status === 'MATCHED';
+    console.log('[DEBUG] Queue Status:', queueStatus);
+    console.log('[DEBUG] In Queue:', inQueue);
+    console.log('[DEBUG] Queue Status Status:', queueStatus?.status);
     const isMatchReady = queueStatus?.queueEntry?.matchId && matchData?.status === 'READY';
     const isVeto = matchData?.status === 'VETO';
     const isLive = matchData?.status === 'IN_PROGRESS';
