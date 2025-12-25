@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRconService } from '@/lib/rcon';
 import { prisma } from '@/lib/prisma';
+import { RANKED_MAP_POOL } from '@/lib/constants/maps';
 
 export async function POST(request: NextRequest) {
     try {
@@ -50,7 +51,10 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const mapToLoad = match.selectedMap || match.mapName || 'c1m1_hotel';
+        // Get map code from RANKED_MAP_POOL
+        const selectedMapName = match.selectedMap || match.mapName || 'Dark Carnival';
+        const mapData = RANKED_MAP_POOL.find(m => m.name === selectedMapName);
+        const mapToLoad = mapData?.startMap || 'c2m1_highway'; // Default to Dark Carnival
 
         // Get player Steam IDs for whitelist
         const steamIds = match.players
