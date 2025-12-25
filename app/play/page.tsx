@@ -186,13 +186,13 @@ export default function PlayPage() {
                                     )}
                                     {!queueStatus?.queueEntry?.matchId && (
                                         <button
-                                            onClick={isQueued ? handleLeaveQueue : handleJoinQueue}
-                                            className={`w-full py-4 font-black uppercase tracking-widest rounded-xl transition-all shadow-lg transform hover:-translate-y-1 ${isQueued
+                                            onClick={inQueue ? handleLeaveQueue : handleJoinQueue}
+                                            className={`w-full py-4 font-black uppercase tracking-widest rounded-xl transition-all shadow-lg transform hover:-translate-y-1 ${inQueue
                                                 ? 'bg-red-500 hover:bg-red-400 text-white shadow-red-500/20'
                                                 : 'bg-brand-green hover:bg-lime-400 text-black shadow-brand-green/20'
                                                 }`}
                                         >
-                                            {isQueued ? 'Leave Queue' : 'Buscar Partida'}
+                                            {inQueue ? 'Leave Queue' : 'Buscar Partida'}
                                         </button>
                                     )}
 
