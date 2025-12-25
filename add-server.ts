@@ -13,13 +13,10 @@ async function addServer() {
                 ipAddress: '50.20.249.93',
                 port: 9190,
                 rconPassword: 'server1rankedonlinexx26',
-                rconPort: 9190,
                 isActive: true,
                 status: 'AVAILABLE',
             },
             create: {
-                name: 'L4D2 Ranked Server #1',
-                ipAddress: '50.20.249.93',
                 port: 9190,
                 rconPassword: 'server1rankedonlinexx26',
                 rconPort: 9190,
