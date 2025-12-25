@@ -251,8 +251,8 @@ export default function PlayPage() {
 
                             <div className="bg-zinc-900/50 border border-white/5 p-6 rounded-2xl backdrop-blur-sm">
                                 <h3 className="font-bold text-white mb-2">📢 Server News</h3>
-                                <p className="text-zinc-500 text-sm leading-relaxed">
-                                    Don't forget to join our Discord for tournament announcements. Season 1 ends in 2 weeks!
+                                <p className="text-gray-400 text-sm">
+                                    You&apos;re in queue! Waiting for {8 - queueCount} more {8 - queueCount === 1 ? 'player' : 'players'}...
                                 </p>
                             </div>
                         </div>
