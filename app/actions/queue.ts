@@ -50,13 +50,13 @@ export async function checkQueueAndCreateMatch() {
         data: {
             status: 'READY_CHECK',
             serverId: server.id,
-            serverIp: server.ip,
+            serverIp: server.ipAddress,
             serverPort: server.port,
             serverPassword: Math.random().toString(36).substring(2, 10),
         },
     });
 
-    console.log(`[Queue] Created match ${match.id} on server ${server.ip}:${server.port}`);
+    console.log(`[Queue] Created match ${match.id} on server ${server.ipAddress}:${server.port}`);
 
     // Create match players with team assignments
     for (const player of teamA) {
