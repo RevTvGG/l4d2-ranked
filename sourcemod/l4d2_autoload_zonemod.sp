@@ -3,7 +3,7 @@
 
 #include <sourcemod>
 
-#define PLUGIN_VERSION "1.0.0"
+#define PLUGIN_VERSION "1.0.1"
 
 ConVar g_cvAutoLoadEnabled;
 bool g_bMatchActive = false;
@@ -58,9 +58,9 @@ public Action Command_SetMatchId(int client, int args)
     g_bMatchActive = true;
     
     // Auto-load ZoneMod after a short delay
-    CreateTimer(2.0, Timer_LoadZoneMod, _, TIMER_FLAG_NO_MAPCHANGE);
+    CreateTimer(3.0, Timer_LoadZoneMod, _, TIMER_FLAG_NO_MAPCHANGE);
     
-    PrintToServer("[AutoLoad] Scheduled ZoneMod auto-load in 2 seconds");
+    PrintToServer("[AutoLoad] Scheduled ZoneMod auto-load in 3 seconds");
     
     return Plugin_Handled;
 }
@@ -84,38 +84,77 @@ public Action Timer_LoadZoneMod(Handle timer)
         return Plugin_Stop;
     }
     
-    PrintToServer("[AutoLoad] Starting ZoneMod auto-load sequence...");
+    // Find a valid client to execute commands as
+    int client = GetAnyValidClient();
     
-    // Execute sm_match to open menu
-    ServerCommand("sm_match");
-    PrintToServer("[AutoLoad] Executed: sm_match");
+    if (client == 0)
+    {
+        PrintToServer("[AutoLoad] No valid client found, retrying in 2 seconds...");
+        CreateTimer(2.0, Timer_LoadZoneMod, _, TIMER_FLAG_NO_MAPCHANGE);
+        return Plugin_Stop;
+    }
+    
+    PrintToServer("[AutoLoad] Starting ZoneMod auto-load sequence using client %N...", client);
+    
+    // Execute sm_match as the client
+    FakeClientCommand(client, "sm_match");
+    PrintToServer("[AutoLoad] Executed: sm_match (as %N)", client);
     
     // Schedule option selection
-    CreateTimer(1.5, Timer_SelectZoneMod, _, TIMER_FLAG_NO_MAPCHANGE);
+    CreateTimer(2.0, Timer_SelectZoneMod, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE);
     
     return Plugin_Stop;
 }
 
-public Action Timer_SelectZoneMod(Handle timer)
+public Action Timer_SelectZoneMod(Handle timer, int userid)
 {
+    int client = GetClientOfUserId(userid);
+    
+    if (client == 0 || !IsClientInGame(client))
+    {
+        PrintToServer("[AutoLoad] Client disconnected, aborting");
+        return Plugin_Stop;
+    }
+    
     // Select ZoneMod (option 1)
-    ServerCommand("sm_match 1");
-    PrintToServer("[AutoLoad] Executed: sm_match 1 (Select ZoneMod)");
+    FakeClientCommand(client, "sm_match 1");
+    PrintToServer("[AutoLoad] Executed: sm_match 1 (Select ZoneMod as %N)", client);
     
     // Schedule version selection
-    CreateTimer(1.5, Timer_SelectVersion, _, TIMER_FLAG_NO_MAPCHANGE);
+    CreateTimer(2.0, Timer_SelectVersion, userid, TIMER_FLAG_NO_MAPCHANGE);
     
     return Plugin_Stop;
 }
 
-public Action Timer_SelectVersion(Handle timer)
+public Action Timer_SelectVersion(Handle timer, int userid)
 {
+    int client = GetClientOfUserId(userid);
+    
+    if (client == 0 || !IsClientInGame(client))
+    {
+        PrintToServer("[AutoLoad] Client disconnected, aborting");
+        return Plugin_Stop;
+    }
+    
     // Select latest version (option 1)
-    ServerCommand("sm_match 1");
-    PrintToServer("[AutoLoad] Executed: sm_match 1 (Select latest version)");
+    FakeClientCommand(client, "sm_match 1");
+    PrintToServer("[AutoLoad] Executed: sm_match 1 (Select latest version as %N)", client);
     PrintToServer("[AutoLoad] ZoneMod auto-load sequence complete!");
     
     return Plugin_Stop;
+}
+
+// Helper function to find any valid client
+int GetAnyValidClient()
+{
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (IsClientInGame(i) && !IsFakeClient(i))
+        {
+            return i;
+        }
+    }
+    return 0;
 }
 
 public void OnMapStart()
