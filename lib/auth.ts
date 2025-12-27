@@ -23,12 +23,27 @@ export function getAuthOptions(req?: NextRequest): NextAuthOptions {
         };
     }
 
+    // Get the base URL from environment or request
+    const getBaseUrl = () => {
+        if (process.env.NEXTAUTH_URL) {
+            return process.env.NEXTAUTH_URL;
+        }
+        if (req?.url) {
+            const url = new URL(req.url);
+            return `${url.protocol}//${url.host}`;
+        }
+        // Only use localhost as absolute last resort in development
+        return process.env.NODE_ENV === 'production'
+            ? 'https://www.l4d2ranked.online'
+            : 'http://localhost:3000';
+    };
+
+    const baseUrl = getBaseUrl();
+
     // Create a valid request object for build time
     const buildTimeReq = {
         headers: new Headers(),
-        url: process.env.NEXTAUTH_URL
-            ? `${process.env.NEXTAUTH_URL}/api/auth/callback/steam`
-            : 'http://localhost:3000/api/auth/callback/steam'
+        url: `${baseUrl}/api/auth/callback/steam`
     } as any;
 
     return {
