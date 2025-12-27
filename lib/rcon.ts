@@ -39,19 +39,48 @@ class RconService {
         }
     }
 
-    async execute(command: string): Promise<string> {
+    async execute(command: string): Promise<{ success: boolean; output: string; error?: string }> {
         if (!this.rcon) {
             await this.connect();
         }
 
         try {
             const response = await this.rcon!.execute(command);
-            console.log(`[RCON] Executed: ${command}`);
-            // rcon-srcds returns string or boolean, normalize to string
-            return typeof response === 'string' ? response : String(response);
+            const output = typeof response === 'string' ? response : String(response);
+
+            // Detect common error patterns in RCON responses
+            const errorPatterns = [
+                /\[!\] This command can't be used from console/i,
+                /Unknown command/i,
+                /Invalid/i,
+                /Failed/i,
+                /Error:/i,
+                /ERROR:/i,
+                /not found/i,
+                /does not exist/i,
+            ];
+
+            const hasError = errorPatterns.some(pattern => pattern.test(output));
+
+            if (hasError) {
+                console.error(`[RCON] ❌ Command failed: ${command}`);
+                console.error(`[RCON] Error output: ${output}`);
+                return {
+                    success: false,
+                    output,
+                    error: output.trim()
+                };
+            }
+
+            console.log(`[RCON] ✓ ${command}`);
+            return { success: true, output };
         } catch (error) {
-            console.error(`[RCON] Command failed: ${command}`, error);
-            throw error;
+            console.error(`[RCON] ❌ Exception executing: ${command}`, error);
+            return {
+                success: false,
+                output: '',
+                error: String(error)
+            };
         }
     }
 
@@ -64,19 +93,19 @@ class RconService {
     }
 
     // Convenience methods for common commands
-    async changeMap(mapName: string): Promise<string> {
+    async changeMap(mapName: string): Promise<{ success: boolean; output: string; error?: string }> {
         return this.execute(`changelevel ${mapName}`);
     }
 
-    async executeConfig(configName: string): Promise<string> {
+    async executeConfig(configName: string): Promise<{ success: boolean; output: string; error?: string }> {
         return this.execute(`exec ${configName}`);
     }
 
-    async say(message: string): Promise<string> {
+    async say(message: string): Promise<{ success: boolean; output: string; error?: string }> {
         return this.execute(`say ${message}`);
     }
 
-    async kickPlayer(playerName: string, reason?: string): Promise<string> {
+    async kickPlayer(playerName: string, reason?: string): Promise<{ success: boolean; output: string; error?: string }> {
         const cmd = reason
             ? `sm_kick "${playerName}" "${reason}"`
             : `sm_kick "${playerName}"`;

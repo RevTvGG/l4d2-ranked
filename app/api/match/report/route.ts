@@ -49,7 +49,13 @@ export async function POST(request: NextRequest) {
         const eloChanges = [];
 
         for (const player of match.players) {
-            const won = player.team === winner;
+            // Determine actual score based on result
+            let actualScore: number;
+            if (winner === 'TIE') {
+                actualScore = 0.5; // Tie = half point
+            } else {
+                actualScore = player.team === winner ? 1 : 0;
+            }
 
             // Find average opponent ELO
             const opponents = match.players.filter((p) => p.team !== player.team);
@@ -59,12 +65,12 @@ export async function POST(request: NextRequest) {
             const expectedScore = 1 / (1 + Math.pow(10, (avgOpponentElo - player.user.rating) / 400));
 
             // Calculate ELO change
-            const actualScore = won ? 1 : 0;
             const change = Math.round(K * (actualScore - expectedScore));
 
             eloChanges.push({
                 userId: player.userId,
-                won,
+                won: actualScore === 1,
+                tied: actualScore === 0.5,
                 oldRating: player.user.rating,
                 newRating: player.user.rating + change,
                 change,
@@ -75,8 +81,8 @@ export async function POST(request: NextRequest) {
                 where: { id: player.userId },
                 data: {
                     rating: { increment: change },
-                    wins: won ? { increment: 1 } : undefined,
-                    losses: !won ? { increment: 1 } : undefined,
+                    wins: actualScore === 1 ? { increment: 1 } : undefined,
+                    losses: actualScore === 0 ? { increment: 1 } : undefined,
                 },
             });
         }

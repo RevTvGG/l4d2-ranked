@@ -28,6 +28,9 @@ public void OnPluginStart() {
     RegServerCmd("sm_set_match_players", Cmd_SetMatchPlayers);
     RegServerCmd("sm_clear_match", Cmd_ClearMatch);
     
+    // Load whitelist from file if exists
+    LoadWhitelistFromFile();
+    
     PrintToServer("[Whitelist] Plugin loaded");
 }
 
@@ -98,6 +101,9 @@ public Action Cmd_SetMatchPlayers(int args) {
 
     PrintToServer("[Whitelist] Match %s - Whitelist activated with %d players", g_MatchId, addedCount);
     
+    // Save to file for persistence
+    SaveWhitelistToFile();
+    
     // Kick any players not in the whitelist
     for (int i = 1; i <= MaxClients; i++) {
         if (IsClientConnected(i) && !IsFakeClient(i)) {
@@ -131,7 +137,70 @@ public void OnClientPutInServer(int client) {
 
     if (IsPlayerAllowed(steamID)) {
         PrintToChatAll("[Ranked] %N joined the match", client);
-        // TODO: Notify web platform that player joined
-        // This would require HTTP extension (SteamWorks or Socket)
+    }
+}
+
+// Save whitelist to file for persistence
+void SaveWhitelistToFile() {
+    char filePath[PLATFORM_MAX_PATH];
+    BuildPath(Path_SM, filePath, sizeof(filePath), "data/match_whitelist.txt");
+    
+    Handle file = OpenFile(filePath, "w");
+    if (file == null) {
+        PrintToServer("[Whitelist] ERROR: Failed to save whitelist to file");
+        return;
+    }
+    
+    // Write match ID
+    WriteFileLine(file, g_MatchId);
+    
+    // Write each Steam ID
+    char steamId[32];
+    for (int i = 0; i < g_AllowedSteamIDs.Length; i++) {
+        g_AllowedSteamIDs.GetString(i, steamId, sizeof(steamId));
+        WriteFileLine(file, steamId);
+    }
+    
+    CloseHandle(file);
+    PrintToServer("[Whitelist] Saved to file: %d players", g_AllowedSteamIDs.Length);
+}
+
+// Load whitelist from file on plugin start
+void LoadWhitelistFromFile() {
+    char filePath[PLATFORM_MAX_PATH];
+    BuildPath(Path_SM, filePath, sizeof(filePath), "data/match_whitelist.txt");
+    
+    if (!FileExists(filePath)) {
+        return; // No saved whitelist
+    }
+    
+    Handle file = OpenFile(filePath, "r");
+    if (file == null) {
+        return;
+    }
+    
+    char line[64];
+    
+    // Read match ID (first line)
+    if (ReadFileLine(file, line, sizeof(line))) {
+        TrimString(line);
+        strcopy(g_MatchId, sizeof(g_MatchId), line);
+        g_MatchActive = true;
+    }
+    
+    // Read Steam IDs
+    int count = 0;
+    while (ReadFileLine(file, line, sizeof(line))) {
+        TrimString(line);
+        if (strlen(line) > 0) {
+            g_AllowedSteamIDs.PushString(line);
+            count++;
+        }
+    }
+    
+    CloseHandle(file);
+    
+    if (count > 0) {
+        PrintToServer("[Whitelist] ✓ Loaded from file: Match %s with %d players", g_MatchId, count);
     }
 }

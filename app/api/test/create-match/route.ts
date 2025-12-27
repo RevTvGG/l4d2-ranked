@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireTestAuth } from '@/lib/testAuth';
 
 export async function POST(request: NextRequest) {
+    // Verificar autenticación
+    const authError = requireTestAuth(request);
+    if (authError) return authError;
+
     try {
         // Get server
         const server = await prisma.gameServer.findUnique({

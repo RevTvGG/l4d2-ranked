@@ -1,7 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireTestAuth } from '@/lib/testAuth';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+    // Verificar autenticación
+    const authError = requireTestAuth(request);
+    if (authError) return authError;
+
     try {
         // Get latest READY match
         const match = await prisma.match.findFirst({

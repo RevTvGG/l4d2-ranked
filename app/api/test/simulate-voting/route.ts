@@ -1,9 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireTestAuth } from '@/lib/testAuth';
 
 const MAPS = ['Dark Carnival', 'Dead Center', 'The Parish', 'No Mercy'];
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+    // Verificar autenticación
+    const authError = requireTestAuth(request);
+    if (authError) return authError;
+
     try {
         // Get latest match in VETO status
         const match = await prisma.match.findFirst({

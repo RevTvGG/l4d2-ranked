@@ -80,14 +80,20 @@ export async function POST(request: NextRequest) {
             await rcon.connect();
 
             // Load ranked config (forces ZoneMod)
-            await rcon.execute('exec ranked.cfg');
+            const configResult = await rcon.execute('exec ranked.cfg');
+            if (!configResult.success) {
+                throw new Error(`Failed to load ranked.cfg: ${configResult.error}`);
+            }
             console.log('[RCON] Loaded ranked.cfg with ZoneMod');
 
             // Wait for config to apply
             await new Promise((resolve) => setTimeout(resolve, 3000));
 
             // Change to match map
-            await rcon.execute(`changelevel ${mapToLoad}`);
+            const mapResult = await rcon.execute(`changelevel ${mapToLoad}`);
+            if (!mapResult.success) {
+                throw new Error(`Failed to change map: ${mapResult.error}`);
+            }
             console.log(`[RCON] Changed map to: ${mapToLoad}`);
 
             // Disconnect because server will restart
@@ -104,13 +110,44 @@ export async function POST(request: NextRequest) {
 
             // Set match whitelist with real player SteamIDs
             const whitelistCmd = `sm_set_match_players ${matchId} ${steamIds.join(' ')}`;
-            await rcon.execute(whitelistCmd);
+            const whitelistResult = await rcon.execute(whitelistCmd);
+            if (!whitelistResult.success) {
+                throw new Error(`Failed to set whitelist: ${whitelistResult.error}`);
+            }
             console.log(`[RCON] Whitelist set for ${steamIds.length} players`);
 
-            // Set match ID for reporter
+            // Set team assignments
+            const teamAPlayers = match.players.filter(p => p.team === 'TEAM_A');
+            const teamBPlayers = match.players.filter(p => p.team === 'TEAM_B');
+
+            const teamASteamIds = teamAPlayers.map(p => p.user.steamId).filter(Boolean).join(' ');
+            const teamBSteamIds = teamBPlayers.map(p => p.user.steamId).filter(Boolean).join(' ');
+
+            // Verify team assignment plugin is loaded
+            const pluginsResult = await rcon.execute('sm plugins list');
+            const hasTeamPlugin = pluginsResult.success && pluginsResult.output.includes('L4D2 Auto Team Assignment');
+
+            if (!hasTeamPlugin) {
+                console.warn('[RCON] ⚠️ Team assignment plugin not loaded, teams will need manual assignment');
+            } else {
+                const teamsCmd = `sm_set_teams ${matchId} ${teamASteamIds} | ${teamBSteamIds}`;
+                const teamsResult = await rcon.execute(teamsCmd);
+                if (!teamsResult.success) {
+                    console.warn(`[RCON] Warning: Team assignment failed: ${teamsResult.error}`);
+                } else {
+                    console.log(`[RCON] ✓ Teams assigned: ${teamAPlayers.length} vs ${teamBPlayers.length}`);
+                }
+            }
+
+            // Set match ID for reporter and autoload
             const apiUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-            await rcon.execute(`sm_set_match_id ${matchId} ${apiUrl}`);
-            console.log(`[RCON] Match ID set: ${matchId}`);
+            const matchIdResult = await rcon.execute(`sm_set_match_id ${matchId} ${apiUrl}`);
+            if (!matchIdResult.success) {
+                console.warn(`[RCON] Warning: Match ID may not be set: ${matchIdResult.error}`);
+                // Don't throw, match can continue without reporter
+            } else {
+                console.log(`[RCON] Match ID set: ${matchId}`);
+            }
 
             // Disconnect
             await rcon.disconnect();
