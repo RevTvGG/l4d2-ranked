@@ -8,7 +8,14 @@ export async function POST(request: NextRequest) {
     if (authError) return authError;
 
     try {
-        const { playerCount = 8 } = await request.json();
+        // Safely parse JSON, default to empty object if no body
+        let body: { playerCount?: number } = {};
+        try {
+            body = await request.json();
+        } catch {
+            // No body provided, use defaults
+        }
+        const { playerCount = 8 } = body;
 
         // Create test users
         const testPlayers = [];

@@ -123,20 +123,16 @@ export async function POST(request: NextRequest) {
             const teamASteamIds = teamAPlayers.map(p => p.user.steamId).filter(Boolean).join(' ');
             const teamBSteamIds = teamBPlayers.map(p => p.user.steamId).filter(Boolean).join(' ');
 
-            // Verify team assignment plugin is loaded
-            const pluginsResult = await rcon.execute('sm plugins list');
-            const hasTeamPlugin = pluginsResult.success && pluginsResult.output.includes('L4D2 Auto Team Assignment');
-
-            if (!hasTeamPlugin) {
-                console.warn('[RCON] ⚠️ Team assignment plugin not loaded, teams will need manual assignment');
+            // Set team assignments
+            // Note: We always attempt this even if plugin detection fails,
+            // as the plugin may be loaded but not appear in the list correctly
+            const teamsCmd = `sm_set_teams ${matchId} ${teamASteamIds} | ${teamBSteamIds}`;
+            const teamsResult = await rcon.execute(teamsCmd);
+            if (!teamsResult.success) {
+                console.warn(`[RCON] ⚠️ Team assignment command failed: ${teamsResult.error}`);
+                console.warn('[RCON] Teams may need to be set manually');
             } else {
-                const teamsCmd = `sm_set_teams ${matchId} ${teamASteamIds} | ${teamBSteamIds}`;
-                const teamsResult = await rcon.execute(teamsCmd);
-                if (!teamsResult.success) {
-                    console.warn(`[RCON] Warning: Team assignment failed: ${teamsResult.error}`);
-                } else {
-                    console.log(`[RCON] ✓ Teams assigned: ${teamAPlayers.length} vs ${teamBPlayers.length}`);
-                }
+                console.log(`[RCON] ✓ Teams assigned: ${teamAPlayers.length} vs ${teamBPlayers.length}`);
             }
 
             // Set match ID for reporter and autoload
