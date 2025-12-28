@@ -12,15 +12,15 @@ export async function POST() {
             }
         });
 
-        // 2. Clear stale matches (status != FINISHED)
+        // 2. Clear Queue (First because it references matches)
+        await prisma.queueEntry.deleteMany({});
+
+        // 3. Clear stale matches (status != FINISHED)
         await prisma.match.deleteMany({
             where: {
                 status: { not: 'FINISHED' }
             }
         });
-
-        // 3. Clear Queue
-        await prisma.queueEntry.deleteMany({});
 
         // 4. Delete fake bots
         await prisma.user.deleteMany({

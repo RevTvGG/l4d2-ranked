@@ -172,3 +172,31 @@ export async function voteMap(matchId: string, mapName: string) {
         return { error: "Failed to submit vote" };
     }
 }
+
+export async function leaveMatch(matchId: string) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return { error: "Not authenticated" };
+
+    try {
+        // Remove from MatchPlayer
+        await prisma.matchPlayer.deleteMany({
+            where: {
+                matchId,
+                userId: session.user.id
+            }
+        });
+
+        // Remove from Queue (if linked)
+        await prisma.queueEntry.deleteMany({
+            where: {
+                userId: session.user.id
+            }
+        });
+
+        revalidatePath('/play');
+        return { success: true };
+    } catch (error) {
+        console.error("Error leaving match:", error);
+        return { error: "Failed to leave match" };
+    }
+}
