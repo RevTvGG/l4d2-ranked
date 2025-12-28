@@ -6,13 +6,22 @@ export async function POST(request: NextRequest) {
         let matchId: string | undefined;
 
         const contentType = request.headers.get('content-type') || '';
+
         if (contentType.includes('application/json')) {
             const json = await request.json();
             matchId = json.matchId;
+        } else if (contentType.includes('application/x-www-form-urlencoded')) {
+            // Parse URL-encoded form data from SourceMod
+            const body = await request.text();
+            const params = new URLSearchParams(body);
+            matchId = params.get('matchId') || undefined;
         } else {
+            // Try FormData as fallback
             const formData = await request.formData();
             matchId = formData.get('matchId')?.toString();
         }
+
+        console.log('[API] Notify live request - matchId:', matchId, 'content-type:', contentType);
 
         if (!matchId) {
             return NextResponse.json(
