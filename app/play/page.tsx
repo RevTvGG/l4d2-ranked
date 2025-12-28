@@ -38,8 +38,9 @@ export default function PlayPage() {
                 setQueueStatus(status);
 
                 // If match is ready or in progress, get match details
-                if (status?.queueEntry?.matchId) {
-                    const match = await getMatch(status.queueEntry.matchId);
+                const matchId = (status as any)?.matchId || (status as any)?.queueEntry?.matchId;
+                if (matchId) {
+                    const match = await getMatch(matchId);
                     setMatchData(match);
                 } else {
                     setMatchData(null);
@@ -130,12 +131,13 @@ export default function PlayPage() {
 
     if (status === 'loading') return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-brand-green">Loading...</div>;
     // Check if user is in queue
-    const inQueue = queueStatus?.status === 'WAITING' || queueStatus?.status === 'MATCHED';
+    const inQueue = (queueStatus as any)?.status === 'WAITING' || (queueStatus as any)?.status === 'MATCHED';
 
     console.log('[DEBUG] Queue Status:', queueStatus);
     console.log('[DEBUG] In Queue:', inQueue);
-    console.log('[DEBUG] Queue Status Status:', queueStatus?.status);
-    const isMatchReady = queueStatus?.queueEntry?.matchId && matchData?.status === 'READY';
+    console.log('[DEBUG] Queue Status Status:', (queueStatus as any)?.status);
+    const matchId = (queueStatus as any)?.matchId || (queueStatus as any)?.queueEntry?.matchId;
+    const isMatchReady = matchId && matchData?.status === 'READY';
     const isVeto = matchData?.status === 'VETO';
     const isLive = matchData?.status === 'IN_PROGRESS';
 
@@ -235,7 +237,7 @@ export default function PlayPage() {
                                             {errorMsg}
                                         </div>
                                     )}
-                                    {!queueStatus?.queueEntry?.matchId && (
+                                    {!(queueStatus as any)?.matchId && (
                                         <>
                                             <button
                                                 onClick={inQueue ? handleLeaveQueue : handleJoinQueue}
