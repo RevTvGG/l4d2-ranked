@@ -21,9 +21,9 @@ export async function POST(request: NextRequest) {
 
         console.log('[TEST MODE] Starting auto-fill queue...');
 
-        // 1. Create 6 fake players
+        // 1. Create 7 fake players (so 1 real user + 7 bots = 8 players)
         const fakePlayers = [];
-        for (let i = 1; i <= 6; i++) {
+        for (let i = 1; i <= 7; i++) {
             const fakeUser = await prisma.user.upsert({
                 where: { steamId: `FAKE_BOT_${i}` },
                 update: {},
@@ -39,35 +39,49 @@ export async function POST(request: NextRequest) {
 
         console.log(`[TEST MODE] Created ${fakePlayers.length} fake players`);
 
-        // 2. Add all fake players to queue
+        // 2. Add all fake players to queue (safe insert)
         const queueEntries = [];
         for (const fakeUser of fakePlayers) {
-            const entry = await prisma.queueEntry.create({
-                data: {
-                    userId: fakeUser.id,
-                    mmr: fakeUser.rating,
-                    status: 'WAITING',
-                    isReady: false,
-                    expiresAt: new Date(Date.now() + 30 * 60 * 1000) // 30 min
-                }
+            // Check if already in queue
+            const existing = await prisma.queueEntry.findFirst({
+                where: { userId: fakeUser.id, status: 'WAITING' }
             });
-            queueEntries.push(entry);
+
+            if (!existing) {
+                const entry = await prisma.queueEntry.create({
+                    data: {
+                        userId: fakeUser.id,
+                        mmr: fakeUser.rating,
+                        status: 'WAITING',
+                        isReady: false,
+                        expiresAt: new Date(Date.now() + 30 * 60 * 1000) // 30 min
+                    }
+                });
+                queueEntries.push(entry);
+            }
         }
 
-        console.log(`[TEST MODE] Added ${queueEntries.length} fake players to queue`);
+        console.log(`[TEST MODE] Added ${queueEntries.length} new fake players to queue`);
 
-        // 3. Add current user to queue
-        const userEntry = await prisma.queueEntry.create({
-            data: {
-                userId: session.user.id,
-                mmr: session.user.rating || 1000,
-                status: 'WAITING',
-                isReady: false,
-                expiresAt: new Date(Date.now() + 30 * 60 * 1000)
-            }
+        // 3. Add current user to queue (idempotent)
+        const existingUserEntry = await prisma.queueEntry.findFirst({
+            where: { userId: session.user.id, status: 'WAITING' }
         });
 
-        console.log(`[TEST MODE] Added real user to queue: ${session.user.name}`);
+        if (!existingUserEntry) {
+            await prisma.queueEntry.create({
+                data: {
+                    userId: session.user.id,
+                    mmr: session.user.rating || 1000,
+                    status: 'WAITING',
+                    isReady: false,
+                    expiresAt: new Date(Date.now() + 30 * 60 * 1000)
+                }
+            });
+            console.log(`[TEST MODE] Added real user to queue: ${session.user.name}`);
+        } else {
+            console.log(`[TEST MODE] Real user already in queue`);
+        }
 
         // 4. Get second real user from request (if provided)
         const { secondUserId } = await request.json().catch(() => ({}));
