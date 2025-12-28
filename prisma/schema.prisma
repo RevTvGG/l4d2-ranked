@@ -71,6 +71,7 @@ model User {
   bio           String? // Max 140 chars
 
   isPremium    Boolean @default(false)
+  isAdmin      Boolean @default(false)
   profileTheme String  @default("DEFAULT") // "DEFAULT", "GOLD", "DIAMOND", "RUBY", "EMERALD", "VOID"
 
   rating Int    @default(1000) // ELO

@@ -199,31 +199,51 @@ export default function PlayPage() {
                                     {queueStatus?.nextPlayers && queueStatus.nextPlayers.length > 0 && (
                                         <div className="space-y-3">
                                             <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">Next Match ({queueStatus.nextPlayers.length}/8)</h4>
-                                            <div className="grid grid-cols-4 gap-2">
+                                            <div className="grid grid-cols-4 gap-3">
                                                 {queueStatus.nextPlayers.map((entry: any) => (
-                                                    <div key={entry.id} className="flex flex-col items-center gap-1">
-                                                        <div className="relative">
-                                                            <img
-                                                                src={entry.user.image || '/default-avatar.png'}
-                                                                alt={entry.user.name}
-                                                                className="w-12 h-12 rounded-full border-2 border-zinc-700 hover:border-brand-green transition-colors"
-                                                            />
-                                                            <div className="absolute -bottom-1 -right-1 bg-zinc-900 border border-zinc-700 rounded-full px-1.5 py-0.5 text-[10px] font-bold text-brand-green">
+                                                    <div key={entry.id} className="flex flex-col items-center gap-1.5">
+                                                        <div className="relative group">
+                                                            {entry.user.image ? (
+                                                                <img
+                                                                    src={entry.user.image}
+                                                                    alt={entry.user.name || 'Player'}
+                                                                    className="w-14 h-14 rounded-full border-2 border-zinc-700 group-hover:border-brand-green transition-colors object-cover"
+                                                                    onError={(e) => {
+                                                                        const target = e.target as HTMLImageElement;
+                                                                        target.style.display = 'none';
+                                                                        const fallback = target.nextElementSibling as HTMLElement;
+                                                                        if (fallback) fallback.style.display = 'flex';
+                                                                    }}
+                                                                />
+                                                            ) : null}
+                                                            <div
+                                                                className="w-14 h-14 rounded-full border-2 border-zinc-700 group-hover:border-brand-green transition-colors bg-zinc-800 flex items-center justify-center"
+                                                                style={{ display: entry.user.image ? 'none' : 'flex' }}
+                                                            >
+                                                                <span className="text-zinc-500 text-lg font-bold">
+                                                                    {(entry.user.name || 'P')[0].toUpperCase()}
+                                                                </span>
+                                                            </div>
+                                                            <div className="absolute -bottom-0.5 -right-0.5 bg-zinc-900 border border-zinc-700 rounded px-1 py-0.5 text-[9px] font-bold text-brand-green shadow-lg">
                                                                 {entry.user.rating}
                                                             </div>
                                                         </div>
-                                                        <span className="text-[10px] text-zinc-400 text-center w-full truncate px-1" title={entry.user.name}>
-                                                            {entry.user.name}
+                                                        <span
+                                                            className="text-[9px] text-zinc-400 text-center w-full block overflow-hidden text-ellipsis whitespace-nowrap px-0.5"
+                                                            title={entry.user.name || 'Unknown'}
+                                                            style={{ maxWidth: '60px' }}
+                                                        >
+                                                            {entry.user.name || 'Unknown'}
                                                         </span>
                                                     </div>
                                                 ))}
                                                 {/* Empty slots */}
                                                 {Array.from({ length: 8 - (queueStatus.nextPlayers?.length || 0) }).map((_, i) => (
-                                                    <div key={`empty-${i}`} className="flex flex-col items-center gap-1">
-                                                        <div className="w-12 h-12 rounded-full border-2 border-dashed border-zinc-800 flex items-center justify-center">
+                                                    <div key={`empty-${i}`} className="flex flex-col items-center gap-1.5">
+                                                        <div className="w-14 h-14 rounded-full border-2 border-dashed border-zinc-800 flex items-center justify-center">
                                                             <span className="text-zinc-700 text-xl">?</span>
                                                         </div>
-                                                        <span className="text-[10px] text-zinc-700">Waiting...</span>
+                                                        <span className="text-[9px] text-zinc-700">Waiting...</span>
                                                     </div>
                                                 ))}
                                             </div>
