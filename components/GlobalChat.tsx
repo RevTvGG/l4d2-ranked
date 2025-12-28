@@ -98,12 +98,20 @@ export default function GlobalChat({ currentUser }: { currentUser: any }) {
                                 <div className="shrink-0 pt-1">
                                     <a href={`/profile/${msg.user.name}`} className="block transition-transform hover:scale-110">
                                         <div className={`relative h-8 w-8 rounded-lg overflow-hidden border ${msg.user.isPremium ? 'border-amber-400' : 'border-zinc-700'}`}>
-                                            <Image
-                                                src={msg.user.image || "/default_avatar.jpg"}
-                                                alt={msg.user.name || "User"}
-                                                fill
-                                                className="object-cover"
-                                            />
+                                            {msg.user.image ? (
+                                                <Image
+                                                    src={msg.user.image}
+                                                    alt={msg.user.name || "User"}
+                                                    width={32}
+                                                    height={32}
+                                                    className="object-cover w-full h-full"
+                                                    unoptimized
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-zinc-500 text-sm font-bold">
+                                                    {msg.user.name?.[0]?.toUpperCase() || '?'}
+                                                </div>
+                                            )}
                                         </div>
                                     </a>
                                 </div>

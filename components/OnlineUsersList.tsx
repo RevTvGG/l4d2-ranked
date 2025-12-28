@@ -41,12 +41,20 @@ export default function OnlineUsersList() {
                     >
                         <div className="relative shrink-0">
                             <div className={`h-8 w-8 rounded-full overflow-hidden border ${user.isPremium ? 'border-amber-400' : 'border-zinc-700'} group-hover:border-white/50 transition-colors`}>
-                                <Image
-                                    src={user.image || "/default_avatar.jpg"}
-                                    alt={user.name || "User"}
-                                    fill
-                                    className="object-cover"
-                                />
+                                {user.image ? (
+                                    <Image
+                                        src={user.image}
+                                        alt={user.name || "User"}
+                                        width={32}
+                                        height={32}
+                                        className="object-cover w-full h-full"
+                                        unoptimized
+                                    />
+                                ) : (
+                                    <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-zinc-500 text-sm font-bold">
+                                        {user.name?.[0]?.toUpperCase() || '?'}
+                                    </div>
+                                )}
                             </div>
                             <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-zinc-900 rounded-full"></span>
                         </div>
