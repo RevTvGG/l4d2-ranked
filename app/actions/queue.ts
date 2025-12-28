@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { balanceTeams } from '@/lib/matchmaking/teamBalancer';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { unstable_noStore as noStore } from 'next/cache';
 
 /**
  * Check queue for 8+ waiting players and create match
@@ -291,6 +292,7 @@ export async function leaveQueue() {
  * Get queue status for current user
  */
 export async function getQueueStatus() {
+    noStore(); // Force dynamic behavior
     const session = await getServerSession(authOptions);
     if (!session?.user) return null;
 
@@ -410,7 +412,12 @@ export async function joinQueue() {
     console.log('[joinQueue] Queue entry created successfully');
 
     // Check if we can create a match
-    await checkQueueAndCreateMatch();
+    try {
+        await checkQueueAndCreateMatch();
+    } catch (error) {
+        console.error('[joinQueue] Failed to check match creation:', error);
+        // Don't fail the join action, just log the error
+    }
 
     return { success: true, message: 'Joined queue' };
 }
