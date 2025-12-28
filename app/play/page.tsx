@@ -113,6 +113,21 @@ export default function PlayPage() {
         setMatchData(match);
     };
 
+    const handleTestMode = async () => {
+        try {
+            const response = await fetch('/api/test/auto-queue', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            if (data.success) {
+                console.log('[TEST MODE] Activated:', data);
+            }
+        } catch (error) {
+            console.error('[TEST MODE] Error:', error);
+        }
+    };
+
     if (status === 'loading') return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-brand-green">Loading...</div>;
     // Check if user is in queue
     const inQueue = queueStatus?.status === 'WAITING' || queueStatus?.status === 'MATCHED';
@@ -185,15 +200,26 @@ export default function PlayPage() {
                                         </div>
                                     )}
                                     {!queueStatus?.queueEntry?.matchId && (
-                                        <button
-                                            onClick={inQueue ? handleLeaveQueue : handleJoinQueue}
-                                            className={`w-full py-4 font-black uppercase tracking-widest rounded-xl transition-all shadow-lg transform hover:-translate-y-1 ${inQueue
-                                                ? 'bg-red-500 hover:bg-red-400 text-white shadow-red-500/20'
-                                                : 'bg-brand-green hover:bg-lime-400 text-black shadow-brand-green/20'
-                                                }`}
-                                        >
-                                            {inQueue ? 'Leave Queue' : 'Buscar Partida'}
-                                        </button>
+                                        <>
+                                            <button
+                                                onClick={inQueue ? handleLeaveQueue : handleJoinQueue}
+                                                className={`w-full py-4 font-black uppercase tracking-widest rounded-xl transition-all shadow-lg transform hover:-translate-y-1 ${inQueue
+                                                    ? 'bg-red-500 hover:bg-red-400 text-white shadow-red-500/20'
+                                                    : 'bg-brand-green hover:bg-lime-400 text-black shadow-brand-green/20'
+                                                    }`}
+                                            >
+                                                {inQueue ? 'Leave Queue' : 'Buscar Partida'}
+                                            </button>
+
+                                            {!inQueue && (
+                                                <button
+                                                    onClick={handleTestMode}
+                                                    className="w-full py-3 font-bold uppercase tracking-wide rounded-xl transition-all bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-600/20 transform hover:-translate-y-1 text-sm"
+                                                >
+                                                    🧪 Test Mode (2 Players + 6 Bots)
+                                                </button>
+                                            )}
+                                        </>
                                     )}
 
                                     {/* MATCH FOUND / ACCEPT */}

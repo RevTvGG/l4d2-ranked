@@ -1,0 +1,107 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+
+/**
+ * TEST MODE: Auto-fill queue with fake players
+ * This endpoint creates 6 fake players and adds them to queue
+ * along with the current user, triggering an instant match
+ */
+export async function POST(request: NextRequest) {
+    try {
+        const session = await getServerSession(authOptions);
+
+        if (!session?.user?.id) {
+            return NextResponse.json(
+                { error: 'Not authenticated' },
+                { status: 401 }
+            );
+        }
+
+        console.log('[TEST MODE] Starting auto-fill queue...');
+
+        // 1. Create 6 fake players
+        const fakePlayers = [];
+        for (let i = 1; i <= 6; i++) {
+            const fakeUser = await prisma.user.upsert({
+                where: { steamId: `FAKE_BOT_${i}` },
+                update: {},
+                create: {
+                    steamId: `FAKE_BOT_${i}`,
+                    name: `Bot ${i}`,
+                    email: `bot${i}@test.com`,
+                    rating: 1000
+                }
+            });
+            fakePlayers.push(fakeUser);
+        }
+
+        console.log(`[TEST MODE] Created ${fakePlayers.length} fake players`);
+
+        // 2. Add all fake players to queue
+        const queueEntries = [];
+        for (const fakeUser of fakePlayers) {
+            const entry = await prisma.queueEntry.create({
+                data: {
+                    userId: fakeUser.id,
+                    mmr: fakeUser.rating,
+                    status: 'WAITING',
+                    isReady: false,
+                    expiresAt: new Date(Date.now() + 30 * 60 * 1000) // 30 min
+                }
+            });
+            queueEntries.push(entry);
+        }
+
+        console.log(`[TEST MODE] Added ${queueEntries.length} fake players to queue`);
+
+        // 3. Add current user to queue
+        const userEntry = await prisma.queueEntry.create({
+            data: {
+                userId: session.user.id,
+                mmr: session.user.rating || 1000,
+                status: 'WAITING',
+                isReady: false,
+                expiresAt: new Date(Date.now() + 30 * 60 * 1000)
+            }
+        });
+
+        console.log(`[TEST MODE] Added real user to queue: ${session.user.name}`);
+
+        // 4. Get second real user from request (if provided)
+        const { secondUserId } = await request.json().catch(() => ({}));
+
+        if (secondUserId) {
+            await prisma.queueEntry.create({
+                data: {
+                    userId: secondUserId,
+                    mmr: 1000,
+                    status: 'WAITING',
+                    isReady: false,
+                    expiresAt: new Date(Date.now() + 30 * 60 * 1000)
+                }
+            });
+            console.log(`[TEST MODE] Added second real user to queue`);
+        }
+
+        // 5. Trigger matchmaking
+        // Import and call the matchmaking function
+        const { checkQueueAndCreateMatch } = require('@/app/actions/queue');
+        await checkQueueAndCreateMatch();
+
+        return NextResponse.json({
+            success: true,
+            message: 'Test mode activated! Match should be created.',
+            fakePlayers: fakePlayers.length,
+            realPlayers: secondUserId ? 2 : 1
+        });
+
+    } catch (error) {
+        console.error('[TEST MODE] Error:', error);
+        return NextResponse.json(
+            { error: 'Failed to activate test mode', details: String(error) },
+            { status: 500 }
+        );
+    }
+}

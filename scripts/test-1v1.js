@@ -2,7 +2,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 // Configuration
-const SERVER_ID = 'cm4qg6q530001v80305603v7w'; // ID de tu servidor local
+const SERVER_ID = 'cmjlw5p1m0000qxrzhg4lqm7k'; // Current server ID
 const MAP_NAME = 'Dark Carnival';
 
 async function create1v1Match(player1SteamId, player2SteamId) {
@@ -22,12 +22,9 @@ async function create1v1Match(player1SteamId, player2SteamId) {
         // 2. Create match
         const match = await prisma.match.create({
             data: {
-                status: 'WAITING_FOR_PLAYERS', // Estado inicial
+                status: 'WAITING_FOR_PLAYERS',
                 selectedMap: MAP_NAME,
                 serverId: SERVER_ID,
-                serverIp: '127.0.0.1', // Local IP or real IP
-                serverPort: 27015,
-                serverPassword: 'rcon_password', // Should match your server config
 
                 // Add players
                 players: {
