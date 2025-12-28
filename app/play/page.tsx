@@ -388,14 +388,34 @@ export default function PlayPage() {
                                                     <button
                                                         key={map}
                                                         onClick={() => handleVoteMap(map)}
-                                                        className="p-2 text-xs bg-zinc-800 hover:bg-blue-500/20 border border-white/5 hover:border-blue-500/50 rounded transition-colors"
+                                                        disabled={isVetoing}
+                                                        className={`p-2 text-xs border rounded transition-colors ${isVetoing
+                                                            ? 'bg-zinc-800 text-zinc-600 border-zinc-700 cursor-wait'
+                                                            : 'bg-zinc-800 hover:bg-blue-500/20 border-white/5 hover:border-blue-500/50 text-white'
+                                                            }`}
                                                     >
-                                                        {map}
+                                                        {isVetoing ? 'Voting...' : map}
                                                     </button>
                                                 ))}
                                             </div>
                                             <div className="text-xs text-center text-zinc-400">
                                                 Votes: {matchData?.mapVotes?.length || 0}/8
+                                            </div>
+                                            {/* Force Win Button (Debug) */}
+                                            <div className="pt-2 border-t border-blue-500/20 flex justify-center">
+                                                <button
+                                                    onClick={async () => {
+                                                        if (!confirm('Force Map Win (Dark Carnival)?')) return;
+                                                        await fetch('/api/test/force-map', {
+                                                            method: 'POST',
+                                                            body: JSON.stringify({ matchId }),
+                                                            headers: { 'Content-Type': 'application/json' }
+                                                        });
+                                                    }}
+                                                    className="px-2 py-1 text-[10px] font-bold uppercase rounded bg-blue-900/40 hover:bg-blue-800 text-blue-300 border border-blue-500/30"
+                                                >
+                                                    ⚡ Force Map Win
+                                                </button>
                                             </div>
                                         </div>
                                     )}
