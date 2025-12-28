@@ -128,6 +128,20 @@ export async function POST(request: NextRequest) {
                 data: { accepted: true }
             });
             console.log('[TEST MODE] Bots accepted!');
+
+            // CHECK: Did we just complete the lobby? (Race condition fix)
+            const updatedMatch = await prisma.match.findUnique({
+                where: { id: matchId },
+                include: { players: true }
+            });
+
+            if (updatedMatch && updatedMatch.players.every(p => p.accepted)) {
+                console.log('[TEST MODE] All players accepted. Advancing to VETO...');
+                await prisma.match.update({
+                    where: { id: matchId },
+                    data: { status: 'VETO' }
+                });
+            }
         }
 
         return NextResponse.json({
