@@ -37,7 +37,6 @@ export async function GET(request: NextRequest) {
                     where: { active: true },
                     select: {
                         id: true,
-                        type: true,
                         reason: true,
                         expiresAt: true
                     }
