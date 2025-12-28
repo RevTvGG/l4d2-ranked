@@ -102,7 +102,7 @@ export async function voteMap(matchId: string, mapName: string) {
             include: { user: true }
         });
 
-        const botPlayers = matchPlayers.filter(p => p.user.steamId.startsWith('FAKE_BOT_'));
+        const botPlayers = matchPlayers.filter(p => p.user.steamId?.startsWith('FAKE_BOT_'));
 
         if (botPlayers.length > 0) {
             console.log(`[VOTE] Auto-voting for ${botPlayers.length} bots...`);
