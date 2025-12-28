@@ -1,67 +1,63 @@
-import { NextRequest, NextResponse } from 'next/server';
+
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireTestAuth } from '@/lib/testAuth';
 
-export async function POST(request: NextRequest) {
-    // Verificar autenticación
-    const authError = requireTestAuth(request);
-    if (authError) return authError;
-
+export async function GET() {
     try {
-        // Get server
-        const server = await prisma.gameServer.findUnique({
-            where: { serverKey: 'ranked-server-k9cc0n0k4rc' },
-        });
+        // Hardcoded dummy steam IDs for testing
+        const STEAM_ID_1 = 'STEAM_1:1:123456789';
+        const STEAM_ID_2 = 'STEAM_1:0:987654321';
 
-        if (!server) {
-            return NextResponse.json(
-                { error: 'Server not found' },
-                { status: 404 }
-            );
-        }
-
-        // Create test users with Steam IDs
-        const testPlayers = [];
-        for (let i = 1; i <= 8; i++) {
-            const player = await prisma.user.upsert({
-                where: { steamId: `STEAM_1:0:${10000 + i}` },
-                update: {},
-                create: {
-                    name: `Test Player ${i}`,
-                    steamId: `STEAM_1:0:${10000 + i}`,
-                    rating: 1000 + (i * 100),
-                },
+        // Ensure users exist
+        let p1 = await prisma.user.findUnique({ where: { steamId: STEAM_ID_1 } });
+        if (!p1) {
+            p1 = await prisma.user.create({
+                data: {
+                    steamId: STEAM_ID_1,
+                    name: 'Test Player 1',
+                    email: 'test1@example.com',
+                    image: 'https://avatars.akamai.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg'
+                }
             });
-            testPlayers.push(player);
         }
 
-        // Create test match
+        let p2 = await prisma.user.findUnique({ where: { steamId: STEAM_ID_2 } });
+        if (!p2) {
+            p2 = await prisma.user.create({
+                data: {
+                    steamId: STEAM_ID_2,
+                    name: 'Test Player 2',
+                    email: 'test2@example.com',
+                    image: 'https://avatars.akamai.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg'
+                }
+            });
+        }
+
         const match = await prisma.match.create({
             data: {
-                serverId: server.id,
-                status: 'READY',
-                selectedMap: 'c2m1_highway',
-                mapName: 'c2m1_highway',
+                status: 'WAITING_FOR_PLAYERS',
+                selectedMap: 'Dark Carnival',
+                serverId: 'manual_test_server',
+                serverIp: '0.0.0.0',
+                serverPort: 27015,
+                serverPassword: 'rcon_password',
                 players: {
-                    create: testPlayers.map((player, index) => ({
-                        userId: player.id,
-                        team: index < 4 ? 'TEAM_A' : 'TEAM_B',
-                    })),
-                },
-            },
+                    create: [
+                        { userId: p1.id, team: 'TEAM_A', eloAtStart: 1000 },
+                        { userId: p2.id, team: 'TEAM_B', eloAtStart: 1000 }
+                    ]
+                }
+            }
         });
 
         return NextResponse.json({
             success: true,
             matchId: match.id,
-            map: match.selectedMap,
-            players: testPlayers.length,
+            command: `sm_set_match_id ${match.id} https://www.l4d2ranked.online/api`
         });
+
     } catch (error) {
-        console.error('[Create Match] Error:', error);
-        return NextResponse.json(
-            { error: 'Failed to create match', details: String(error) },
-            { status: 500 }
-        );
+        console.error('Error creating test match:', error);
+        return NextResponse.json({ success: false, error: 'Failed to create match' }, { status: 500 });
     }
 }

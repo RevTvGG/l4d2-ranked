@@ -45,7 +45,7 @@ async function create1v1Match(player1SteamId, player2SteamId) {
 
         console.log('\n✅ Match Created Successfully!');
         console.log(`Match ID: ${match.id}`);
-        console.log(`URL: http://localhost:3000/match/${match.id}`);
+        console.log(`URL: https://www.l4d2ranked.online/match/${match.id}`);
         console.log('\n--- Next Steps ---');
         console.log('1. Open the URL above');
         console.log('2. Click "Connect to Server"');
@@ -60,9 +60,9 @@ async function create1v1Match(player1SteamId, player2SteamId) {
         try {
             // We can't call the API directly easily from script without auth
             // But we can print the RCON command you can run manually if needed
-            const apiUrl = 'http://localhost:3000'; // Make sure this is reachable from server
+            const apiUrl = 'https://www.l4d2ranked.online'; // Production URL
             console.log(`\nIf the API doesn't set it automatically, run this RCON command:`);
-            console.log(`sm_set_match_id ${match.id} ${apiUrl}`);
+            console.log(`sm_set_match_id ${match.id} ${apiUrl}/api`);
         } catch (e) {
             console.warn('Failed to auto-configure server:', e.message);
         }
