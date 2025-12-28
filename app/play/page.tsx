@@ -19,6 +19,7 @@ export default function PlayPage() {
     const [isAccepted, setIsAccepted] = useState(false);
     const [onlineCount, setOnlineCount] = useState(0);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [isVetoing, setIsVetoing] = useState(false);
 
     // Redirect if not authenticated (client-side check)
     useEffect(() => {
@@ -112,12 +113,37 @@ export default function PlayPage() {
         console.log('[DEBUG] Accept result:', result);
     };
 
-    const handleVoteMap = async (mapName: string) => {
-        if (!queueStatus?.queueEntry?.matchId) return;
-        await voteMap(queueStatus.queueEntry.matchId, mapName);
-        // Refresh match data immediately
-        const match = await getMatch(queueStatus.queueEntry.matchId);
-        setMatchData(match);
+    const handleVoteMap = async (map: string) => {
+        if (isVetoing) return;
+        setIsVetoing(true);
+        console.log('[DEBUG] Voting for map:', map);
+        try {
+            // Need matchId here. 
+            // In the failed chunk it used 'matchId' variable which might not be in scope here!
+            // Let's use the safer detection:
+            const currentMatchId = (queueStatus as any)?.matchId || (queueStatus as any)?.match?.id || (queueStatus as any)?.queueEntry?.matchId;
+
+            if (!currentMatchId) {
+                console.error("No match ID for voting");
+                return;
+            }
+
+            const result = await voteMap(currentMatchId, map);
+            console.log('[DEBUG] Vote result:', result);
+
+            if (result.error) {
+                setErrorMsg(result.error);
+            }
+            // Refresh match data immediately is handled by polling but we can double tap
+            const match = await getMatch(currentMatchId);
+            setMatchData(match);
+
+        } catch (e) {
+            setErrorMsg('Failed to vote');
+            console.error(e);
+        } finally {
+            setIsVetoing(false);
+        }
     };
 
     const handleTestMode = async () => {
