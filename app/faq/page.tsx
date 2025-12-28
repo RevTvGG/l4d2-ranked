@@ -35,6 +35,7 @@ export default async function FAQPage() {
                         <NavAnchor href="#mmr" label="MMR System" />
                         <NavAnchor href="#features" label="Profiles & Teams" />
                         <NavAnchor href="#support" label="Support" />
+                        <NavAnchor href="#credits" label="Credits" />
                     </div>
                 </div>
 
@@ -154,6 +155,32 @@ export default async function FAQPage() {
                             <strong className="block text-red-400 mb-2 uppercase tracking-wide text-sm">How to Report</strong>
                             Record your gameplay (Steam Recording / OBS). Submit a report with the clip evidence.
                             Griefing or Toxicity without evidence cannot be actioned.
+                        </div>
+                    </Section>
+
+                    {/* 7. CREDITS */}
+                    <Section id="credits" title="Credits & Acknowledgements">
+                        <div className="space-y-6">
+                            <p className="mb-4">
+                                L4D2 Ranked is built upon the incredible work of the SourceMod community.
+                                Special thanks to:
+                            </p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <a href="https://github.com/SirPlease/L4D2-Competitive-Rework" target="_blank" rel="noopener noreferrer"
+                                    className="bg-zinc-900 border border-white/5 p-6 rounded-xl hover:bg-zinc-800 transition-colors group">
+                                    <div className="text-2xl mb-2">🏆</div>
+                                    <h3 className="font-bold text-white mb-1 group-hover:text-brand-green transition-colors">SirPlease</h3>
+                                    <p className="text-sm text-zinc-500">Creator of <strong className="text-zinc-400">ZoneMod</strong>, the competitive standard configuration used on our servers.</p>
+                                </a>
+
+                                <a href="https://www.alliedmods.net/" target="_blank" rel="noopener noreferrer"
+                                    className="bg-zinc-900 border border-white/5 p-6 rounded-xl hover:bg-zinc-800 transition-colors group">
+                                    <div className="text-2xl mb-2">⚙️</div>
+                                    <h3 className="font-bold text-white mb-1 group-hover:text-brand-green transition-colors">AlliedModders</h3>
+                                    <p className="text-sm text-zinc-500">The foundation of server modification. SourceMod and MetaMod make this platform possible.</p>
+                                </a>
+                            </div>
                         </div>
                     </Section>
 
