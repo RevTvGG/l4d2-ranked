@@ -150,6 +150,7 @@ enum MatchStatus {
   READY_CHECK // Waiting for players to ready up
   VETO // Votando mapas
   READY // Esperando conexión de jugadores
+  WAITING_FOR_PLAYERS // Server ready, waiting for players to connect and ready up
   IN_PROGRESS // Partida en curso
   PAUSED
   COMPLETED
@@ -203,6 +204,11 @@ model MatchPlayer {
   team      String  @default("TEAM_A") // "TEAM_A" or "TEAM_B"
   hasJoined Boolean @default(false) // Tracked when player connects to server
 
+  // ELO tracking
+  eloAtStart Int?  // ELO when match started
+  eloAtEnd   Int?  // ELO after match completed
+  eloChange  Int?  // Change in ELO (+15, -20, etc.)
+
   // Stats
   kills     Int @default(0)
   deaths    Int @default(0)
@@ -238,11 +244,17 @@ model Round {
   matchId String
   match   Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
 
-  roundNumber Int // 1-4 (o 1-3 para Dead Center)
-  map         String
+  roundNumber Int    // 1, 2, 3, 4, etc.
+  map         String // Map name
 
-  team1Score Int @default(0)
-  team2Score Int @default(0)
+  // Score breakdown from Scoremod
+  teamScore    Int @default(0) // Total score for this round
+  healthBonus  Int @default(0) // Health bonus component
+  damageBonus  Int @default(0) // Damage bonus component
+  pillsBonus   Int @default(0) // Pills bonus component
+  
+  // MVP for this round
+  mvpSteamId String?
 
   playerStats PlayerRoundStats[]
 
@@ -258,9 +270,15 @@ model PlayerRoundStats {
   matchPlayerId String
   matchPlayer   MatchPlayer @relation(fields: [matchPlayerId], references: [id], onDelete: Cascade)
 
-  kills     Int @default(0)
+  steamId String // For easy reference
+
+  // Stats from Survivor MVP plugin
+  kills     Int @default(0) // SI kills
+  damage    Int @default(0) // Total damage
+  common    Int @default(0) // Common infected kills
+  
+  // Legacy stats
   deaths    Int @default(0)
-  damage    Int @default(0)
   headshots Int @default(0)
 }
 

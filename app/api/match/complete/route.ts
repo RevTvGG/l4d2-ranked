@@ -1,116 +1,168 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyServerKey, errorResponse, successResponse } from '@/lib/serverAuth';
-import { calculateTeamEloChanges, applyMvpBonus } from '@/lib/elo';
 
 /**
- * POST /api/match/complete
- * Finalize match and calculate ELO changes
+ * Calculate new ELO rating
  */
+function calculateElo(
+    playerRating: number,
+    opponentAvgRating: number,
+    didWin: boolean,
+    kFactor: number = 32
+): number {
+    // Expected score (probability of winning)
+    const expectedScore = 1 / (1 + Math.pow(10, (opponentAvgRating - playerRating) / 400));
+
+    // Actual score (1 if won, 0 if lost)
+    const actualScore = didWin ? 1 : 0;
+
+    // Calculate new rating
+    const newRating = playerRating + kFactor * (actualScore - expectedScore);
+
+    return Math.round(newRating);
+}
+
 export async function POST(request: NextRequest) {
     try {
-        const body = await request.json();
-        const { matchId, serverKey, winnerTeam, finalScores, mvp } = body;
+        const { matchId } = await request.json();
 
-        // Verify server authentication
-        const server = await verifyServerKey(serverKey);
-        if (!server) {
-            return errorResponse('Invalid server key', 'UNAUTHORIZED', 401);
+        if (!matchId) {
+            return NextResponse.json(
+                { error: 'matchId is required' },
+                { status: 400 }
+            );
         }
 
-        // Find match with players
+        // Get match with all data
         const match = await prisma.match.findUnique({
             where: { id: matchId },
             include: {
-                players: {
-                    include: {
-                        user: {
-                            select: {
-                                id: true,
-                                steamId: true,
-                                rating: true
-                            }
-                        }
-                    }
-                }
-            }
+                players: { include: { user: true } },
+                rounds: { orderBy: { roundNumber: 'asc' } },
+            },
         });
 
         if (!match) {
-            return errorResponse('Match not found', 'NOT_FOUND', 404);
+            return NextResponse.json(
+                { error: 'Match not found' },
+                { status: 404 }
+            );
         }
 
         if (match.status === 'COMPLETED') {
-            return errorResponse('Match already completed', 'ALREADY_COMPLETED', 409);
+            return NextResponse.json(
+                { error: 'Match already completed' },
+                { status: 400 }
+            );
         }
 
-        // Separate players by team
-        const teamAPlayers = match.players
-            .filter(p => p.team === 1)
-            .map(p => ({
-                steamId: p.user.steamId,
-                currentElo: p.user.rating,
-                userId: p.user.id
-            }));
+        // Calculate total scores for each team
+        let teamAScore = 0;
+        let teamBScore = 0;
 
-        const teamBPlayers = match.players
-            .filter(p => p.team === 2)
-            .map(p => ({
-                steamId: p.user.steamId,
-                currentElo: p.user.rating,
-                userId: p.user.id
-            }));
-
-        // Calculate ELO changes
-        const eloChanges = calculateTeamEloChanges(
-            teamAPlayers,
-            teamBPlayers,
-            winnerTeam
-        );
-
-        // Apply MVP bonus if provided
-        if (mvp) {
-            const mvpChange = eloChanges.all.find(c => c.steamId === mvp);
-            if (mvpChange) {
-                const bonusChange = applyMvpBonus(mvpChange.change);
-                mvpChange.newElo = mvpChange.oldElo + bonusChange;
-                mvpChange.change = bonusChange;
+        for (const round of match.rounds as any[]) {
+            // Odd rounds (1, 3, 5...) are Team A as survivors
+            // Even rounds (2, 4, 6...) are Team B as survivors
+            if (round.roundNumber % 2 === 1) {
+                teamAScore += (round as any).teamScore || 0;
+            } else {
+                teamBScore += (round as any).teamScore || 0;
             }
         }
 
-        // Update match status
+        // Determine winner
+        const winner = teamAScore > teamBScore ? 'TEAM_A' :
+            teamBScore > teamAScore ? 'TEAM_B' : 'TIE';
+
+        console.log(`[Match Complete] Match ${matchId} - Team A: ${teamAScore}, Team B: ${teamBScore}, Winner: ${winner}`);
+
+        // Get players by team
+        const teamAPlayers = match.players.filter(p => p.team === 'TEAM_A');
+        const teamBPlayers = match.players.filter(p => p.team === 'TEAM_B');
+
+        // Calculate average ELO for each team (using ELO at start)
+        const teamAAvgElo = teamAPlayers.reduce((sum, p) => sum + ((p as any).eloAtStart || p.user.rating), 0) / teamAPlayers.length;
+        const teamBAvgElo = teamBPlayers.reduce((sum, p) => sum + ((p as any).eloAtStart || p.user.rating), 0) / teamBPlayers.length;
+
+        console.log(`[Match Complete] Team A Avg ELO: ${Math.round(teamAAvgElo)}, Team B Avg ELO: ${Math.round(teamBAvgElo)}`);
+
+        // Update ELO for each player
+        for (const matchPlayer of match.players) {
+            const isTeamA = matchPlayer.team === 'TEAM_A';
+            const didWin = (isTeamA && winner === 'TEAM_A') || (!isTeamA && winner === 'TEAM_B');
+            const opponentAvgElo = isTeamA ? teamBAvgElo : teamAAvgElo;
+
+            // Use ELO at start if available, otherwise use current rating
+            const startElo = (matchPlayer as any).eloAtStart || matchPlayer.user.rating;
+
+            // Calculate new ELO
+            const newElo = calculateElo(startElo, opponentAvgElo, didWin);
+            const eloChange = newElo - startElo;
+
+            // Update MatchPlayer with ELO results
+            await prisma.matchPlayer.update({
+                where: { id: matchPlayer.id },
+                data: {
+                    eloAtEnd: newElo,
+                    eloChange: eloChange,
+                } as any,
+            });
+
+            // Update User's current rating
+            await prisma.user.update({
+                where: { id: matchPlayer.userId },
+                data: {
+                    rating: newElo,
+                    // Update win/loss count
+                    wins: didWin ? { increment: 1 } : undefined,
+                    losses: !didWin && winner !== 'TIE' ? { increment: 1 } : undefined,
+                },
+            });
+
+            console.log(`[ELO Update] ${matchPlayer.user.name}: ${startElo} → ${newElo} (${eloChange >= 0 ? '+' : ''}${eloChange})`);
+        }
+
+        // Update match as completed
         await prisma.match.update({
             where: { id: matchId },
             data: {
                 status: 'COMPLETED',
-                winnerTeam: winnerTeam === 'A' ? match.teamAId : match.teamBId,
-                completedAt: new Date()
-            }
+                winnerTeam: winner,
+                teamAScore: teamAScore,
+                teamBScore: teamBScore,
+                completedAt: new Date(),
+            },
         });
 
-        // Update player ratings
-        for (const change of eloChanges.all) {
-            await prisma.user.update({
-                where: { steamId: change.steamId },
-                data: {
-                    rating: change.newElo,
-                    wins: winnerTeam === 'A'
-                        ? teamAPlayers.some(p => p.steamId === change.steamId) ? { increment: 1 } : undefined
-                        : teamBPlayers.some(p => p.steamId === change.steamId) ? { increment: 1 } : undefined,
-                    losses: winnerTeam === 'A'
-                        ? teamBPlayers.some(p => p.steamId === change.steamId) ? { increment: 1 } : undefined
-                        : teamAPlayers.some(p => p.steamId === change.steamId) ? { increment: 1 } : undefined
-                }
+        // Calculate win rates for all players
+        for (const matchPlayer of match.players) {
+            const user = await prisma.user.findUnique({
+                where: { id: matchPlayer.userId },
             });
+
+            if (user) {
+                const totalGames = user.wins + user.losses;
+                const winRate = totalGames > 0 ? (user.wins / totalGames) * 100 : 0;
+
+                await prisma.user.update({
+                    where: { id: user.id },
+                    data: { winRate },
+                });
+            }
         }
 
-        return successResponse({
-            eloChanges: eloChanges.all,
-            finalScores
+        return NextResponse.json({
+            success: true,
+            message: 'Match completed successfully',
+            winner,
+            teamAScore,
+            teamBScore,
         });
-
     } catch (error) {
-        console.error('Match complete error:', error);
-        return errorResponse('Internal server error', 'INTERNAL_ERROR', 500);
+        console.error('[API] Error in match complete:', error);
+        return NextResponse.json(
+            { error: 'Internal server error', details: String(error) },
+            { status: 500 }
+        );
     }
 }

@@ -79,16 +79,6 @@ export async function POST(request: NextRequest) {
             // Connect to server
             await rcon.connect();
 
-            // Load ranked config (forces ZoneMod)
-            const configResult = await rcon.execute('exec ranked.cfg');
-            if (!configResult.success) {
-                throw new Error(`Failed to load ranked.cfg: ${configResult.error}`);
-            }
-            console.log('[RCON] Loaded ranked.cfg with ZoneMod');
-
-            // Wait for config to apply
-            await new Promise((resolve) => setTimeout(resolve, 3000));
-
             // Change to match map
             const mapResult = await rcon.execute(`changelevel ${mapToLoad}`);
             if (!mapResult.success) {
@@ -108,34 +98,7 @@ export async function POST(request: NextRequest) {
             await rcon.connect();
             console.log('[RCON] Reconnected after map change');
 
-            // Set match whitelist with real player SteamIDs
-            const whitelistCmd = `sm_set_match_players ${matchId} ${steamIds.join(' ')}`;
-            const whitelistResult = await rcon.execute(whitelistCmd);
-            if (!whitelistResult.success) {
-                throw new Error(`Failed to set whitelist: ${whitelistResult.error}`);
-            }
-            console.log(`[RCON] Whitelist set for ${steamIds.length} players`);
-
-            // Set team assignments
-            const teamAPlayers = match.players.filter(p => p.team === 'TEAM_A');
-            const teamBPlayers = match.players.filter(p => p.team === 'TEAM_B');
-
-            const teamASteamIds = teamAPlayers.map(p => p.user.steamId).filter(Boolean).join(' ');
-            const teamBSteamIds = teamBPlayers.map(p => p.user.steamId).filter(Boolean).join(' ');
-
-            // Set team assignments
-            // Note: We always attempt this even if plugin detection fails,
-            // as the plugin may be loaded but not appear in the list correctly
-            const teamsCmd = `sm_set_teams ${matchId} ${teamASteamIds} | ${teamBSteamIds}`;
-            const teamsResult = await rcon.execute(teamsCmd);
-            if (!teamsResult.success) {
-                console.warn(`[RCON] ⚠️ Team assignment command failed: ${teamsResult.error}`);
-                console.warn('[RCON] Teams may need to be set manually');
-            } else {
-                console.log(`[RCON] ✓ Teams assigned: ${teamAPlayers.length} vs ${teamBPlayers.length}`);
-            }
-
-            // Set match ID for reporter and autoload
+            // Set match ID for the reporter plugin
             const apiUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
             const matchIdResult = await rcon.execute(`sm_set_match_id ${matchId} ${apiUrl}`);
             if (!matchIdResult.success) {
@@ -148,20 +111,24 @@ export async function POST(request: NextRequest) {
             // Disconnect
             await rcon.disconnect();
 
-            // Update match status
+            // Update match status to WAITING_FOR_PLAYERS (not IN_PROGRESS yet)
+            // Match will go IN_PROGRESS when plugin notifies us via /api/match/notify-live
             await prisma.match.update({
                 where: { id: matchId },
                 data: {
-                    status: 'IN_PROGRESS',
-                    startedAt: new Date(),
+                    status: 'WAITING_FOR_PLAYERS' as any,
                 },
             });
 
+            // Return server info so players can connect
+            const serverIp = `${match.server.ipAddress}:${match.server.port}`;
+
             return NextResponse.json({
                 success: true,
-                message: 'Match started successfully',
+                message: 'Server ready for players',
                 matchId,
                 map: mapToLoad,
+                serverIp,
                 players: steamIds.length,
             });
         } catch (rconError) {
