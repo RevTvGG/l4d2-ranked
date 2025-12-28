@@ -80,7 +80,7 @@ async function sendToDiscord(report: any, user: any) {
         fields: [
             {
                 name: '👤 Reporter',
-                value: `${user.name} (${user.steamId})\n[Profile](https://www.l4d2ranked.online/profile/${user.id})`,
+                value: `${user.name} (${user.steamId})\n[Profile](https://www.l4d2ranked.online/profile/${encodeURIComponent(user.name || '')})`,
                 inline: true
             },
             {
