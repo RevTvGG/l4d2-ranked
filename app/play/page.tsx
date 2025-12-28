@@ -321,7 +321,28 @@ export default function PlayPage() {
                                     )}
 
                                     {/* ALWAYS VISIBLE RESET BUTTON (Panic Button) */}
-                                    <div className="mt-4 pt-4 border-t border-white/5 flex justify-end">
+                                    <div className="mt-4 pt-4 border-t border-white/5 flex justify-end gap-2">
+                                        {matchId && (
+                                            <button
+                                                onClick={async () => {
+                                                    if (!confirm('Force Start Match?')) return;
+                                                    await fetch('/api/test/force-start', {
+                                                        method: 'POST',
+                                                        body: JSON.stringify({ matchId }),
+                                                        headers: { 'Content-Type': 'application/json' }
+                                                    });
+                                                    // Also call server action directly if possible, but route is easier for client comp
+                                                    // We'll implemented a quick route or just use the action if we import it.
+                                                    // Since we can't easily import server actions in client components in this setup without passing it down, 
+                                                    // let's use the route approach or assume we can call the action.
+                                                    // Wait, we can import server actions!
+                                                }}
+                                                className="px-3 py-2 text-xs font-bold uppercase rounded-lg transition-all bg-blue-900/50 hover:bg-blue-800 text-blue-200 border border-blue-500/30 flex items-center gap-2"
+                                                title="Force Start Match (Bypass Ready Check)"
+                                            >
+                                                <span>⚡</span> Force Start
+                                            </button>
+                                        )}
                                         <button
                                             onClick={handleResetServer}
                                             className="px-3 py-2 text-xs font-bold uppercase rounded-lg transition-all bg-zinc-800/50 hover:bg-red-900/50 text-zinc-500 hover:text-red-200 border border-white/5 hover:border-red-500/30 flex items-center gap-2"
