@@ -126,6 +126,45 @@ export async function voteMap(matchId: string, mapName: string) {
             }
         }
 
+        // CHECK: Did everyone vote?
+        const totalVotes = await prisma.mapVote.count({
+            where: { matchId }
+        });
+
+        // Assuming 8 players total
+        if (totalVotes >= 8) {
+            console.log('[VOTE] Voting complete. Tallying votes...');
+
+            const votes = await prisma.mapVote.groupBy({
+                by: ['map'],
+                where: { matchId },
+                _count: {
+                    map: true
+                },
+                orderBy: {
+                    _count: {
+                        map: 'desc'
+                    }
+                },
+                take: 1
+            });
+
+            const winnerMap = votes[0]?.map || 'Dark Carnival'; // Default fallback
+            console.log('[VOTE] Winner Map:', winnerMap);
+
+            await prisma.match.update({
+                where: { id: matchId },
+                data: {
+                    status: 'WAITING_FOR_SERVER', // Next step: configure server
+                    mapName: winnerMap
+                }
+            });
+
+            // Trigger server configuration (optional hook here or handled by cron/polling)
+            // For now, let's assume external worker or next step picks it up.
+            // Or better: Call server RCON immediately if possible.
+        }
+
         revalidatePath('/play');
         return { success: true };
     } catch (error) {
