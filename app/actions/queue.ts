@@ -338,6 +338,24 @@ export async function getQueueStatus() {
 
     // Return queue entry with all its properties + queue preview
     if (queueEntry) {
+        // Check if match is completed - if so, cleanup and return empty
+        if (queueEntry.match && queueEntry.match.status === 'COMPLETED') {
+            // Auto-cleanup: delete this stale queue entry
+            await prisma.queueEntry.delete({
+                where: { id: queueEntry.id }
+            });
+            console.log(`[Queue] Auto-cleaned completed match entry for user ${session.user.id}`);
+
+            // Return as if not in queue
+            return {
+                status: null,
+                matchId: null,
+                nextPlayers,
+                totalInQueue,
+                activeMatches
+            };
+        }
+
         return {
             ...queueEntry,
             nextPlayers,

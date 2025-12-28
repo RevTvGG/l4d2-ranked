@@ -146,37 +146,7 @@ export default function PlayPage() {
         }
     };
 
-    const handleTestMode = async () => {
-        try {
-            setErrorMsg('Activating Test Mode...');
-            const response = await fetch('/api/test/auto-queue', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-            const data = await response.json();
-            if (data.success) {
-                console.log('[TEST MODE] Activated:', data);
-                setErrorMsg(null);
-            } else {
-                setErrorMsg('Test Failed: ' + (data.error || 'Unknown error'));
-            }
-        } catch (error) {
-            console.error('[TEST MODE] Error:', error);
-            setErrorMsg('Test Mode Error: ' + String(error));
-        }
-    };
 
-    const handleResetServer = async () => {
-        if (!confirm('Are you sure you want to reset all servers and matches?')) return;
-        try {
-            setErrorMsg('Resetting system...');
-            await fetch('/api/test/reset-server', { method: 'POST' });
-            setErrorMsg('System Reset! Try again.');
-            setQueueStatus(null);
-        } catch (e) {
-            setErrorMsg('Reset failed');
-        }
-    }
 
     if (status === 'loading') return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-brand-green">Loading...</div>;
     // Check if user is in queue
@@ -326,57 +296,11 @@ export default function PlayPage() {
                                                 {inQueue ? 'Leave Queue' : 'Buscar Partida'}
                                             </button>
 
-                                            {!inQueue && (
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        onClick={handleTestMode}
-                                                        className="flex-1 py-3 font-bold uppercase tracking-wide rounded-xl transition-all bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-600/20 transform hover:-translate-y-1 text-xs"
-                                                    >
-                                                        🧪 Test (1 Player + 7 Bots)
-                                                    </button>
-                                                    <button
-                                                        onClick={handleResetServer}
-                                                        className="px-4 py-3 font-bold uppercase rounded-xl transition-all bg-zinc-800 hover:bg-red-600 text-white shadow-lg transform hover:-translate-y-1 text-xs"
-                                                        title="Reset Servers & Queue"
-                                                    >
-                                                        🗑️ Reset
-                                                    </button>
-                                                </div>
-                                            )}
+
                                         </>
                                     )}
 
-                                    {/* ALWAYS VISIBLE RESET BUTTON (Panic Button) */}
-                                    <div className="mt-4 pt-4 border-t border-white/5 flex justify-end gap-2">
-                                        {matchId && (
-                                            <button
-                                                onClick={async () => {
-                                                    if (!confirm('Force Start Match?')) return;
-                                                    await fetch('/api/test/force-start', {
-                                                        method: 'POST',
-                                                        body: JSON.stringify({ matchId }),
-                                                        headers: { 'Content-Type': 'application/json' }
-                                                    });
-                                                    // Also call server action directly if possible, but route is easier for client comp
-                                                    // We'll implemented a quick route or just use the action if we import it.
-                                                    // Since we can't easily import server actions in client components in this setup without passing it down, 
-                                                    // let's use the route approach or assume we can call the action.
-                                                    // Wait, we can import server actions!
-                                                }}
-                                                className="px-3 py-2 text-xs font-bold uppercase rounded-lg transition-all bg-blue-900/50 hover:bg-blue-800 text-blue-200 border border-blue-500/30 flex items-center gap-2"
-                                                title="Force Start Match (Bypass Ready Check)"
-                                            >
-                                                <span>⚡</span> Force Start
-                                            </button>
-                                        )}
-                                        <button
-                                            onClick={handleResetServer}
-                                            className="px-3 py-2 text-xs font-bold uppercase rounded-lg transition-all bg-zinc-800/50 hover:bg-red-900/50 text-zinc-500 hover:text-red-200 border border-white/5 hover:border-red-500/30 flex items-center gap-2"
-                                            title="Force Reset System (Use if stuck)"
-                                        >
-                                            <span>🗑️</span> Force Reset System
-                                        </button>
-                                    </div>
+
 
                                     {/* MATCH FOUND / ACCEPT - Shows during READY_CHECK phase */}
                                     {(isReadyCheck || (matchId && matchData?.status === 'READY_CHECK')) && !isVeto && !isLive && (
@@ -427,22 +351,7 @@ export default function PlayPage() {
                                             <div className="text-xs text-center text-zinc-400">
                                                 Votes: {matchData?.mapVotes?.length || 0}/8
                                             </div>
-                                            {/* Force Win Button (Debug) */}
-                                            <div className="pt-2 border-t border-blue-500/20 flex justify-center">
-                                                <button
-                                                    onClick={async () => {
-                                                        if (!confirm('Force Map Win (Dark Carnival)?')) return;
-                                                        await fetch('/api/test/force-map', {
-                                                            method: 'POST',
-                                                            body: JSON.stringify({ matchId }),
-                                                            headers: { 'Content-Type': 'application/json' }
-                                                        });
-                                                    }}
-                                                    className="px-2 py-1 text-[10px] font-bold uppercase rounded bg-blue-900/40 hover:bg-blue-800 text-blue-300 border border-blue-500/30"
-                                                >
-                                                    ⚡ Force Map Win
-                                                </button>
-                                            </div>
+
                                         </div>
                                     )}
 

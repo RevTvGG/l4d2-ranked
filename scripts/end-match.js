@@ -1,9 +1,10 @@
 
-const fetch = require('node-fetch'); // Needs node-fetch or native fetch in Node 18+
+// Native fetch is available in recent Node.js versions
+// match-end script
 
-const API_URL = 'http://localhost:3000/api/server/match-end';
+const API_URL = 'https://www.l4d2ranked.online/api/server/match-end';
 const MATCH_ID = process.argv[2]; // Pass match ID as arg
-const SERVER_KEY = 'dev_server_123'; // Hardcoded for dev env
+const SERVER_KEY = 'ranked-server-main'; // Key from DB
 
 if (!MATCH_ID) {
     console.error('Please provide a Match ID');
@@ -15,12 +16,8 @@ const mockStats = {
     match_id: MATCH_ID,
     winner: 'A',
     players: [
-        // Real User (Revv) -> Assume he is Team A and MVP
-        // NOTE: You might need to check your DB for your specific SteamID if this fails
-        // From context, user name is Revv. Using placeholder or trying to fetch. 
-        // Let's assume the user will input it or we just use a known one. 
-        // For now, I'll update it to match the logic:
-        { steam_id: '76561198020309995', team: 1, kills: 45, deaths: 2, headshots: 15, damage: 3000, mvp: 1 },
+        // Real User (Revv) -> CORRECT ID found in DB
+        { steam_id: '76561198113376372', team: 1, kills: 45, deaths: 2, headshots: 15, damage: 3000, mvp: 1 },
         // Bots...
     ]
 };
@@ -33,8 +30,13 @@ async function endMatch() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(mockStats)
         });
-        const data = await res.json();
-        console.log('Result:', data);
+        const text = await res.text();
+        try {
+            const data = JSON.parse(text);
+            console.log('Result:', data);
+        } catch (e) {
+            console.error('Failed to parse JSON. Raw response:', text.substring(0, 200));
+        }
     } catch (e) {
         console.error('Error:', e);
     }
