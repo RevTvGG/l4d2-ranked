@@ -104,9 +104,35 @@ export async function POST(request: NextRequest) {
         const { checkQueueAndCreateMatch } = require('@/app/actions/queue');
         await checkQueueAndCreateMatch();
 
+        // 6. AUTO-ACCEPT for Bots (Critical for test mode)
+        // Wait a small delay to ensure match is created
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Find the newly created match for this user
+        const newMatch = await prisma.matchPlayer.findFirst({
+            where: { userId: session.user.id },
+            orderBy: { match: { createdAt: 'desc' } },
+            include: { match: true }
+        });
+
+        if (newMatch && newMatch.match.status === 'READY_CHECK') {
+            const matchId = newMatch.matchId;
+            console.log(`[TEST MODE] Auto-accepting for bots in match ${matchId}...`);
+
+            // Mark all bots as accepted
+            await prisma.matchPlayer.updateMany({
+                where: {
+                    matchId: matchId,
+                    user: { steamId: { startsWith: 'FAKE_BOT_' } }
+                },
+                data: { accepted: true }
+            });
+            console.log('[TEST MODE] Bots accepted!');
+        }
+
         return NextResponse.json({
             success: true,
-            message: 'Test mode activated! 7 bots + you = 8 players. Match creating...',
+            message: 'Test mode activated! 7 bots + you = 8 players. Bots auto-accepted. Please CLICK ACCEPT!',
             fakePlayers: fakePlayers.length,
             realPlayers: 1
         });
