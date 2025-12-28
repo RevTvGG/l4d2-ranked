@@ -17,15 +17,18 @@ export interface BalancedTeams {
 }
 
 /**
- * Balance 8 players into two teams of 4 based on ELO rating
+ * Balance players into two teams based on ELO rating
  * Uses snake draft: A gets #1, B gets #2 and #3, A gets #4 and #5, etc.
  * 
- * @param players - Array of exactly 8 players
+ * @param players - Array of 2-8 players
  * @returns Balanced teams with ELO statistics
  */
 export function balanceTeams(players: Player[]): BalancedTeams {
-    if (players.length !== 8) {
-        throw new Error('Exactly 8 players required for team balancing');
+    if (players.length < 2) {
+        throw new Error('At least 2 players required for team balancing');
+    }
+    if (players.length > 8) {
+        throw new Error('Maximum 8 players allowed for team balancing');
     }
 
     // Sort by ELO descending (highest first)
@@ -35,25 +38,31 @@ export function balanceTeams(players: Player[]): BalancedTeams {
     const teamA: Player[] = [];
     const teamB: Player[] = [];
 
-    // Round 1: A gets #1, B gets #2
-    teamA.push(sorted[0]);
-    teamB.push(sorted[1]);
+    // Distribute players using snake draft
+    for (let i = 0; i < sorted.length; i++) {
+        const round = Math.floor(i / 2);
+        const isEvenRound = round % 2 === 0;
 
-    // Round 2: B gets #3, A gets #4
-    teamB.push(sorted[2]);
-    teamA.push(sorted[3]);
-
-    // Round 3: A gets #5, B gets #6
-    teamA.push(sorted[4]);
-    teamB.push(sorted[5]);
-
-    // Round 4: B gets #7, A gets #8
-    teamB.push(sorted[6]);
-    teamA.push(sorted[7]);
+        if (i % 2 === 0) {
+            // First pick of the round
+            if (isEvenRound) {
+                teamA.push(sorted[i]);
+            } else {
+                teamB.push(sorted[i]);
+            }
+        } else {
+            // Second pick of the round
+            if (isEvenRound) {
+                teamB.push(sorted[i]);
+            } else {
+                teamA.push(sorted[i]);
+            }
+        }
+    }
 
     // Calculate average ELO for each team
-    const avgEloA = teamA.reduce((sum, p) => sum + p.rating, 0) / 4;
-    const avgEloB = teamB.reduce((sum, p) => sum + p.rating, 0) / 4;
+    const avgEloA = teamA.length > 0 ? teamA.reduce((sum, p) => sum + p.rating, 0) / teamA.length : 0;
+    const avgEloB = teamB.length > 0 ? teamB.reduce((sum, p) => sum + p.rating, 0) / teamB.length : 0;
     const eloDifference = Math.abs(avgEloA - avgEloB);
 
     return {

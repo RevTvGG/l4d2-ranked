@@ -203,6 +203,7 @@ model MatchPlayer {
 
   team      String  @default("TEAM_A") // "TEAM_A" or "TEAM_B"
   hasJoined Boolean @default(false) // Tracked when player connects to server
+  accepted  Boolean @default(false) // Ready-check acceptance
 
   // ELO tracking
   eloAtStart Int?  // ELO when match started

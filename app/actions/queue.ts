@@ -391,6 +391,19 @@ export async function joinQueue() {
         return { success: true, message: 'Already in queue' };
     }
 
+    // Check if at least one server is available
+    const availableServer = await prisma.gameServer.findFirst({
+        where: {
+            isActive: true,
+            status: 'AVAILABLE'
+        }
+    });
+
+    if (!availableServer) {
+        console.error('[joinQueue] No servers available');
+        return { success: false, message: 'No servers available. Please try again later.' };
+    }
+
     // Get user rating for MMR
     const user = await prisma.user.findUnique({
         where: { id: userId },

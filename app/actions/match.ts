@@ -89,10 +89,10 @@ export async function voteMap(matchId: string, mapName: string) {
             create: {
                 matchId,
                 userId: session.user.id,
-                mapName
+                map: mapName
             },
             update: {
-                mapName
+                map: mapName
             }
         });
 

@@ -108,7 +108,18 @@ export function getAuthOptions(req?: NextRequest): NextAuthOptions {
                                 rating: 1000,
                             }
                         });
-                        console.log("User synced to DB manualy:", steamId);
+
+                        // Get user ID and store in token to avoid DB query on every session
+                        const dbUser = await prisma.user.findUnique({
+                            where: { steamId: steamId },
+                            select: { id: true, rating: true }
+                        });
+                        if (dbUser) {
+                            token.id = dbUser.id;
+                            token.rating = dbUser.rating;
+                        }
+
+                        console.log("User synced to DB:", steamId);
                     } catch (e) {
                         console.error("Manual DB Sync Error", e);
                     }
@@ -121,21 +132,29 @@ export function getAuthOptions(req?: NextRequest): NextAuthOptions {
                     session.user.steamId = token.steamId;
                     session.user.image = token.picture;
 
-                    // Get user ID from database
-                    try {
-                        const { prisma } = await import("@/lib/prisma");
-                        const user = await prisma.user.findUnique({
-                            where: { steamId: token.steamId as string },
-                            select: { id: true, rating: true }
-                        });
-                        if (user) {
-                            // @ts-expect-error - Custom fields
-                            session.user.id = user.id;
-                            // @ts-expect-error - Custom fields
-                            session.user.rating = user.rating;
+                    // Use token data if available (set during login)
+                    if (token.id) {
+                        // @ts-expect-error - Custom fields
+                        session.user.id = token.id;
+                        // @ts-expect-error - Custom fields
+                        session.user.rating = token.rating;
+                    } else {
+                        // Fallback: Get user ID from database (only if not in token)
+                        try {
+                            const { prisma } = await import("@/lib/prisma");
+                            const user = await prisma.user.findUnique({
+                                where: { steamId: token.steamId as string },
+                                select: { id: true, rating: true }
+                            });
+                            if (user) {
+                                // @ts-expect-error - Custom fields
+                                session.user.id = user.id;
+                                // @ts-expect-error - Custom fields
+                                session.user.rating = user.rating;
+                            }
+                        } catch (e) {
+                            console.error("Failed to fetch user ID:", e);
                         }
-                    } catch (e) {
-                        console.error("Failed to fetch user ID:", e);
                     }
                 }
                 return session;
