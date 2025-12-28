@@ -2,7 +2,6 @@
 #include <sdktools>
 #include <steamworks>
 #include <readyup>
-#include <json>
 
 #undef REQUIRE_PLUGIN
 #include <l4d2_hybrid_scoremod>
@@ -12,12 +11,12 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION "2.0.0"
+#define PLUGIN_VERSION "2.0.1"
 
 // Constants
 #define TEAM_SURVIVOR 2
 #define TEAM_INFECTED 3
-#define MAX_PLAYERS 8
+#define MAX_JSON_SIZE 8192
 
 // CVars
 ConVar g_cvApiUrl;
@@ -89,7 +88,6 @@ public void OnPluginStart()
 
 public void OnMapStart()
 {
-    // Reset stats on map change
     ResetPlayerStats();
 }
 
@@ -204,7 +202,7 @@ public Action Cmd_TestApi(int client, int args)
     return Plugin_Handled;
 }
 
-public void OnTestApiResponse(Handle hRequest, bool bFailure, bool bSuccessful, EHTTPStatusCode eStatusCode, any client)
+public void OnTestApiResponse(Handle hRequest, bool bFailure, bool bSuccessful, EHTTPStatusCode eStatusCode, int client)
 {
     if (bFailure || !bSuccessful)
     {
@@ -286,7 +284,6 @@ public void OnMatchFinished(Event event, const char[] name, bool dontBroadcast)
     char sWinner[16];
     
     // In L4D2, winner is team index: 2 = Survivors, 3 = Infected
-    // Map to our format: A = Survivors, B = Infected
     if (winner == TEAM_SURVIVOR)
         strcopy(sWinner, sizeof(sWinner), "A");
     else if (winner == TEAM_INFECTED)
@@ -299,7 +296,7 @@ public void OnMatchFinished(Event event, const char[] name, bool dontBroadcast)
 }
 
 // ------------------------------------------------------------------------
-// API Calls
+// API Calls - Manual JSON Building (No external dependencies)
 // ------------------------------------------------------------------------
 
 void SendMatchLive()
@@ -311,14 +308,11 @@ void SendMatchLive()
     char sRequestUrl[512];
     Format(sRequestUrl, sizeof(sRequestUrl), "%s/server/notify-live", sUrl);
 
-    // Build JSON payload
-    Handle hJson = json_object();
-    json_object_set_new(hJson, "server_key", json_string(sServerKey));
-    json_object_set_new(hJson, "match_id", json_string(g_sMatchId));
-    
+    // Build JSON manually
     char sJsonBody[1024];
-    json_dump(hJson, sJsonBody, sizeof(sJsonBody));
-    CloseHandle(hJson);
+    Format(sJsonBody, sizeof(sJsonBody), 
+        "{\"server_key\":\"%s\",\"match_id\":\"%s\"}", 
+        sServerKey, g_sMatchId);
 
     Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodPOST, sRequestUrl);
     if (hRequest == INVALID_HANDLE)
@@ -340,7 +334,7 @@ void SendMatchLive()
     PrintToServer("[Match Reporter] Sent notify-live to API");
 }
 
-public void OnMatchLiveResponse(Handle hRequest, bool bFailure, bool bSuccessful, EHTTPStatusCode eStatusCode, any data)
+public void OnMatchLiveResponse(Handle hRequest, bool bFailure, bool bSuccessful, EHTTPStatusCode eStatusCode, int data)
 {
     if (bFailure || !bSuccessful)
     {
@@ -367,14 +361,11 @@ void SendMatchComplete(const char[] winner)
     char sRequestUrl[512];
     Format(sRequestUrl, sizeof(sRequestUrl), "%s/server/match-end", sUrl);
 
-    // Build JSON payload with players array
-    Handle hJson = json_object();
-    json_object_set_new(hJson, "server_key", json_string(sServerKey));
-    json_object_set_new(hJson, "match_id", json_string(g_sMatchId));
-    json_object_set_new(hJson, "winner", json_string(winner));
+    // Build players JSON array manually
+    char sPlayersJson[4096];
+    sPlayersJson[0] = '\0';
     
-    // Build players array
-    Handle hPlayers = json_array();
+    bool bFirstPlayer = true;
     
     for (int i = 1; i <= MaxClients; i++)
     {
@@ -386,23 +377,33 @@ void SendMatchComplete(const char[] winner)
         int team = GetClientTeam(i);
         if (team != TEAM_SURVIVOR && team != TEAM_INFECTED) continue;
         
-        Handle hPlayer = json_object();
-        json_object_set_new(hPlayer, "steam_id", json_string(sSteamId));
-        json_object_set_new(hPlayer, "team", json_integer(team == TEAM_SURVIVOR ? 1 : 2));
-        json_object_set_new(hPlayer, "kills", json_integer(g_iPlayerKills[i]));
-        json_object_set_new(hPlayer, "deaths", json_integer(g_iPlayerDeaths[i]));
-        json_object_set_new(hPlayer, "damage", json_integer(g_iPlayerDamage[i]));
-        json_object_set_new(hPlayer, "headshots", json_integer(g_iPlayerHeadshots[i]));
-        json_object_set_new(hPlayer, "mvp", json_integer(0)); // TODO: Get from MVP plugin
+        // Add comma separator if not first player
+        if (!bFirstPlayer)
+        {
+            StrCat(sPlayersJson, sizeof(sPlayersJson), ",");
+        }
+        bFirstPlayer = false;
         
-        json_array_append_new(hPlayers, hPlayer);
+        // Build player JSON object
+        char sPlayerJson[256];
+        Format(sPlayerJson, sizeof(sPlayerJson),
+            "{\"steam_id\":\"%s\",\"team\":%d,\"kills\":%d,\"deaths\":%d,\"damage\":%d,\"headshots\":%d,\"mvp\":0}",
+            sSteamId,
+            team == TEAM_SURVIVOR ? 1 : 2,
+            g_iPlayerKills[i],
+            g_iPlayerDeaths[i],
+            g_iPlayerDamage[i],
+            g_iPlayerHeadshots[i]
+        );
+        
+        StrCat(sPlayersJson, sizeof(sPlayersJson), sPlayerJson);
     }
     
-    json_object_set_new(hJson, "players", hPlayers);
-    
-    char sJsonBody[4096];
-    json_dump(hJson, sJsonBody, sizeof(sJsonBody));
-    CloseHandle(hJson);
+    // Build complete JSON body
+    char sJsonBody[MAX_JSON_SIZE];
+    Format(sJsonBody, sizeof(sJsonBody),
+        "{\"server_key\":\"%s\",\"match_id\":\"%s\",\"winner\":\"%s\",\"players\":[%s]}",
+        sServerKey, g_sMatchId, winner, sPlayersJson);
 
     Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodPOST, sRequestUrl);
     if (hRequest == INVALID_HANDLE)
@@ -430,7 +431,7 @@ void SendMatchComplete(const char[] winner)
     ResetPlayerStats();
 }
 
-public void OnMatchCompleteResponse(Handle hRequest, bool bFailure, bool bSuccessful, EHTTPStatusCode eStatusCode, any data)
+public void OnMatchCompleteResponse(Handle hRequest, bool bFailure, bool bSuccessful, EHTTPStatusCode eStatusCode, int data)
 {
     if (bFailure || !bSuccessful)
     {

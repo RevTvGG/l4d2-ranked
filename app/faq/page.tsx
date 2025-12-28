@@ -41,6 +41,30 @@ export default async function FAQPage() {
                 {/* CONTENT */}
                 <div className="col-span-1 lg:col-span-3 space-y-16">
 
+                    {/* BETA DISCLAIMER */}
+                    <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-2xl p-6">
+                        <div className="flex items-start gap-4">
+                            <span className="text-4xl">⚠️</span>
+                            <div>
+                                <h2 className="text-xl font-black text-yellow-400 uppercase mb-2">
+                                    Platform in BETA
+                                </h2>
+                                <p className="text-zinc-300 leading-relaxed mb-3">
+                                    L4D2 Ranked is currently under active development. You may experience:
+                                </p>
+                                <ul className="text-zinc-400 text-sm space-y-1 list-disc list-inside mb-3">
+                                    <li>Bugs and unexpected errors</li>
+                                    <li>Matchmaking or server connection issues</li>
+                                    <li>Stats not updating properly</li>
+                                    <li>Features that are incomplete or missing</li>
+                                </ul>
+                                <p className="text-zinc-500 text-sm">
+                                    We appreciate your patience and feedback as we work to improve the platform!
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* 1. GENERAL */}
                     <Section id="general" title="What is L4D2 Ranked?">
                         <p>
@@ -53,11 +77,10 @@ export default async function FAQPage() {
                     {/* 2. REQUIREMENTS */}
                     <Section id="requirements" title="Requirements">
                         <ul className="list-disc list-inside space-y-2 text-zinc-400 marker:text-brand-green">
-                            <li>Must have at least <strong>200 hours</strong> in L4D2.</li>
-                            <li><strong>70 Versus games</strong> played on your Steam account.</li>
                             <li>Basic Versus knowledge (Spawns, Attacks, Map paths).</li>
                             <li><strong>NO Family Shared accounts</strong> allowed.</li>
-                            <li>Anti-cheat installation required.</li>
+                            <li>Stable internet connection.</li>
+                            <li>Working microphone recommended.</li>
                         </ul>
                     </Section>
 

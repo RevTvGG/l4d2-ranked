@@ -357,8 +357,10 @@ export default function PlayPage() {
 
                                     {/* READY TO CONNECT */}
                                     {isMatchReady && (
-                                        <div className="bg-brand-green text-black p-6 rounded-xl space-y-4 shadow-xl shadow-brand-green/20 animate-bounce-subtle">
-                                            <div className="text-center font-black text-2xl tracking-tighter">MATCH READY</div>
+                                        <div className="bg-brand-green text-black p-6 rounded-xl space-y-4 shadow-xl shadow-brand-green/20">
+                                            <div className="text-center font-black text-2xl tracking-tighter">🎮 MATCH READY</div>
+
+                                            {/* Server Info */}
                                             <div className="bg-black/20 p-4 rounded-lg space-y-2 font-mono text-sm">
                                                 <div className="flex justify-between">
                                                     <span className="opacity-60">Server IP:</span>
@@ -373,8 +375,28 @@ export default function PlayPage() {
                                                     <span className="font-bold">{matchData?.mapName || 'Unknown Map'}</span>
                                                 </div>
                                             </div>
-                                            <div className="text-center text-xs font-bold opacity-75">
-                                                Connect via console: connect 50.20.249.93:27015; password {matchData?.serverPassword || '...'}
+
+                                            {/* Connection Instructions */}
+                                            <div className="bg-black/30 p-4 rounded-lg space-y-3">
+                                                <div className="font-bold text-sm uppercase tracking-wide opacity-75">📋 How to Connect:</div>
+                                                <ol className="text-sm space-y-2 list-decimal list-inside opacity-90">
+                                                    <li><strong>Open L4D2</strong> and go to the main menu</li>
+                                                    <li>Press <code className="bg-black/30 px-1 rounded">~</code> to open console</li>
+                                                    <li>Copy and paste the command below:</li>
+                                                </ol>
+                                                <div className="bg-black/40 p-3 rounded font-mono text-xs select-all break-all">
+                                                    connect 50.20.249.93:27015; password {matchData?.serverPassword || '...'}
+                                                </div>
+                                                <ol start={4} className="text-sm space-y-2 list-decimal list-inside opacity-90">
+                                                    <li>Once connected, type <code className="bg-black/30 px-1 rounded">!ready</code> in chat</li>
+                                                    <li>Wait for all 8 players to ready up</li>
+                                                </ol>
+                                            </div>
+
+                                            {/* Tips */}
+                                            <div className="bg-black/20 p-3 rounded-lg text-xs opacity-75 space-y-1">
+                                                <div>💡 <strong>Tip:</strong> If you can&apos;t connect, check your firewall settings</div>
+                                                <div>⚠️ <strong>Note:</strong> ZoneMod config will load automatically</div>
                                             </div>
                                         </div>
                                     )}
