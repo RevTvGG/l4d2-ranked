@@ -101,9 +101,15 @@ export default function PlayPage() {
     };
 
     const handleAcceptMatch = async () => {
-        if (!queueStatus?.queueEntry?.matchId) return;
+        const currentMatchId = (queueStatus as any)?.matchId || (queueStatus as any)?.match?.id;
+        if (!currentMatchId) {
+            console.error('[DEBUG] No matchId found for accept');
+            return;
+        }
+        console.log('[DEBUG] Accepting match:', currentMatchId);
         setIsAccepted(true);
-        await acceptMatch(queueStatus.queueEntry.matchId);
+        const result = await acceptMatch(currentMatchId);
+        console.log('[DEBUG] Accept result:', result);
     };
 
     const handleVoteMap = async (mapName: string) => {
@@ -136,10 +142,18 @@ export default function PlayPage() {
     console.log('[DEBUG] Queue Status:', queueStatus);
     console.log('[DEBUG] In Queue:', inQueue);
     console.log('[DEBUG] Queue Status Status:', (queueStatus as any)?.status);
-    const matchId = (queueStatus as any)?.matchId || (queueStatus as any)?.queueEntry?.matchId;
+    console.log('[DEBUG] Match Data:', matchData);
+
+    // Better matchId detection - check multiple sources
+    const matchId = (queueStatus as any)?.matchId || (queueStatus as any)?.match?.id;
+    const isReadyCheck = matchId && matchData?.status === 'READY_CHECK';
     const isMatchReady = matchId && matchData?.status === 'READY';
     const isVeto = matchData?.status === 'VETO';
-    const isLive = matchData?.status === 'IN_PROGRESS';
+    const isLive = matchData?.status === 'IN_PROGRESS' || matchData?.status === 'WAITING_FOR_PLAYERS';
+
+    console.log('[DEBUG] Match ID:', matchId);
+    console.log('[DEBUG] Is Ready Check:', isReadyCheck);
+    console.log('[DEBUG] Match Status:', matchData?.status);
 
     return (
         <div className="min-h-screen bg-zinc-950 text-white font-sans selection:bg-brand-green selection:text-black pb-24 flex flex-col">
@@ -280,8 +294,8 @@ export default function PlayPage() {
                                         </>
                                     )}
 
-                                    {/* MATCH FOUND / ACCEPT */}
-                                    {queueStatus?.queueEntry?.matchId && !isVeto && !isLive && !isMatchReady && (
+                                    {/* MATCH FOUND / ACCEPT - Shows during READY_CHECK phase */}
+                                    {(isReadyCheck || (matchId && matchData?.status === 'READY_CHECK')) && !isVeto && !isLive && (
                                         <div className="animate-pulse bg-brand-green/20 border border-brand-green/50 p-4 rounded-xl text-center space-y-3">
                                             <div className="text-brand-green font-bold text-xl">MATCH FOUND!</div>
                                             <div className="text-sm text-zinc-300">Accept to join the lobby</div>
