@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-<parameter name="requireAdmin } from '@/lib/adminAuth';
+import { requireAdmin } from '@/lib/adminAuth';
 import { prisma } from '@/lib/prisma';
 
 /**
