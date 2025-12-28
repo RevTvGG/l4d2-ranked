@@ -4,8 +4,7 @@ import { prisma } from '@/lib/prisma';
 
 /**
  * ADMIN: Ban a player
- * Supports: GAME, CHAT, or BOTH bans
- * Supports: Temporary (with duration) or Permanent (null duration)
+ * Simplified version using existing schema
  */
 export async function POST(request: NextRequest) {
     // Check admin auth
@@ -15,19 +14,11 @@ export async function POST(request: NextRequest) {
     const admin = await getAdminUser();
 
     try {
-        const { userId, reason, type, duration } = await request.json();
+        const { userId, reason, duration } = await request.json();
 
-        if (!userId || !reason || !type) {
+        if (!userId || !reason) {
             return NextResponse.json(
-                { error: 'Missing required fields: userId, reason, type' },
-                { status: 400 }
-            );
-        }
-
-        // Validate ban type
-        if (!['GAME', 'CHAT', 'BOTH'].includes(type)) {
-            return NextResponse.json(
-                { error: 'Invalid ban type. Must be GAME, CHAT, or BOTH' },
+                { error: 'Missing required fields: userId, reason' },
                 { status: 400 }
             );
         }
@@ -44,34 +35,29 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Calculate expiration
-        let expiresAt = null;
-        if (duration && duration > 0) {
-            expiresAt = new Date(Date.now() + duration * 60 * 1000); // duration in minutes
-        }
+        // Calculate expiration (duration in minutes)
+        const durationMinutes = duration || 10080; // Default 1 week
+        const expiresAt = new Date(Date.now() + durationMinutes * 60 * 1000);
 
         // Create ban
         const ban = await prisma.ban.create({
             data: {
                 userId,
-                reason: reason as any, // Will use existing BanReason enum
-                type: type as any,
-                duration: duration || null,
-                bannedBy: admin?.id || null,
+                reason: reason as any,
+                duration: durationMinutes,
                 expiresAt,
                 active: true
             }
         });
 
-        console.log(`[ADMIN] User ${user.name} banned by ${admin?.name}. Type: ${type}, Duration: ${duration || 'PERMANENT'}`);
+        console.log(`[ADMIN] User ${user.name} banned by ${admin?.name}. Duration: ${durationMinutes} minutes`);
 
         return NextResponse.json({
             success: true,
             ban: {
                 id: ban.id,
                 user: user.name,
-                type,
-                duration: duration || 'PERMANENT',
+                duration: durationMinutes,
                 expiresAt,
                 reason
             }
