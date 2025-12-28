@@ -26,6 +26,7 @@ interface PlayerProfileProps {
     isPremium?: boolean;
     profileTheme?: string;
     team?: Team; // Optional: Player might not have a team
+    isOwner?: boolean; // True if viewing own profile
 }
 
 export function PlayerProfile({
@@ -46,6 +47,7 @@ export function PlayerProfile({
     profileTheme = "DEFAULT",
     team,
     countryCode,
+    isOwner = false,
 }: PlayerProfileProps) {
     const themeBg: Record<string, string> = {
         DEFAULT: "border-white/10 bg-zinc-900",
@@ -64,16 +66,18 @@ export function PlayerProfile({
             {/* 1. HERO SECTION */}
             <div className={`relative rounded-3xl overflow-hidden border shadow-2xl transition-all duration-500 ${containerStyle}`}>
 
-                {/* EDIT BUTTON (Gear Icon) - Absolute Top Right */}
-                <a
-                    href="/profile/edit"
-                    className="absolute top-6 right-6 z-30 h-10 w-10 flex items-center justify-center rounded-full bg-black/50 border border-white/10 text-zinc-400 hover:text-white hover:bg-black/80 hover:rotate-90 transition-all backdrop-blur-md"
-                    title="Edit Profile"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.86z" />
-                    </svg>
-                </a>
+                {/* EDIT BUTTON (Gear Icon) - Only visible to profile owner */}
+                {isOwner && (
+                    <a
+                        href="/profile/edit"
+                        className="absolute top-6 right-6 z-30 h-10 w-10 flex items-center justify-center rounded-full bg-black/50 border border-white/10 text-zinc-400 hover:text-white hover:bg-black/80 hover:rotate-90 transition-all backdrop-blur-md"
+                        title="Edit Profile"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.86z" />
+                        </svg>
+                    </a>
+                )}
 
                 {/* Background Image/Gradient */}
                 <div className="absolute inset-0 bg-[url('/l4d2_bg.jpg')] bg-cover bg-center opacity-40 mix-blend-luminosity"></div>
@@ -88,12 +92,19 @@ export function PlayerProfile({
                             rel="noopener noreferrer"
                             className={`block h-32 w-32 md:h-40 md:w-40 rounded-2xl rotate-3 border-4 overflow-hidden shadow-2xl relative z-10 transition-transform hover:rotate-0 hover:scale-105 duration-300 ${isPremium ? 'border-amber-300 shadow-amber-500/50' : 'border-white/10 bg-zinc-800'}`}
                         >
-                            <Image
-                                src={steamAvatarUrl}
-                                alt={`${username}'s avatar`}
-                                fill
-                                className="object-cover"
-                            />
+                            {steamAvatarUrl ? (
+                                <Image
+                                    src={steamAvatarUrl}
+                                    alt={`${username}'s avatar`}
+                                    fill
+                                    className="object-cover"
+                                    unoptimized
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-zinc-800 text-zinc-500 text-4xl font-bold">
+                                    {username?.[0]?.toUpperCase() || '?'}
+                                </div>
+                            )}
                         </a>
                         <div className="absolute inset-0 -rotate-3 rounded-2xl bg-brand-green/20 blur-xl z-0"></div>
                     </div>
@@ -159,13 +170,15 @@ export function PlayerProfile({
                             </div>
                         </div>
 
-                        <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter uppercase italic leading-none flex flex-wrap items-center gap-4 break-words">
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase italic leading-none break-words max-w-full">
                             {isPremium ? (
-                                <ShinyText text={username} theme={profileTheme} />
+                                <span className="flex flex-wrap items-center gap-2">
+                                    <ShinyText text={username} theme={profileTheme} />
+                                    <PremiumBadge theme={profileTheme} />
+                                </span>
                             ) : (
                                 username
                             )}
-                            {isPremium && <PremiumBadge theme={profileTheme} />}
                         </h1>
 
                         {/* BIO SECTION */}

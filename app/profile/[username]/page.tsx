@@ -2,6 +2,8 @@ import { PlayerProfile } from "@/components/PlayerProfile";
 import { Navbar } from "@/components/Navbar";
 import { getProfile } from "@/app/actions/getProfile";
 import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 type Props = {
     params: Promise<{ username: string }>;
@@ -14,6 +16,11 @@ export default async function ProfilePage({ params }: Props) {
     const { username } = await params;
 
     const profileData = await getProfile(username);
+    const session = await getServerSession(authOptions);
+
+    // Check if viewing own profile
+    // @ts-expect-error - steamId is custom field
+    const isOwner = session?.user?.steamId === profileData?.steamId;
 
     if (!profileData) {
         // If user not found in DB
@@ -32,7 +39,7 @@ export default async function ProfilePage({ params }: Props) {
         <div className="min-h-screen bg-black pt-32 pb-16 px-4">
             <Navbar />
             <div className="container mx-auto">
-                <PlayerProfile {...profileData} />
+                <PlayerProfile {...profileData} isOwner={isOwner} />
 
                 <div className="mt-12 text-center text-zinc-600 text-xs">
                     Values are live from the Ranked Database.
@@ -41,3 +48,4 @@ export default async function ProfilePage({ params }: Props) {
         </div>
     );
 }
+
