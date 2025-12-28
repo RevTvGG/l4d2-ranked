@@ -155,8 +155,9 @@ export async function voteMap(matchId: string, mapName: string) {
             await prisma.match.update({
                 where: { id: matchId },
                 data: {
-                    status: 'WAITING_FOR_SERVER', // Next step: configure server
-                    mapName: winnerMap
+                    status: 'READY', // Server is already assigned, now ready to join
+                    mapName: winnerMap,
+                    selectedMap: winnerMap
                 }
             });
 

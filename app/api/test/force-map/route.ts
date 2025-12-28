@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
         await prisma.match.update({
             where: { id: matchId },
             data: {
-                status: 'WAITING_FOR_SERVER',
+                status: 'READY',
                 mapName: 'Dark Carnival', // Default fallback
                 selectedMap: 'Dark Carnival'
             }
