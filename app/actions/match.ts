@@ -96,6 +96,36 @@ export async function voteMap(matchId: string, mapName: string) {
             }
         });
 
+        // Check for bots and auto-vote for them
+        const matchPlayers = await prisma.matchPlayer.findMany({
+            where: { matchId },
+            include: { user: true }
+        });
+
+        const botPlayers = matchPlayers.filter(p => p.user.steamId.startsWith('FAKE_BOT_'));
+
+        if (botPlayers.length > 0) {
+            console.log(`[VOTE] Auto-voting for ${botPlayers.length} bots...`);
+            for (const bot of botPlayers) {
+                await prisma.mapVote.upsert({
+                    where: {
+                        matchId_userId: {
+                            matchId,
+                            userId: bot.userId
+                        }
+                    },
+                    create: {
+                        matchId,
+                        userId: bot.userId,
+                        map: mapName // Bots follow leader
+                    },
+                    update: {
+                        map: mapName
+                    }
+                });
+            }
+        }
+
         revalidatePath('/play');
         return { success: true };
     } catch (error) {
