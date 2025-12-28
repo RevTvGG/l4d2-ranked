@@ -169,6 +169,15 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        // Release server back to available pool
+        if (match.serverId) {
+            await prisma.gameServer.update({
+                where: { id: match.serverId },
+                data: { status: 'AVAILABLE' }
+            });
+            console.log('[DB] Server status updated to AVAILABLE');
+        }
+
         return NextResponse.json({
             success: true,
             message: 'Match completed successfully',

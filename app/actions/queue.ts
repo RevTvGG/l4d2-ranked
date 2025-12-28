@@ -37,11 +37,14 @@ export async function checkQueueAndCreateMatch() {
 
     // Get available server
     const server = await prisma.gameServer.findFirst({
-        where: { isActive: true }
+        where: {
+            isActive: true,
+            status: 'AVAILABLE'
+        }
     });
 
     if (!server) {
-        console.error('[Queue] No active game server available');
+        console.error('[Queue] No available game server found');
         return;
     }
 

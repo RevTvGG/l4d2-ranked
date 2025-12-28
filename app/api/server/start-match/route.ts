@@ -99,14 +99,55 @@ export async function POST(request: NextRequest) {
             console.log('[RCON] Reconnected after map change');
 
             // Set match ID for the reporter plugin
-            const apiUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-            const matchIdResult = await rcon.execute(`sm_set_match_id ${matchId} ${apiUrl}`);
+            const apiUrl = process.env.NEXTAUTH_URL;
+            if (!apiUrl) {
+                throw new Error('NEXTAUTH_URL environment variable is required');
+            }
+
+            // Configure plugin API URL first
+            console.log('[RCON] Configuring plugin API URL...');
+            const urlConfigResult = await rcon.execute(`sm_cvar l4d2_ranked_api_url "${apiUrl}/api"`);
+            if (!urlConfigResult.success) {
+                console.warn(`[RCON] Warning: Failed to set API URL: ${urlConfigResult.error}`);
+            } else {
+                console.log(`[RCON] Plugin API URL configured: ${apiUrl}/api`);
+            }
+
+            // Set match ID
+            const matchIdResult = await rcon.execute(`sm_set_match_id ${matchId}`);
             if (!matchIdResult.success) {
                 console.warn(`[RCON] Warning: Match ID may not be set: ${matchIdResult.error}`);
                 // Don't throw, match can continue without reporter
             } else {
                 console.log(`[RCON] Match ID set: ${matchId}`);
             }
+
+            // Configure player whitelist
+            console.log('[RCON] Configuring player whitelist...');
+
+            // Clear any existing whitelist
+            await rcon.execute('sm_cvar sv_steamgroup_exclusive 0');
+
+            // Add each player to whitelist
+            for (const steamId of steamIds) {
+                // Using sm_cvar to set reserved slots (SourceMod native)
+                // This prevents non-whitelisted players from joining
+                const whitelistResult = await rcon.execute(`sm_reservation_add ${steamId}`);
+                if (whitelistResult.success) {
+                    console.log(`[RCON] Whitelisted: ${steamId}`);
+                } else {
+                    console.warn(`[RCON] Failed to whitelist ${steamId}: ${whitelistResult.error}`);
+                }
+            }
+
+            console.log(`[RCON] Whitelist configured for ${steamIds.length} players`);
+
+            // Update server status to IN_USE
+            await prisma.gameServer.update({
+                where: { id: match.serverId },
+                data: { status: 'IN_USE' }
+            });
+            console.log('[DB] Server status updated to IN_USE');
 
             // Disconnect
             await rcon.disconnect();
