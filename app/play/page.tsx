@@ -122,6 +122,7 @@ export default function PlayPage() {
 
     const handleTestMode = async () => {
         try {
+            setErrorMsg('Activating Test Mode...');
             const response = await fetch('/api/test/auto-queue', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
@@ -129,11 +130,27 @@ export default function PlayPage() {
             const data = await response.json();
             if (data.success) {
                 console.log('[TEST MODE] Activated:', data);
+                setErrorMsg(null);
+            } else {
+                setErrorMsg('Test Failed: ' + (data.error || 'Unknown error'));
             }
         } catch (error) {
             console.error('[TEST MODE] Error:', error);
+            setErrorMsg('Test Mode Error: ' + String(error));
         }
     };
+
+    const handleResetServer = async () => {
+        if (!confirm('Are you sure you want to reset all servers and matches?')) return;
+        try {
+            setErrorMsg('Resetting system...');
+            await fetch('/api/test/reset-server', { method: 'POST' });
+            setErrorMsg('System Reset! Try again.');
+            setQueueStatus(null);
+        } catch (e) {
+            setErrorMsg('Reset failed');
+        }
+    }
 
     if (status === 'loading') return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-brand-green">Loading...</div>;
     // Check if user is in queue
@@ -284,12 +301,21 @@ export default function PlayPage() {
                                             </button>
 
                                             {!inQueue && (
-                                                <button
-                                                    onClick={handleTestMode}
-                                                    className="w-full py-3 font-bold uppercase tracking-wide rounded-xl transition-all bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-600/20 transform hover:-translate-y-1 text-sm"
-                                                >
-                                                    🧪 Test Mode (2 Players + 6 Bots)
-                                                </button>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={handleTestMode}
+                                                        className="flex-1 py-3 font-bold uppercase tracking-wide rounded-xl transition-all bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-600/20 transform hover:-translate-y-1 text-xs"
+                                                    >
+                                                        🧪 Test (1 Player + 7 Bots)
+                                                    </button>
+                                                    <button
+                                                        onClick={handleResetServer}
+                                                        className="px-4 py-3 font-bold uppercase rounded-xl transition-all bg-zinc-800 hover:bg-red-600 text-white shadow-lg transform hover:-translate-y-1 text-xs"
+                                                        title="Reset Servers & Queue"
+                                                    >
+                                                        🗑️ Reset
+                                                    </button>
+                                                </div>
                                             )}
                                         </>
                                     )}
