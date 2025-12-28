@@ -92,9 +92,9 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: 'Test mode activated! Match should be created.',
+            message: 'Test mode activated! 7 bots + you = 8 players. Match creating...',
             fakePlayers: fakePlayers.length,
-            realPlayers: secondUserId ? 2 : 1
+            realPlayers: 1
         });
 
     } catch (error) {
