@@ -298,13 +298,21 @@ model Ban {
   user   User   @relation("Bans", fields: [userId], references: [id], onDelete: Cascade)
 
   reason   BanReason
-  duration Int // Minutos
+  type     BanType   @default(GAME) // GAME, CHAT, or BOTH
+  duration Int? // Minutes (null = permanent)
 
-  matchId String? // Match relacionado (si aplica)
+  bannedBy String? // Admin user ID
+  matchId  String? // Match relacionado (si aplica)
 
   createdAt DateTime @default(now())
-  expiresAt DateTime
+  expiresAt DateTime? // null if permanent
   active    Boolean  @default(true)
+}
+
+enum BanType {
+  GAME  // Cannot join matches
+  CHAT  // Cannot send chat messages
+  BOTH  // Both restrictions
 }
 
 // GAME SERVERS
