@@ -37,7 +37,7 @@ export async function GET() {
             data: {
                 status: 'WAITING_FOR_PLAYERS',
                 selectedMap: 'Dark Carnival',
-                serverId: 'manual_test_server',
+                // serverId: 'manual_test_server',  <-- REMOVED to avoid FK error
                 serverIp: '0.0.0.0',
                 serverPort: 27015,
                 serverPassword: 'rcon_password',
