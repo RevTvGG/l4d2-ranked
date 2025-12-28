@@ -24,7 +24,16 @@ function calculateElo(
 
 export async function POST(request: NextRequest) {
     try {
-        const { matchId } = await request.json();
+        let matchId: string | undefined;
+
+        const contentType = request.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+            const json = await request.json();
+            matchId = json.matchId;
+        } else {
+            const formData = await request.formData();
+            matchId = formData.get('matchId')?.toString();
+        }
 
         if (!matchId) {
             return NextResponse.json(
