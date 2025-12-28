@@ -357,39 +357,61 @@ export async function getQueueStatus() {
  * Join the matchmaking queue
  */
 export async function joinQueue() {
+    console.log('[joinQueue] Starting...');
+
     const session = await getServerSession(authOptions);
-    if (!session?.user) return { success: false, message: 'Not authenticated' };
+    console.log('[joinQueue] Session:', session ? 'exists' : 'null');
+    console.log('[joinQueue] User:', session?.user);
+
+    if (!session?.user) {
+        console.error('[joinQueue] No session or user');
+        return { success: false, message: 'Not authenticated' };
+    }
+
+    const userId = (session.user as any).id;
+    console.log('[joinQueue] User ID:', userId);
+
+    if (!userId) {
+        console.error('[joinQueue] No user ID found');
+        return { success: false, message: 'User ID not found' };
+    }
 
     // Check if already in queue
     const existing = await prisma.queueEntry.findFirst({
         where: {
-            userId: session.user.id,
+            userId: userId,
             status: { in: ['WAITING', 'READY_CHECK', 'MATCHED'] },
         },
     });
 
     if (existing) {
+        console.log('[joinQueue] User already in queue');
         return { success: true, message: 'Already in queue' };
     }
 
     // Get user rating for MMR
     const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
+        where: { id: userId },
         select: { rating: true },
     });
+
+    console.log('[joinQueue] User rating:', user?.rating);
 
     // Create queue entry
     await prisma.queueEntry.create({
         data: {
-            userId: session.user.id,
+            userId: userId,
             status: 'WAITING',
             mmr: user?.rating || 1000,
             expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutes
         },
     });
 
+    console.log('[joinQueue] Queue entry created successfully');
+
     // Check if we can create a match
     await checkQueueAndCreateMatch();
 
     return { success: true, message: 'Joined queue' };
 }
+

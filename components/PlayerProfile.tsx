@@ -191,7 +191,7 @@ export function PlayerProfile({
                     {/* Big Rank Badge (Right Side) */}
                     <div className="hidden md:flex flex-col items-end">
                         <div className="text-zinc-500 font-bold tracking-widest text-sm mb-[-10px] z-10 uppercase">Current Rank</div>
-                        <div className="text-[120px] leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-600 tracking-tighter drop-shadow-2xl">
+                        <div className="text-6xl md:text-8xl leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-600 tracking-tighter drop-shadow-2xl truncate max-w-[300px] text-right">
                             {rank}
                         </div>
                         <div className="text-brand-green font-mono text-xl tracking-wider font-bold">
