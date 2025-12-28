@@ -71,7 +71,6 @@ model User {
   bio           String? // Max 140 chars
 
   isPremium    Boolean @default(false)
-  isAdmin      Boolean @default(false)
   profileTheme String  @default("DEFAULT") // "DEFAULT", "GOLD", "DIAMOND", "RUBY", "EMERALD", "VOID"
 
   rating Int    @default(1000) // ELO
@@ -298,21 +297,13 @@ model Ban {
   user   User   @relation("Bans", fields: [userId], references: [id], onDelete: Cascade)
 
   reason   BanReason
-  type     BanType   @default(GAME) // GAME, CHAT, or BOTH
-  duration Int? // Minutes (null = permanent)
+  duration Int // Minutos
 
-  bannedBy String? // Admin user ID
-  matchId  String? // Match relacionado (si aplica)
+  matchId String? // Match relacionado (si aplica)
 
   createdAt DateTime @default(now())
-  expiresAt DateTime? // null if permanent
+  expiresAt DateTime
   active    Boolean  @default(true)
-}
-
-enum BanType {
-  GAME  // Cannot join matches
-  CHAT  // Cannot send chat messages
-  BOTH  // Both restrictions
 }
 
 // GAME SERVERS

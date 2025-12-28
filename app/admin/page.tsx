@@ -21,8 +21,12 @@ export default function AdminPanel() {
         if (status === 'unauthenticated') {
             router.push('/');
         }
-        if (status === 'authenticated' && !(session?.user as any)?.isAdmin) {
-            router.push('/');
+        if (status === 'authenticated') {
+            const userSteamId = (session?.user as any)?.steamId;
+            const isAdmin = userSteamId === '76561198113376372'; // Your Steam ID
+            if (!isAdmin) {
+                router.push('/');
+            }
         }
     }, [status, session, router]);
 
@@ -156,7 +160,10 @@ export default function AdminPanel() {
         return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white">Loading...</div>;
     }
 
-    if (!(session?.user as any)?.isAdmin) {
+    const userSteamId = (session?.user as any)?.steamId;
+    const isUserAdmin = userSteamId === '76561198113376372';
+
+    if (!isUserAdmin) {
         return null;
     }
 
@@ -178,8 +185,8 @@ export default function AdminPanel() {
                             key={tab}
                             onClick={() => setActiveTab(tab)}
                             className={`px-6 py-3 rounded-lg font-bold uppercase tracking-wide transition-all ${activeTab === tab
-                                    ? 'bg-brand-green text-black'
-                                    : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800'
+                                ? 'bg-brand-green text-black'
+                                : 'bg-zinc-900 text-zinc-400 hover:bg-zinc-800'
                                 }`}
                         >
                             {tab}
@@ -300,8 +307,8 @@ export default function AdminPanel() {
                                         <div className="flex justify-between items-center mb-2">
                                             <span className="font-mono text-sm text-zinc-400">{match.id}</span>
                                             <span className={`px-2 py-1 rounded text-xs font-bold ${match.status === 'COMPLETED' ? 'bg-green-600' :
-                                                    match.status === 'IN_PROGRESS' ? 'bg-blue-600' :
-                                                        'bg-yellow-600'
+                                                match.status === 'IN_PROGRESS' ? 'bg-blue-600' :
+                                                    'bg-yellow-600'
                                                 }`}>
                                                 {match.status}
                                             </span>
@@ -333,8 +340,8 @@ export default function AdminPanel() {
                                                 <div className="text-sm text-zinc-400">{ban.reason}</div>
                                             </div>
                                             <span className={`px-2 py-1 rounded text-xs font-bold ${ban.type === 'GAME' ? 'bg-red-600' :
-                                                    ban.type === 'CHAT' ? 'bg-yellow-600' :
-                                                        'bg-purple-600'
+                                                ban.type === 'CHAT' ? 'bg-yellow-600' :
+                                                    'bg-purple-600'
                                                 }`}>
                                                 {ban.type}
                                             </span>
