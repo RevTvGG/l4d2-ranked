@@ -431,15 +431,15 @@ export default function PlayPage() {
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="opacity-60">Password:</span>
-                                                    <span className="font-bold select-all">{matchData?.serverPassword}</span>
+                                                    <span className="font-bold select-all">{matchData?.serverPassword || 'Loading...'}</span>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="opacity-60">Map:</span>
-                                                    <span className="font-bold">{matchData?.mapName}</span>
+                                                    <span className="font-bold">{matchData?.mapName || 'Unknown Map'}</span>
                                                 </div>
                                             </div>
                                             <div className="text-center text-xs font-bold opacity-75">
-                                                Connect via console: connect 50.20.249.93:27015; password {matchData?.serverPassword}
+                                                Connect via console: connect 50.20.249.93:27015; password {matchData?.serverPassword || '...'}
                                             </div>
                                         </div>
                                     )}
