@@ -317,93 +317,101 @@ export default function PlayPage() {
                                                     </button>
                                                 </div>
                                             )}
-                                        </>
-                                    )}
-
-                                    {/* MATCH FOUND / ACCEPT - Shows during READY_CHECK phase */}
-                                    {(isReadyCheck || (matchId && matchData?.status === 'READY_CHECK')) && !isVeto && !isLive && (
-                                        <div className="animate-pulse bg-brand-green/20 border border-brand-green/50 p-4 rounded-xl text-center space-y-3">
-                                            <div className="text-brand-green font-bold text-xl">MATCH FOUND!</div>
-                                            <div className="text-sm text-zinc-300">Accept to join the lobby</div>
-                                            <button
-                                                onClick={handleAcceptMatch}
-                                                disabled={isAccepted}
-                                                className={`w-full py-3 font-bold rounded-lg uppercase ${isAccepted
-                                                    ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
-                                                    : 'bg-brand-green text-black hover:scale-105 transition-transform'
-                                                    }`}
-                                            >
-                                                {isAccepted ? 'Waiting for others...' : 'ACCEPT MATCH'}
-                                            </button>
-                                            <div className="flex justify-center gap-1 mt-2">
-                                                {matchData?.players?.map((p: any) => (
-                                                    <div
-                                                        key={p.userId}
-                                                        className={`w-3 h-3 rounded-full transition-colors ${p.accepted ? 'bg-brand-green' : 'bg-zinc-700'
-                                                            }`}
-                                                    />
-                                                ))}
+                                            {/* ALWAYS VISIBLE RESET BUTTON (Panic Button) */}
+                                            <div className="mt-4 pt-4 border-t border-white/5 flex justify-end">
+                                                <button
+                                                    onClick={handleResetServer}
+                                                    className="px-3 py-2 text-xs font-bold uppercase rounded-lg transition-all bg-zinc-800/50 hover:bg-red-900/50 text-zinc-500 hover:text-red-200 border border-white/5 hover:border-red-500/30 flex items-center gap-2"
+                                                    title="Force Reset System (Use if stuck)"
+                                                >
+                                                    <span>🗑️</span> Force Reset System
+                                                </button>
                                             </div>
-                                        </div>
-                                    )}
 
-                                    {/* VETO PHASE */}
-                                    {isVeto && (
-                                        <div className="bg-blue-500/10 border border-blue-500/30 p-4 rounded-xl space-y-3">
-                                            <div className="text-blue-400 font-bold text-center">MAP VETO</div>
-                                            <div className="grid grid-cols-2 gap-2">
-                                                {['Dark Carnival', 'Dead Center', 'No Mercy', 'The Parish'].map(map => (
+                                            {/* MATCH FOUND / ACCEPT - Shows during READY_CHECK phase */}
+                                            {(isReadyCheck || (matchId && matchData?.status === 'READY_CHECK')) && !isVeto && !isLive && (
+                                                <div className="animate-pulse bg-brand-green/20 border border-brand-green/50 p-4 rounded-xl text-center space-y-3">
+                                                    <div className="text-brand-green font-bold text-xl">MATCH FOUND!</div>
+                                                    <div className="text-sm text-zinc-300">Accept to join the lobby</div>
                                                     <button
-                                                        key={map}
-                                                        onClick={() => handleVoteMap(map)}
-                                                        className="p-2 text-xs bg-zinc-800 hover:bg-blue-500/20 border border-white/5 hover:border-blue-500/50 rounded transition-colors"
+                                                        onClick={handleAcceptMatch}
+                                                        disabled={isAccepted}
+                                                        className={`w-full py-3 font-bold rounded-lg uppercase ${isAccepted
+                                                            ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
+                                                            : 'bg-brand-green text-black hover:scale-105 transition-transform'
+                                                            }`}
                                                     >
-                                                        {map}
+                                                        {isAccepted ? 'Waiting for others...' : 'ACCEPT MATCH'}
                                                     </button>
-                                                ))}
-                                            </div>
-                                            <div className="text-xs text-center text-zinc-400">
-                                                Votes: {matchData?.mapVotes?.length || 0}/8
-                                            </div>
-                                        </div>
-                                    )}
+                                                    <div className="flex justify-center gap-1 mt-2">
+                                                        {matchData?.players?.map((p: any) => (
+                                                            <div
+                                                                key={p.userId}
+                                                                className={`w-3 h-3 rounded-full transition-colors ${p.accepted ? 'bg-brand-green' : 'bg-zinc-700'
+                                                                    }`}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
 
-                                    {/* READY TO CONNECT */}
-                                    {isMatchReady && (
-                                        <div className="bg-brand-green text-black p-6 rounded-xl space-y-4 shadow-xl shadow-brand-green/20 animate-bounce-subtle">
-                                            <div className="text-center font-black text-2xl tracking-tighter">MATCH READY</div>
-                                            <div className="bg-black/20 p-4 rounded-lg space-y-2 font-mono text-sm">
-                                                <div className="flex justify-between">
-                                                    <span className="opacity-60">Server IP:</span>
-                                                    <span className="font-bold select-all">50.20.249.93:27015</span>
+                                            {/* VETO PHASE */}
+                                            {isVeto && (
+                                                <div className="bg-blue-500/10 border border-blue-500/30 p-4 rounded-xl space-y-3">
+                                                    <div className="text-blue-400 font-bold text-center">MAP VETO</div>
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        {['Dark Carnival', 'Dead Center', 'No Mercy', 'The Parish'].map(map => (
+                                                            <button
+                                                                key={map}
+                                                                onClick={() => handleVoteMap(map)}
+                                                                className="p-2 text-xs bg-zinc-800 hover:bg-blue-500/20 border border-white/5 hover:border-blue-500/50 rounded transition-colors"
+                                                            >
+                                                                {map}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                    <div className="text-xs text-center text-zinc-400">
+                                                        Votes: {matchData?.mapVotes?.length || 0}/8
+                                                    </div>
                                                 </div>
-                                                <div className="flex justify-between">
-                                                    <span className="opacity-60">Password:</span>
-                                                    <span className="font-bold select-all">{matchData?.serverPassword}</span>
+                                            )}
+
+                                            {/* READY TO CONNECT */}
+                                            {isMatchReady && (
+                                                <div className="bg-brand-green text-black p-6 rounded-xl space-y-4 shadow-xl shadow-brand-green/20 animate-bounce-subtle">
+                                                    <div className="text-center font-black text-2xl tracking-tighter">MATCH READY</div>
+                                                    <div className="bg-black/20 p-4 rounded-lg space-y-2 font-mono text-sm">
+                                                        <div className="flex justify-between">
+                                                            <span className="opacity-60">Server IP:</span>
+                                                            <span className="font-bold select-all">50.20.249.93:27015</span>
+                                                        </div>
+                                                        <div className="flex justify-between">
+                                                            <span className="opacity-60">Password:</span>
+                                                            <span className="font-bold select-all">{matchData?.serverPassword}</span>
+                                                        </div>
+                                                        <div className="flex justify-between">
+                                                            <span className="opacity-60">Map:</span>
+                                                            <span className="font-bold">{matchData?.mapName}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-center text-xs font-bold opacity-75">
+                                                        Connect via console: connect 50.20.249.93:27015; password {matchData?.serverPassword}
+                                                    </div>
                                                 </div>
-                                                <div className="flex justify-between">
-                                                    <span className="opacity-60">Map:</span>
-                                                    <span className="font-bold">{matchData?.mapName}</span>
-                                                </div>
-                                            </div>
-                                            <div className="text-center text-xs font-bold opacity-75">
-                                                Connect via console: connect 50.20.249.93:27015; password {matchData?.serverPassword}
-                                            </div>
+                                            )}
                                         </div>
-                                    )}
                                 </div>
-                            </div>
 
-                            <div className="bg-zinc-900/50 border border-white/5 p-6 rounded-2xl backdrop-blur-sm">
-                                <h3 className="font-bold text-white mb-2">📢 Server News</h3>
-                                <p className="text-zinc-500 text-sm leading-relaxed">
-                                    Don&apos;t forget to join our Discord for tournament announcements. Season 1 ends in 2 weeks!
-                                </p>
+                                <div className="bg-zinc-900/50 border border-white/5 p-6 rounded-2xl backdrop-blur-sm">
+                                    <h3 className="font-bold text-white mb-2">📢 Server News</h3>
+                                    <p className="text-zinc-500 text-sm leading-relaxed">
+                                        Don&apos;t forget to join our Discord for tournament announcements. Season 1 ends in 2 weeks!
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    );
+            );
 }
