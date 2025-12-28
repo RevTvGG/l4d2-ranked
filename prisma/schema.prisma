@@ -75,6 +75,7 @@ model User {
   queueEntries   QueueEntry[]  @relation("QueueEntries")
   sessions       Session[]
   team           Team?         @relation(fields: [teamId], references: [id])
+  reports        Report[]
 }
 
 model Team {
@@ -253,6 +254,26 @@ enum BanReason {
   NO_JOIN
   CRASH
   MANUAL
+}
+
+
+model Report {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id])
+  type      ReportType
+  title     String
+  content   String
+  evidence  String?
+  target    String?    // Targeted player SteamID or Name (optional)
+  status    String     @default("OPEN")
+  createdAt DateTime   @default(now())
+}
+
+enum ReportType {
+  BUG
+  PLAYER
+  FEEDBACK
 }
 
 enum ServerStatus {
