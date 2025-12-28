@@ -2,6 +2,7 @@
 #include <sdktools>
 #include <steamworks>
 #include <readyup>
+#include <json>
 
 #undef REQUIRE_PLUGIN
 #include <l4d2_hybrid_scoremod>
@@ -11,18 +12,26 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION "1.1.3-NO-CALLBACK"
+#define PLUGIN_VERSION "2.0.0"
 
 // Constants
 #define TEAM_SURVIVOR 2
 #define TEAM_INFECTED 3
+#define MAX_PLAYERS 8
 
 // CVars
 ConVar g_cvApiUrl;
+ConVar g_cvServerKey;
 
 // Match State
 char g_sMatchId[64];
 bool g_bIsMatchLive = false;
+
+// Player Stats Storage
+int g_iPlayerKills[MAXPLAYERS + 1];
+int g_iPlayerDeaths[MAXPLAYERS + 1];
+int g_iPlayerDamage[MAXPLAYERS + 1];
+int g_iPlayerHeadshots[MAXPLAYERS + 1];
 
 // Optional Plugins
 bool g_bScoreModAvailable = false;
@@ -30,42 +39,69 @@ bool g_bMvpAvailable = false;
 
 public Plugin myinfo =
 {
-	name = "L4D2 Match Reporter (NO CALLBACK)",
-	author = "Antigravity",
-	description = "Reports match stats WITHOUT callbacks to avoid crashes",
-	version = PLUGIN_VERSION,
-	url = ""
+    name = "L4D2 Match Reporter",
+    author = "Antigravity",
+    description = "Reports match stats to L4D2 Ranked API",
+    version = PLUGIN_VERSION,
+    url = "https://www.l4d2ranked.online"
 };
 
 public void OnAllPluginsLoaded()
 {
-	g_bScoreModAvailable = LibraryExists("l4d2_hybrid_scoremod");
-	g_bMvpAvailable = LibraryExists("l4d2_survivor_mvp");
+    g_bScoreModAvailable = LibraryExists("l4d2_hybrid_scoremod");
+    g_bMvpAvailable = LibraryExists("l4d2_survivor_mvp");
 }
 
 public void OnLibraryAdded(const char[] name)
 {
-	if (StrEqual(name, "l4d2_hybrid_scoremod")) g_bScoreModAvailable = true;
-	if (StrEqual(name, "l4d2_survivor_mvp")) g_bMvpAvailable = true;
+    if (StrEqual(name, "l4d2_hybrid_scoremod")) g_bScoreModAvailable = true;
+    if (StrEqual(name, "l4d2_survivor_mvp")) g_bMvpAvailable = true;
 }
 
 public void OnLibraryRemoved(const char[] name)
 {
-	if (StrEqual(name, "l4d2_hybrid_scoremod")) g_bScoreModAvailable = false;
-	if (StrEqual(name, "l4d2_survivor_mvp")) g_bMvpAvailable = false;
+    if (StrEqual(name, "l4d2_hybrid_scoremod")) g_bScoreModAvailable = false;
+    if (StrEqual(name, "l4d2_survivor_mvp")) g_bMvpAvailable = false;
 }
 
 public void OnPluginStart()
 {
-    g_cvApiUrl = CreateConVar("l4d2_ranked_api_url", "http://localhost:3000/api", "URL of the Ranked API");
+    // CVars with production defaults
+    g_cvApiUrl = CreateConVar("l4d2_ranked_api_url", "https://www.l4d2ranked.online/api", "URL of the Ranked API");
+    g_cvServerKey = CreateConVar("l4d2_ranked_server_key", "ranked-server-main", "Server authentication key");
 
+    // Admin Commands
     RegAdminCmd("sm_set_match_id", Cmd_SetMatchId, ADMFLAG_CHANGEMAP, "Sets the current match ID");
-    RegAdminCmd("sm_ranked_debug_force_end", Cmd_DebugForceEnd, ADMFLAG_ROOT, "Forces match complete notification");
+    RegAdminCmd("sm_ranked_status", Cmd_Status, ADMFLAG_GENERIC, "Shows current match reporter status");
+    RegAdminCmd("sm_ranked_force_end", Cmd_ForceEnd, ADMFLAG_ROOT, "Forces match to end with specified winner");
+    RegAdminCmd("sm_ranked_test_api", Cmd_TestApi, ADMFLAG_ROOT, "Tests API connectivity");
 
-    HookEvent("round_end", OnRoundEnd);
+    // Event Hooks
+    HookEvent("player_death", OnPlayerDeath);
+    HookEvent("player_hurt", OnPlayerHurt);
     HookEvent("versus_match_finished", OnMatchFinished);
+    HookEvent("round_end", OnRoundEnd);
     
     AutoExecConfig(true, "l4d2_match_reporter");
+    
+    PrintToServer("[Match Reporter] Plugin loaded v%s", PLUGIN_VERSION);
+}
+
+public void OnMapStart()
+{
+    // Reset stats on map change
+    ResetPlayerStats();
+}
+
+void ResetPlayerStats()
+{
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        g_iPlayerKills[i] = 0;
+        g_iPlayerDeaths[i] = 0;
+        g_iPlayerDamage[i] = 0;
+        g_iPlayerHeadshots[i] = 0;
+    }
 }
 
 // ------------------------------------------------------------------------
@@ -81,149 +117,335 @@ public Action Cmd_SetMatchId(int client, int args)
     }
 
     GetCmdArg(1, g_sMatchId, sizeof(g_sMatchId));
-    ReplyToCommand(client, "[Match Reporter] Match ID set to: %s", g_sMatchId);
-    
     g_bIsMatchLive = false;
+    ResetPlayerStats();
     
-    if (IsInReady())
+    ReplyToCommand(client, "[Match Reporter] Match ID set: %s", g_sMatchId);
+    ReplyToCommand(client, "[Match Reporter] Waiting for match to go live...");
+
+    return Plugin_Handled;
+}
+
+public Action Cmd_Status(int client, int args)
+{
+    char sApiUrl[256], sServerKey[64];
+    g_cvApiUrl.GetString(sApiUrl, sizeof(sApiUrl));
+    g_cvServerKey.GetString(sServerKey, sizeof(sServerKey));
+    
+    ReplyToCommand(client, "=== Match Reporter Status ===");
+    ReplyToCommand(client, "Version: %s", PLUGIN_VERSION);
+    ReplyToCommand(client, "API URL: %s", sApiUrl);
+    ReplyToCommand(client, "Server Key: %s", sServerKey);
+    ReplyToCommand(client, "Match ID: %s", g_sMatchId[0] != '\0' ? g_sMatchId : "(not set)");
+    ReplyToCommand(client, "Is Live: %s", g_bIsMatchLive ? "Yes" : "No");
+    ReplyToCommand(client, "ScoreMod: %s", g_bScoreModAvailable ? "Available" : "Not Found");
+    ReplyToCommand(client, "MVP Plugin: %s", g_bMvpAvailable ? "Available" : "Not Found");
+    
+    return Plugin_Handled;
+}
+
+public Action Cmd_ForceEnd(int client, int args)
+{
+    if (args < 1)
     {
-        ReplyToCommand(client, "[Match Reporter] Game in Ready-Up. Waiting for live...");
+        ReplyToCommand(client, "[Match Reporter] Usage: sm_ranked_force_end <A|B|DRAW>");
+        return Plugin_Handled;
+    }
+    
+    char sWinner[16];
+    GetCmdArg(1, sWinner, sizeof(sWinner));
+    
+    if (!StrEqual(sWinner, "A") && !StrEqual(sWinner, "B") && !StrEqual(sWinner, "DRAW"))
+    {
+        ReplyToCommand(client, "[Match Reporter] Winner must be A, B, or DRAW");
+        return Plugin_Handled;
+    }
+    
+    if (g_sMatchId[0] == '\0')
+    {
+        ReplyToCommand(client, "[Match Reporter] No match ID set! Use sm_set_match_id first.");
+        return Plugin_Handled;
+    }
+    
+    ReplyToCommand(client, "[Match Reporter] Forcing match end. Winner: %s", sWinner);
+    SendMatchComplete(sWinner);
+    
+    return Plugin_Handled;
+}
+
+public Action Cmd_TestApi(int client, int args)
+{
+    char sUrl[256];
+    g_cvApiUrl.GetString(sUrl, sizeof(sUrl));
+    
+    char sRequestUrl[512];
+    Format(sRequestUrl, sizeof(sRequestUrl), "%s/server/check-match", sUrl);
+    
+    ReplyToCommand(client, "[Match Reporter] Testing API at: %s", sRequestUrl);
+    
+    Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, sRequestUrl);
+    if (hRequest == INVALID_HANDLE)
+    {
+        ReplyToCommand(client, "[Match Reporter] ERROR: Failed to create HTTP request");
+        return Plugin_Handled;
+    }
+    
+    SteamWorks_SetHTTPCallbacks(hRequest, OnTestApiResponse);
+    SteamWorks_SetHTTPRequestContextValue(hRequest, client);
+    
+    if (!SteamWorks_SendHTTPRequest(hRequest))
+    {
+        ReplyToCommand(client, "[Match Reporter] ERROR: Failed to send HTTP request");
+        CloseHandle(hRequest);
+        return Plugin_Handled;
+    }
+    
+    ReplyToCommand(client, "[Match Reporter] Request sent, waiting for response...");
+    return Plugin_Handled;
+}
+
+public void OnTestApiResponse(Handle hRequest, bool bFailure, bool bSuccessful, EHTTPStatusCode eStatusCode, any client)
+{
+    if (bFailure || !bSuccessful)
+    {
+        PrintToServer("[Match Reporter] API Test FAILED - Connection error");
+        if (client > 0 && IsClientInGame(client)) 
+            PrintToChat(client, "\x04[Match Reporter]\x01 API Test \x03FAILED\x01 - Connection error");
     }
     else
     {
-        ReplyToCommand(client, "[Match Reporter] Game appears live. Attempting to notify API...");
-        NotifyMatchLive(client);
+        PrintToServer("[Match Reporter] API Test SUCCESS - Status: %d", eStatusCode);
+        if (client > 0 && IsClientInGame(client)) 
+            PrintToChat(client, "\x04[Match Reporter]\x01 API Test \x05SUCCESS\x01 - Status: %d", eStatusCode);
     }
-
-    return Plugin_Handled;
-}
-
-public Action Cmd_DebugForceEnd(int client, int args) {
-    ReplyToCommand(client, "[DEBUG] Starting Force End Sequence (NO CALLBACK)...");
-    NotifyMatchComplete(client, 1, 1);
-    return Plugin_Handled;
+    
+    CloseHandle(hRequest);
 }
 
 // ------------------------------------------------------------------------
-// ReadyUp Forward
+// ReadyUp Forward - Match Goes Live
 // ------------------------------------------------------------------------
 
 public void OnRoundIsLive()
 {
     if (g_sMatchId[0] != '\0' && !g_bIsMatchLive)
     {
-        NotifyMatchLive(0); // 0 = Console
+        g_bIsMatchLive = true;
+        PrintToServer("[Match Reporter] Match is LIVE! ID: %s", g_sMatchId);
+        SendMatchLive();
     }
 }
 
 // ------------------------------------------------------------------------
-// API Notifications (NO CALLBACKS - CRASH PREVENTION)
+// Event Handlers - Track Stats
 // ------------------------------------------------------------------------
 
-// Timer to cleanup handles since we don't have callbacks
-public Action Timer_CloseHandle(Handle timer, any hRequest)
+public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
-    if (hRequest != INVALID_HANDLE)
+    int victim = GetClientOfUserId(event.GetInt("userid"));
+    int attacker = GetClientOfUserId(event.GetInt("attacker"));
+    bool headshot = event.GetBool("headshot");
+    
+    if (victim > 0 && victim <= MaxClients && IsClientInGame(victim))
     {
-        CloseHandle(hRequest);
-        PrintToServer("[Match Reporter] Cleanup: Request handle closed.");
+        g_iPlayerDeaths[victim]++;
     }
-    return Plugin_Stop;
+    
+    if (attacker > 0 && attacker <= MaxClients && IsClientInGame(attacker))
+    {
+        g_iPlayerKills[attacker]++;
+        if (headshot) g_iPlayerHeadshots[attacker]++;
+    }
 }
 
-void NotifyMatchLive(int client)
+public void OnPlayerHurt(Event event, const char[] name, bool dontBroadcast)
 {
-    char sUrl[256];
-    g_cvApiUrl.GetString(sUrl, sizeof(sUrl));
+    int attacker = GetClientOfUserId(event.GetInt("attacker"));
+    int damage = event.GetInt("dmg_health");
     
-    char sRequestUrl[512];
-    Format(sRequestUrl, sizeof(sRequestUrl), "%s/match/notify-live", sUrl);
-
-    Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodPOST, sRequestUrl);
-    if (hRequest == INVALID_HANDLE) {
-        if (client > 0) ReplyToCommand(client, "[DEBUG] CRITICAL: Invalid Handle in NotifyMatchLive");
-        else PrintToServer("[Match Reporter] CRITICAL: Invalid Handle in NotifyMatchLive");
-        return;
-    }
-
-    SteamWorks_SetHTTPRequestContextValue(hRequest, 0);
-    SteamWorks_SetHTTPRequestGetOrPostParameter(hRequest, "matchId", g_sMatchId);
-    
-    // SKIP SET CALLBACKS (Crash Point)
-    
-    if (!SteamWorks_SendHTTPRequest(hRequest)) {
-        if (client > 0) ReplyToCommand(client, "[DEBUG] CRITICAL: Failed to SEND Live Request");
-        else PrintToServer("[Match Reporter] CRITICAL: Failed to SEND Live Request");
-        CloseHandle(hRequest);
-        return;
-    }
-    
-    // Create timer to cleanup
-    CreateTimer(10.0, Timer_CloseHandle, hRequest);
-    
-    if (client > 0) ReplyToCommand(client, "[DEBUG] Live Request SENT successfully to %s (No Callback)", sRequestUrl);
-    else PrintToServer("[Match Reporter] Live Request SENT successfully (No Callback)");
-}
-
-void NotifyMatchComplete(int client, int winner, int reason)
-{
-    char sUrl[256];
-    g_cvApiUrl.GetString(sUrl, sizeof(sUrl));
-    
-    char sRequestUrl[512];
-    Format(sRequestUrl, sizeof(sRequestUrl), "%s/match/complete", sUrl);
-
-    char sWinner[16];
-    IntToString(winner, sWinner, sizeof(sWinner));
-    
-    char sReason[16];
-    IntToString(reason, sReason, sizeof(sReason));
-
-    ReplyToCommand(client, "[DEBUG] Preparing request to: %s", sRequestUrl);
-
-    Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodPOST, sRequestUrl);
-    if (hRequest == INVALID_HANDLE)
+    if (attacker > 0 && attacker <= MaxClients && IsClientInGame(attacker))
     {
-        ReplyToCommand(client, "[DEBUG] CRITICAL: CreateHTTPRequest failed.");
-        return;
+        g_iPlayerDamage[attacker] += damage;
     }
-    
-    ReplyToCommand(client, "[DEBUG] Handle Valid. Adding parameters...");
-    ReplyToCommand(client, "[DEBUG] Current matchId value: '%s'", g_sMatchId);
-
-    if (!SteamWorks_SetHTTPRequestGetOrPostParameter(hRequest, "matchId", g_sMatchId)) {
-        ReplyToCommand(client, "[DEBUG] ERROR: Failed to add matchId parameter");
-    }
-    SteamWorks_SetHTTPRequestGetOrPostParameter(hRequest, "winner", sWinner);
-    SteamWorks_SetHTTPRequestGetOrPostParameter(hRequest, "reason", sReason);
-
-    ReplyToCommand(client, "[DEBUG] Parameters added. SKIPPING callbacks (Crash Avoidance)...");
-    
-    // SKIP SET CALLBACKS
-    
-    ReplyToCommand(client, "[DEBUG] Sending request...");
-    if (!SteamWorks_SendHTTPRequest(hRequest)) {
-        ReplyToCommand(client, "[DEBUG] CRITICAL: SendHTTPRequest returned false!");
-        CloseHandle(hRequest);
-        return;
-    }
-    
-    // Create timer to cleanup
-    CreateTimer(10.0, Timer_CloseHandle, hRequest);
-    
-    ReplyToCommand(client, "[DEBUG] Request SENT. Scheduled cleanup in 10s.");
-    g_sMatchId[0] = '\0';
-    g_bIsMatchLive = false;
 }
 
 public void OnRoundEnd(Event event, const char[] name, bool dontBroadcast)
 {
-    // Placeholder
+    // Could send round stats here if needed
 }
 
 public void OnMatchFinished(Event event, const char[] name, bool dontBroadcast)
 {
-    if (g_sMatchId[0] == '\0') return;
+    if (g_sMatchId[0] == '\0')
+    {
+        PrintToServer("[Match Reporter] Match finished but no match ID set - ignoring");
+        return;
+    }
+    
     int winner = event.GetInt("winner");
-    NotifyMatchComplete(0, winner, 0);
+    char sWinner[16];
+    
+    // In L4D2, winner is team index: 2 = Survivors, 3 = Infected
+    // Map to our format: A = Survivors, B = Infected
+    if (winner == TEAM_SURVIVOR)
+        strcopy(sWinner, sizeof(sWinner), "A");
+    else if (winner == TEAM_INFECTED)
+        strcopy(sWinner, sizeof(sWinner), "B");
+    else
+        strcopy(sWinner, sizeof(sWinner), "DRAW");
+    
+    PrintToServer("[Match Reporter] Match finished! Winner: %s (team %d)", sWinner, winner);
+    SendMatchComplete(sWinner);
+}
+
+// ------------------------------------------------------------------------
+// API Calls
+// ------------------------------------------------------------------------
+
+void SendMatchLive()
+{
+    char sUrl[256], sServerKey[64];
+    g_cvApiUrl.GetString(sUrl, sizeof(sUrl));
+    g_cvServerKey.GetString(sServerKey, sizeof(sServerKey));
+    
+    char sRequestUrl[512];
+    Format(sRequestUrl, sizeof(sRequestUrl), "%s/server/notify-live", sUrl);
+
+    // Build JSON payload
+    Handle hJson = json_object();
+    json_object_set_new(hJson, "server_key", json_string(sServerKey));
+    json_object_set_new(hJson, "match_id", json_string(g_sMatchId));
+    
+    char sJsonBody[1024];
+    json_dump(hJson, sJsonBody, sizeof(sJsonBody));
+    CloseHandle(hJson);
+
+    Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodPOST, sRequestUrl);
+    if (hRequest == INVALID_HANDLE)
+    {
+        PrintToServer("[Match Reporter] ERROR: Failed to create HTTP request for notify-live");
+        return;
+    }
+
+    SteamWorks_SetHTTPRequestRawPostBody(hRequest, "application/json", sJsonBody, strlen(sJsonBody));
+    SteamWorks_SetHTTPCallbacks(hRequest, OnMatchLiveResponse);
+    
+    if (!SteamWorks_SendHTTPRequest(hRequest))
+    {
+        PrintToServer("[Match Reporter] ERROR: Failed to send notify-live request");
+        CloseHandle(hRequest);
+        return;
+    }
+    
+    PrintToServer("[Match Reporter] Sent notify-live to API");
+}
+
+public void OnMatchLiveResponse(Handle hRequest, bool bFailure, bool bSuccessful, EHTTPStatusCode eStatusCode, any data)
+{
+    if (bFailure || !bSuccessful)
+    {
+        PrintToServer("[Match Reporter] notify-live FAILED - Connection error");
+    }
+    else if (eStatusCode >= 200 && eStatusCode < 300)
+    {
+        PrintToServer("[Match Reporter] notify-live SUCCESS - Status: %d", eStatusCode);
+    }
+    else
+    {
+        PrintToServer("[Match Reporter] notify-live ERROR - Status: %d", eStatusCode);
+    }
+    
+    CloseHandle(hRequest);
+}
+
+void SendMatchComplete(const char[] winner)
+{
+    char sUrl[256], sServerKey[64];
+    g_cvApiUrl.GetString(sUrl, sizeof(sUrl));
+    g_cvServerKey.GetString(sServerKey, sizeof(sServerKey));
+    
+    char sRequestUrl[512];
+    Format(sRequestUrl, sizeof(sRequestUrl), "%s/server/match-end", sUrl);
+
+    // Build JSON payload with players array
+    Handle hJson = json_object();
+    json_object_set_new(hJson, "server_key", json_string(sServerKey));
+    json_object_set_new(hJson, "match_id", json_string(g_sMatchId));
+    json_object_set_new(hJson, "winner", json_string(winner));
+    
+    // Build players array
+    Handle hPlayers = json_array();
+    
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (!IsClientInGame(i) || IsFakeClient(i)) continue;
+        
+        char sSteamId[32];
+        if (!GetClientAuthId(i, AuthId_SteamID64, sSteamId, sizeof(sSteamId))) continue;
+        
+        int team = GetClientTeam(i);
+        if (team != TEAM_SURVIVOR && team != TEAM_INFECTED) continue;
+        
+        Handle hPlayer = json_object();
+        json_object_set_new(hPlayer, "steam_id", json_string(sSteamId));
+        json_object_set_new(hPlayer, "team", json_integer(team == TEAM_SURVIVOR ? 1 : 2));
+        json_object_set_new(hPlayer, "kills", json_integer(g_iPlayerKills[i]));
+        json_object_set_new(hPlayer, "deaths", json_integer(g_iPlayerDeaths[i]));
+        json_object_set_new(hPlayer, "damage", json_integer(g_iPlayerDamage[i]));
+        json_object_set_new(hPlayer, "headshots", json_integer(g_iPlayerHeadshots[i]));
+        json_object_set_new(hPlayer, "mvp", json_integer(0)); // TODO: Get from MVP plugin
+        
+        json_array_append_new(hPlayers, hPlayer);
+    }
+    
+    json_object_set_new(hJson, "players", hPlayers);
+    
+    char sJsonBody[4096];
+    json_dump(hJson, sJsonBody, sizeof(sJsonBody));
+    CloseHandle(hJson);
+
+    Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodPOST, sRequestUrl);
+    if (hRequest == INVALID_HANDLE)
+    {
+        PrintToServer("[Match Reporter] ERROR: Failed to create HTTP request for match-end");
+        return;
+    }
+
+    SteamWorks_SetHTTPRequestRawPostBody(hRequest, "application/json", sJsonBody, strlen(sJsonBody));
+    SteamWorks_SetHTTPCallbacks(hRequest, OnMatchCompleteResponse);
+    
+    if (!SteamWorks_SendHTTPRequest(hRequest))
+    {
+        PrintToServer("[Match Reporter] ERROR: Failed to send match-end request");
+        CloseHandle(hRequest);
+        return;
+    }
+    
+    PrintToServer("[Match Reporter] Sent match-end to API. Winner: %s", winner);
+    PrintToServer("[Match Reporter] Payload: %s", sJsonBody);
+    
+    // Clear match state
+    g_sMatchId[0] = '\0';
+    g_bIsMatchLive = false;
+    ResetPlayerStats();
+}
+
+public void OnMatchCompleteResponse(Handle hRequest, bool bFailure, bool bSuccessful, EHTTPStatusCode eStatusCode, any data)
+{
+    if (bFailure || !bSuccessful)
+    {
+        PrintToServer("[Match Reporter] match-end FAILED - Connection error");
+    }
+    else if (eStatusCode >= 200 && eStatusCode < 300)
+    {
+        PrintToServer("[Match Reporter] match-end SUCCESS - Status: %d", eStatusCode);
+        PrintToChatAll("\x04[L4D2 Ranked]\x01 Match results submitted successfully!");
+    }
+    else
+    {
+        PrintToServer("[Match Reporter] match-end ERROR - Status: %d", eStatusCode);
+        PrintToChatAll("\x04[L4D2 Ranked]\x01 \x03Error submitting match results. Please contact admin.\x01");
+    }
+    
+    CloseHandle(hRequest);
 }
