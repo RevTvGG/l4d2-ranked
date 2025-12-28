@@ -304,13 +304,53 @@ export async function getQueueStatus() {
         },
     });
 
-    // Return queue entry with all its properties
+    // Get next 8 players in queue (for preview)
+    const nextPlayers = await prisma.queueEntry.findMany({
+        where: {
+            status: 'WAITING'
+        },
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    image: true,
+                    rating: true
+                }
+            }
+        },
+        orderBy: { createdAt: 'asc' },
+        take: 8
+    });
+
+    // Get total count
+    const totalInQueue = await prisma.queueEntry.count({
+        where: { status: 'WAITING' }
+    });
+
+    const activeMatches = await prisma.match.count({
+        where: {
+            status: { in: ['READY', 'VETO', 'WAITING_FOR_PLAYERS', 'IN_PROGRESS'] }
+        }
+    });
+
+    // Return queue entry with all its properties + queue preview
     if (queueEntry) {
-        return queueEntry;
+        return {
+            ...queueEntry,
+            nextPlayers,
+            totalInQueue,
+            activeMatches
+        };
     }
 
-    // Return null if not in queue
-    return null;
+    // Return queue stats even if not in queue
+    return {
+        queueEntry: null,
+        nextPlayers,
+        totalInQueue,
+        activeMatches
+    };
 }
 
 /**
