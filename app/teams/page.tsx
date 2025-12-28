@@ -18,9 +18,10 @@ export default async function TeamsPage() {
                         <h1 className="text-5xl font-black text-white uppercase italic tracking-tighter mb-2">Active Teams</h1>
                         <p className="text-zinc-400">Compete for the top spot. Join a squad or create your own legacy.</p>
                     </div>
-                    <Link href="/teams/create" className="px-6 py-3 bg-brand-green text-black font-black uppercase tracking-wider roundedHover hover:bg-white transition-colors shadow-lg shadow-brand-green/20">
-                        + Create Team ($5)
-                    </Link>
+                    <button disabled className="px-6 py-3 bg-zinc-800 text-zinc-500 font-black uppercase tracking-wider rounded cursor-not-allowed border border-white/10 flex flex-col items-center">
+                        <span>+ Create Team</span>
+                        <span className="text-[10px] font-normal opacity-60">Disabled</span>
+                    </button>
                 </div>
 
                 {teams.length === 0 ? (
@@ -28,7 +29,7 @@ export default async function TeamsPage() {
                         <div className="text-6xl mb-4">🏚️</div>
                         <h2 className="text-2xl font-bold text-white mb-2">No Teams Found</h2>
                         <p className="text-zinc-500 mb-6">The arena is empty. Be the first to form a squad.</p>
-                        <Link href="/teams/create" className="text-brand-green font-bold hover:underline">Start a Team &rarr;</Link>
+                        <span className="text-zinc-600 font-bold cursor-not-allowed">Creation Disabled Temporarily</span>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

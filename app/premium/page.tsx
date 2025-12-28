@@ -61,19 +61,17 @@ export default function PremiumPage() {
                         $2.00 <span className="text-sm font-bold text-zinc-500 normal-case">/ lifetime</span>
                     </div>
 
-                    {msg && <div className="text-brand-green font-bold bg-brand-green/10 p-2 rounded">{msg}</div>}
+                    {/* DISABLED NOTICE */}
+                    <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-xl text-red-200 text-sm font-medium">
+                        ⚠️ Premium features are currently <strong>disabled</strong> for maintenance.
+                    </div>
 
                     <button
-                        onClick={handleBuy}
-                        disabled={loading}
-                        className="w-full py-4 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-black font-black text-xl uppercase tracking-widest rounded-xl shadow-lg shadow-amber-500/20 transition-all transform hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={true}
+                        className="w-full py-4 bg-zinc-800 text-zinc-500 font-black text-xl uppercase tracking-widest rounded-xl cursor-not-allowed border border-white/5"
                     >
-                        {loading ? "Processing..." : "UNLOCK PREMIUM NOW"}
+                        TEMPORARILY UNAVAILABLE
                     </button>
-
-                    <p className="text-xs text-zinc-600">
-                        *This is a simulated payment for testing. No real money is charged.
-                    </p>
                 </div>
             </div>
         </div>
