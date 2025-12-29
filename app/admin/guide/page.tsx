@@ -102,6 +102,15 @@ export default function AdminGuidePage() {
                                     ⚠️ <strong>Nota:</strong> Si un jugador tiene múltiples bans activos (bug anterior), deberás desbanear cada uno manualmente.
                                 </p>
                             </div>
+
+                            <div className="mt-4 p-4 bg-red-900/30 border border-red-500/30 rounded-xl">
+                                <h3 className="text-red-400 font-bold uppercase mb-2">⚠️ Advertencia Importante</h3>
+                                <p className="text-zinc-300 text-sm leading-relaxed">
+                                    Desbanear a un jugador solo por ser tu amigo o conocido se considera una <strong>violación a tus derechos como moderador/administrador</strong>.
+                                    <br /><br />
+                                    Serás <strong>expulsado inmediatamente</strong> tanto de la página como del equipo de moderación si se detecta favoritismo. Por favor, sé parcial y justo con todos los jugadores.
+                                </p>
+                            </div>
                         </Section>
 
                         {/* Section: Player Management */}
@@ -112,12 +121,12 @@ export default function AdminGuidePage() {
                                 </p>
                             </SubSection>
 
-                            <SubSection title="Cambiar Rol (Solo Owner)">
+                            <SubSection title="Roles y Permisos">
                                 <ul className="list-disc list-inside text-zinc-400 space-y-1">
                                     <li><strong>Newcomer</strong> - Usuario normal</li>
-                                    <li><strong>Moderator</strong> - Puede ver reportes y banear</li>
-                                    <li><strong>Admin</strong> - Acceso completo al panel</li>
-                                    <li><strong>Owner</strong> - Solo tú (no se puede cambiar)</li>
+                                    <li><strong>Moderator</strong> - Puede ver reportes y banear/desbanear</li>
+                                    <li><strong>Admin</strong> - Gestión de servidores y contenido. Solo puede dar rol de Moderador.</li>
+                                    <li><strong>Owner</strong> - Control total. Único que puede dar rol de Admin.</li>
                                 </ul>
                             </SubSection>
                         </Section>
@@ -131,13 +140,6 @@ export default function AdminGuidePage() {
                                     <li><span className="text-red-400">● OFFLINE</span> - No responde</li>
                                     <li><span className="text-orange-400">● MAINTENANCE</span> - En mantenimiento</li>
                                 </ul>
-                            </SubSection>
-
-                            <SubSection title="Server Key">
-                                <p className="text-zinc-400">
-                                    Cada servidor tiene un <code className="bg-zinc-800 px-2 py-0.5 rounded">Server Key</code> único que se usa para autenticar las peticiones del plugin SourceMod.
-                                    <strong className="text-red-400"> No compartas esta key.</strong>
-                                </p>
                             </SubSection>
                         </Section>
 
@@ -232,7 +234,8 @@ export default function AdminGuidePage() {
                                         <tr><td>Banear Jugadores</td><td className="text-center">✅</td><td className="text-center">✅</td><td className="text-center">✅</td></tr>
                                         <tr><td>Desbanear Jugadores</td><td className="text-center">✅</td><td className="text-center">✅</td><td className="text-center">✅</td></tr>
                                         <tr><td>Gestionar Servidores</td><td className="text-center">❌</td><td className="text-center">✅</td><td className="text-center">✅</td></tr>
-                                        <tr><td>Cambiar Roles</td><td className="text-center">❌</td><td className="text-center">❌</td><td className="text-center">✅</td></tr>
+                                        <tr><td>Dar Rol Moderador</td><td className="text-center">❌</td><td className="text-center">✅</td><td className="text-center">✅</td></tr>
+                                        <tr><td>Dar Rol Admin</td><td className="text-center">❌</td><td className="text-center">❌</td><td className="text-center">✅</td></tr>
                                         <tr><td>Editar Contenido</td><td className="text-center">❌</td><td className="text-center">✅</td><td className="text-center">✅</td></tr>
                                     </tbody>
                                 </table>
