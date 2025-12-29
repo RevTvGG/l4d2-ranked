@@ -82,6 +82,8 @@ model User {
   reportsMade      UserReport[]  @relation("ReportsMade")
   reportsReceived  UserReport[]  @relation("ReportsReceived")
   chatMutes        ChatMute[]
+  medals           UserMedal[]   @relation("UserMedals")
+  medalsAwarded    UserMedal[]   @relation("AwardedMedals")
 }
 
 
@@ -368,3 +370,39 @@ enum ReportStatus {
   ACTION_TAKEN
   DISMISSED
 }
+
+enum MedalRarity {
+  COMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+model Medal {
+  id          String      @id @default(cuid())
+  name        String
+  description String
+  icon        String      // Emoji or icon name
+  color       String      @default("#22c55e") // Hex color
+  rarity      MedalRarity @default(COMMON)
+  createdAt   DateTime    @default(now())
+  createdBy   String      // Owner ID
+  
+  awards      UserMedal[]
+}
+
+model UserMedal {
+  id        String   @id @default(cuid())
+  userId    String
+  medalId   String
+  awardedBy String   // Owner ID who awarded
+  note      String?  // Optional note from owner
+  awardedAt DateTime @default(now())
+  
+  user      User     @relation("UserMedals", fields: [userId], references: [id], onDelete: Cascade)
+  medal     Medal    @relation(fields: [medalId], references: [id], onDelete: Cascade)
+  awarder   User     @relation("AwardedMedals", fields: [awardedBy], references: [id])
+  
+  @@unique([userId, medalId]) // One medal per user
+}
+
