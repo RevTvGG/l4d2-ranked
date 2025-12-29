@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { MedalBadge } from "./MedalBadge";
 
 interface Medal {
@@ -13,7 +14,7 @@ interface Medal {
 
 interface PlayerProfileProps {
     username: string;
-    // ... existing props
+    steamId: string;
     medals?: Medal[]; // Add optional medals prop
 }
 
