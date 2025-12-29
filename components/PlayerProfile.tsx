@@ -150,58 +150,83 @@ export function PlayerProfile({
                         <div className="flex flex-wrap items-center justify-between gap-4"> {/* Increased Gap */}
                             <div className="flex flex-wrap items-center gap-2">
 
-                                {/* 1. TEAM BADGE (Highest Priority) */}
+                                {/* 1. STAFF BADGE (Top Priority) */}
+                                {(role === 'OWNER' || role === 'ADMIN' || role === 'MODERATOR') && (
+                                    <span className={`px-2.5 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-lg shadow-black/50 ${role === 'OWNER' ? 'bg-amber-500/10 text-amber-300 border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]' :
+                                        role === 'ADMIN' ? 'bg-red-500/10 text-red-400 border-red-500/30' :
+                                            'bg-blue-500/10 text-blue-400 border-blue-500/30'
+                                        }`}>
+                                        {role === 'OWNER' && '👑 OWNER'}
+                                        {role === 'ADMIN' && '🛡️ ADMIN'}
+                                        {role === 'MODERATOR' && '🔨 MODERATOR'}
+                                    </span>
+                                )}
+
+                                {/* 2. TEAM BADGE */}
                                 {team && (
-                                    <div className="flex items-center gap-2 px-3 py-1 rounded bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer group">
+                                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-800/80 border border-white/10 hover:border-white/20 transition-all cursor-pointer group shadow-sm">
                                         {team.logoUrl ? (
-                                            <div className="relative w-5 h-5">
+                                            <div className="relative w-4 h-4">
                                                 <Image src={team.logoUrl} alt={team.name} fill className="rounded-full object-cover" />
                                             </div>
                                         ) : (
                                             <span className="text-zinc-500 text-xs">🛡️</span>
                                         )}
-                                        <span className="text-zinc-300 text-xs font-bold uppercase tracking-wider group-hover:text-white">
-                                            [{team.tag}] {team.name}
+                                        <span className="text-zinc-300 text-[10px] font-bold uppercase tracking-wider group-hover:text-white">
+                                            {team.tag}
                                         </span>
                                     </div>
                                 )}
 
-                                {/* 2. SKILL LEVEL */}
+                                {/* 3. SKILL LEVEL */}
                                 {skillLevel && (
-                                    <span className="px-2 py-0.5 rounded border border-purple-500/30 bg-purple-500/10 text-purple-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1">
-                                        {skillLevel === 'CASUAL' ? '☕ CASUAL' :
-                                            skillLevel === 'SEMI_COMP' ? '⚔️ SEMI-COMP' :
-                                                skillLevel === 'COMPETITIVE' ? '🏆 COMP' : '👽 TOURNAMENT'}
+                                    <span className="px-2.5 py-1 rounded-full border border-purple-500/20 bg-purple-500/5 text-purple-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                                        <span className="opacity-70">
+                                            {skillLevel === 'CASUAL' ? '☕' :
+                                                skillLevel === 'SEMI_COMP' ? '⚔️' :
+                                                    skillLevel === 'COMPETITIVE' ? '🏆' : '👽'}
+                                        </span>
+                                        {skillLevel.replace('_', ' ')}
                                     </span>
                                 )}
 
-                                {/* 3. MAIN SIDE */}
+                                {/* 4. MAIN SIDE */}
                                 {mainSide && (
-                                    <span className={`px-2 py-0.5 rounded border text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 ${mainSide === 'INFECTED' ? 'bg-red-900/20 text-red-500 border-red-900/50' : 'bg-blue-900/20 text-blue-400 border-blue-900/50'
+                                    <span className={`px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 ${mainSide === 'INFECTED' ? 'bg-red-900/10 text-red-500 border-red-900/40' : 'bg-cyan-900/10 text-cyan-400 border-cyan-900/40'
                                         }`}>
-                                        {mainSide === 'INFECTED' ? '🦠 INFECTED' : mainSide === 'SURVIVOR' ? '🧍 SURVIVOR' : '☯️ BOTH SIDES'}
+                                        <span className="opacity-70">
+                                            {mainSide === 'INFECTED' ? '🦠' : mainSide === 'SURVIVOR' ? '🧍' : '☯️'}
+                                        </span>
+                                        {mainSide === 'BOTH_SIDES' ? 'HYBRID' : mainSide}
                                     </span>
                                 )}
 
-                                {/* 4. WEAPON */}
+                                {/* 5. WEAPON */}
                                 {survivorWeapon && (
-                                    <span className="px-2 py-0.5 rounded border border-zinc-700 bg-zinc-800 text-zinc-300 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1">
-                                        {survivorWeapon === 'SMG' ? '🔫 SMG' : survivorWeapon === 'SHOTGUN' ? '💥 SHOTGUN' : '🔁 FLEXIBLE'}
+                                    <span className="px-2.5 py-1 rounded-full border border-zinc-700/50 bg-zinc-800/50 text-zinc-300 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                                        <span className="opacity-70">
+                                            {survivorWeapon === 'SMG' ? '🔫' : survivorWeapon === 'SHOTGUN' ? '💥' : '🔁'}
+                                        </span>
+                                        {survivorWeapon}
                                     </span>
                                 )}
 
-                                {/* 5. COMM */}
+                                {/* 6. COMM */}
                                 {communication && (
-                                    <span className="px-2 py-0.5 rounded border border-yellow-500/20 bg-yellow-500/10 text-yellow-500 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1">
-                                        {communication === 'MIC_ACTIVE' ? '🎙️ MIC ON' :
-                                            communication === 'ONLY_INFO' ? '🎧 INFO ONLY' :
-                                                communication === 'LISTEN' ? '👂 LISTENER' : '❌ NO MIC'}
+                                    <span className="px-2.5 py-1 rounded-full border border-yellow-500/20 bg-yellow-500/5 text-yellow-500 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                                        <span className="opacity-70">
+                                            {communication === 'MIC_ACTIVE' ? '🎙️' :
+                                                communication === 'ONLY_INFO' ? '🎧' :
+                                                    communication === 'LISTEN' ? '👂' : '❌'}
+                                        </span>
+                                        {communication === 'MIC_ACTIVE' ? 'VOICE' : communication === 'ONLY_INFO' ? 'INFO' : communication}
                                     </span>
                                 )}
 
-                                {/* 6. COUNTRY */}
-                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-zinc-800/50 text-zinc-400 text-xs border border-white/5" title={countryCode}>
-                                    <span className="text-sm">{getFlagEmoji(countryCode)}</span> {countryCode || "UNK"}
+                                {/* 7. COUNTRY */}
+                                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/40 text-zinc-400 text-[10px] font-bold border border-white/5" title={countryCode}>
+                                    <span className="text-sm leading-none">{getFlagEmoji(countryCode)}</span>
+                                    <span>{countryCode || "UNK"}</span>
                                 </div>
                             </div>
                         </div>
