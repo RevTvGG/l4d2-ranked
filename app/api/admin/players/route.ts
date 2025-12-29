@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const search = searchParams.get('search') || '';
 
-        const players = await prisma.user.findMany({
+        const users = await prisma.user.findMany({
             where: search ? {
                 OR: [
                     { name: { contains: search, mode: 'insensitive' } },
@@ -26,11 +26,28 @@ export async function GET(request: NextRequest) {
                 wins: true,
                 losses: true,
                 banCount: true,
-                createdAt: true
+                createdAt: true,
+                bans: {
+                    where: {
+                        active: true,
+                        OR: [
+                            { expiresAt: null },
+                            { expiresAt: { gt: new Date() } }
+                        ]
+                    },
+                    take: 1,
+                    select: { id: true }
+                }
             },
             orderBy: { createdAt: 'desc' },
             take: 50
         });
+
+        const players = users.map(user => ({
+            ...user,
+            activeBanId: user.bans[0]?.id || null,
+            bans: undefined // Remove raw bans array from response
+        }));
 
         return NextResponse.json({ success: true, players });
 

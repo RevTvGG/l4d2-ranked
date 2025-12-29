@@ -18,6 +18,7 @@ interface Player {
     wins: number;
     losses: number;
     banCount: number;
+    activeBanId: string | null;
     createdAt: string;
 }
 
@@ -161,9 +162,9 @@ export default function AdminPlayersPage() {
                                         <div className="flex items-center gap-3 mb-1">
                                             <span className="font-bold text-lg text-white">{player.name}</span>
                                             <span className={`text-xs px-2 py-0.5 rounded font-bold ${player.role === 'OWNER' ? 'bg-red-500/20 text-red-400' :
-                                                    player.role === 'ADMIN' ? 'bg-orange-500/20 text-orange-400' :
-                                                        player.role === 'MODERATOR' ? 'bg-blue-500/20 text-blue-400' :
-                                                            'bg-zinc-800 text-zinc-500'
+                                                player.role === 'ADMIN' ? 'bg-orange-500/20 text-orange-400' :
+                                                    player.role === 'MODERATOR' ? 'bg-blue-500/20 text-blue-400' :
+                                                        'bg-zinc-800 text-zinc-500'
                                                 }`}>
                                                 {player.role}
                                             </span>
@@ -193,19 +194,46 @@ export default function AdminPlayersPage() {
                                         )}
 
                                         {/* Ban Button */}
-                                        <button
-                                            onClick={() => {
-                                                const reason = prompt('Ban reason:');
-                                                if (reason) {
-                                                    const duration = parseInt(prompt('Duration in hours (e.g., 24 for 1 day, 168 for 1 week):') || '24');
-                                                    handleBan(player.id, duration, reason);
-                                                }
-                                            }}
-                                            disabled={actionLoading === player.id || player.role === 'OWNER'}
-                                            className="px-4 py-2 bg-red-500/20 text-red-400 border border-red-500/30 rounded font-bold text-sm hover:bg-red-500/30 transition-colors disabled:opacity-50"
-                                        >
-                                            {actionLoading === player.id ? '...' : '🚫 Ban'}
-                                        </button>
+                                        {/* Ban/Unban Button */}
+                                        {player.activeBanId ? (
+                                            <button
+                                                onClick={async () => {
+                                                    if (!confirm('Are you sure you want to unban this player?')) return;
+                                                    setActionLoading(player.id);
+                                                    try {
+                                                        const res = await fetch(`/api/admin/bans/${player.activeBanId}`, { method: 'DELETE' });
+                                                        const data = await res.json();
+                                                        if (data.success) {
+                                                            fetchPlayers();
+                                                        } else {
+                                                            alert(data.error || 'Failed to unban');
+                                                        }
+                                                    } catch (error) {
+                                                        console.error('Unban failed:', error);
+                                                    } finally {
+                                                        setActionLoading(null);
+                                                    }
+                                                }}
+                                                disabled={actionLoading === player.id}
+                                                className="px-4 py-2 bg-brand-green/20 text-brand-green border border-brand-green/30 rounded font-bold text-sm hover:bg-brand-green/30 transition-colors disabled:opacity-50"
+                                            >
+                                                {actionLoading === player.id ? '...' : '✅ Unban'}
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => {
+                                                    const reason = prompt('Ban reason:');
+                                                    if (reason) {
+                                                        const duration = parseInt(prompt('Duration in hours (e.g., 24 for 1 day, 168 for 1 week):') || '24');
+                                                        handleBan(player.id, duration, reason);
+                                                    }
+                                                }}
+                                                disabled={actionLoading === player.id || player.role === 'OWNER'}
+                                                className="px-4 py-2 bg-red-500/20 text-red-400 border border-red-500/30 rounded font-bold text-sm hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                                            >
+                                                {actionLoading === player.id ? '...' : '🚫 Ban'}
+                                            </button>
+                                        )}
 
                                         {/* View Profile */}
                                         <Link
