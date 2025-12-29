@@ -84,7 +84,8 @@ void CheckServerStatus()
     PrintToServer("[Match Reporter] Checking for assigned match...");
 }
 
-void OnCheckServerStatusResponse(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode)
+public void OnCheckServerStatusResponse(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, int data)
+
 {
     if (bFailure || !bRequestSuccessful)
     {
