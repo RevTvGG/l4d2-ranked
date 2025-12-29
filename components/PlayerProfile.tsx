@@ -29,6 +29,7 @@ interface Team {
 }
 
 interface PlayerProfileProps {
+    userId: string;
     username: string;
     steamId: string;
     steamAvatarUrl: string;
@@ -60,6 +61,7 @@ interface PlayerProfileProps {
 }
 
 export function PlayerProfile({
+    userId,
     username,
     steamId,
     steamAvatarUrl,
@@ -276,7 +278,26 @@ export function PlayerProfile({
                             </h3>
                             <div className="flex flex-wrap gap-4">
                                 {medals.map((medal) => (
-                                    <MedalBadge key={medal.id} {...medal} />
+                                    <MedalBadge
+                                        key={medal.id}
+                                        {...medal}
+                                        onRemove={isOwner ? async (medalId) => {
+                                            try {
+                                                const res = await fetch(`/api/admin/medals/revoke?userId=${userId}&medalId=${medalId}`, {
+                                                    method: 'DELETE'
+                                                });
+                                                if (res.ok) {
+                                                    // Refresh the page or update state
+                                                    window.location.reload();
+                                                } else {
+                                                    alert('Failed to revoke medal');
+                                                }
+                                            } catch (error) {
+                                                console.error(error);
+                                                alert('Error revoking medal');
+                                            }
+                                        } : undefined}
+                                    />
                                 ))}
                             </div>
                         </div>
