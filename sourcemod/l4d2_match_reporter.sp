@@ -8,6 +8,10 @@
 #include <l4d2_survivor_mvp>
 #define REQUIRE_PLUGIN
 
+// MVP Plugin Natives (optional)
+native int SURVMVP_GetMVP();
+native int SURVMVP_GetMVPCI();
+
 #pragma semicolon 1
 #pragma newdecls required
 
@@ -384,16 +388,28 @@ void SendMatchComplete(const char[] winner)
         }
         bFirstPlayer = false;
         
+        // Check if this player is MVP (SI damage MVP or CI kills MVP)
+        int mvpValue = 0;
+        if (g_bMvpAvailable && team == TEAM_SURVIVOR)
+        {
+            int mvpSI = SURVMVP_GetMVP();
+            int mvpCI = SURVMVP_GetMVPCI();
+            
+            if (i == mvpSI) mvpValue = 1;       // SI MVP
+            else if (i == mvpCI) mvpValue = 2;  // CI MVP (Common Infected)
+        }
+        
         // Build player JSON object
         char sPlayerJson[256];
         Format(sPlayerJson, sizeof(sPlayerJson),
-            "{\"steam_id\":\"%s\",\"team\":%d,\"kills\":%d,\"deaths\":%d,\"damage\":%d,\"headshots\":%d,\"mvp\":0}",
+            "{\"steam_id\":\"%s\",\"team\":%d,\"kills\":%d,\"deaths\":%d,\"damage\":%d,\"headshots\":%d,\"mvp\":%d}",
             sSteamId,
             team == TEAM_SURVIVOR ? 1 : 2,
             g_iPlayerKills[i],
             g_iPlayerDeaths[i],
             g_iPlayerDamage[i],
-            g_iPlayerHeadshots[i]
+            g_iPlayerHeadshots[i],
+            mvpValue
         );
         
         StrCat(sPlayersJson, sizeof(sPlayersJson), sPlayerJson);
