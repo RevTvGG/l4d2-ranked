@@ -109,12 +109,12 @@ export default async function FAQPage() {
                             <div className="flex items-start gap-3">
                                 <span className="text-3xl">🔒</span>
                                 <div>
-                                    <p className="text-green-400 font-bold mb-2">Yes, it's completely safe!</p>
+                                    <p className="text-green-400 font-bold mb-2">Yes, it&apos;s completely safe!</p>
                                     <p className="text-zinc-300 mb-3">
-                                        We use Steam's official authentication system (OpenID). This means:
+                                        We use Steam&apos;s official authentication system (OpenID). This means:
                                     </p>
                                     <ul className="text-zinc-400 text-sm space-y-2 list-disc list-inside">
-                                        <li><strong className="text-white">We don't have access to your Steam password</strong></li>
+                                        <li><strong className="text-white">We don&apos;t have access to your Steam password</strong></li>
                                         <li>We only receive public profile information (name, avatar, SteamID)</li>
                                         <li>We cannot make purchases or access your inventory</li>
                                         <li>Your data is only used to create your player profile and track match statistics</li>
