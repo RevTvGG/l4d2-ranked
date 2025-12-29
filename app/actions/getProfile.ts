@@ -15,7 +15,18 @@ export async function getProfile(username: string) {
                 name: decodedName
             },
             include: {
-                team: true,
+                team: {
+                    include: {
+                        members: {
+                            take: 5,
+                            select: {
+                                id: true,
+                                name: true,
+                                image: true
+                            }
+                        }
+                    }
+                },
                 medals: {
                     include: {
                         medal: true
@@ -50,7 +61,13 @@ export async function getProfile(username: string) {
             team: user.team ? {
                 id: user.team.id,
                 name: user.team.name,
-                logo: user.team.logo
+                tag: user.team.tag,
+                logoUrl: user.team.logoUrl,
+                members: user.team.members.map(m => ({
+                    id: m.id,
+                    name: m.name || 'Unknown',
+                    image: m.image
+                }))
             } : undefined,
             medals: user.medals.map(m => ({
                 id: m.medal.id,

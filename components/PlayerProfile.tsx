@@ -1,6 +1,22 @@
 import Image from "next/image";
 import { MedalBadge } from "./MedalBadge";
 
+
+import { PremiumBadge } from "./PremiumBadge";
+import { ShinyText } from "./ShinyText";
+import { RefreshAvatarButton } from "./RefreshAvatarButton";
+
+interface Team {
+    name: string;
+    tag: string;
+    logoUrl: string | null;
+    members?: {
+        id: string;
+        name: string;
+        image: string | null;
+    }[];
+}
+
 interface Medal {
     id: string;
     name: string;
@@ -10,22 +26,6 @@ interface Medal {
     rarity: 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY';
     awardedAt: string;
     note?: string | null;
-}
-
-interface PlayerProfileProps {
-    username: string;
-    steamId: string;
-    medals?: Medal[]; // Add optional medals prop
-}
-
-import { PremiumBadge } from "./PremiumBadge";
-import { ShinyText } from "./ShinyText";
-import { RefreshAvatarButton } from "./RefreshAvatarButton";
-
-interface Team {
-    name: string;
-    tag: string;
-    logoUrl?: string; // Optional team logo
 }
 
 interface PlayerProfileProps {
@@ -162,23 +162,8 @@ export function PlayerProfile({
                                     </span>
                                 )}
 
-                                {/* 2. TEAM BADGE */}
-                                {team && (
-                                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-800/80 border border-white/10 hover:border-white/20 transition-all cursor-pointer group shadow-sm">
-                                        {team.logoUrl ? (
-                                            <div className="relative w-4 h-4">
-                                                <Image src={team.logoUrl} alt={team.name} fill className="rounded-full object-cover" />
-                                            </div>
-                                        ) : (
-                                            <span className="text-zinc-500 text-xs">🛡️</span>
-                                        )}
-                                        <span className="text-zinc-300 text-[10px] font-bold uppercase tracking-wider group-hover:text-white">
-                                            {team.tag}
-                                        </span>
-                                    </div>
-                                )}
 
-                                {/* 3. SKILL LEVEL */}
+                                {/* 2. SKILL LEVEL */}
                                 {skillLevel && (
                                     <span className="px-2.5 py-1 rounded-full border border-purple-500/20 bg-purple-500/5 text-purple-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
                                         <span className="opacity-70">
@@ -342,14 +327,40 @@ export function PlayerProfile({
                     </div>
 
                     {/* Team / Friends */}
-                    <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6">
-                        <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-widest mb-4">Teammates</h3>
-                        <div className="flex -space-x-3 overflow-hidden">
-                            {[1, 2, 3, 4].map((i) => (
-                                <div key={i} className="h-10 w-10 rounded-full border-2 border-zinc-900 bg-zinc-800 relative z-0 hover:z-10 hover:scale-110 transition-transform cursor-pointer"></div>
-                            ))}
-                            <div className="h-10 w-10 rounded-full border-2 border-zinc-900 bg-zinc-800 flex items-center justify-center text-xs font-bold text-zinc-500">+2</div>
-                        </div>
+                    <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 min-h-[140px] flex flex-col justify-center">
+                        <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-widest mb-4">
+                            {team ? 'TEAMMATES' : 'FRIENDS'}
+                        </h3>
+
+                        {team ? (
+                            <div>
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className="text-brand-green font-bold text-lg tracking-tight">[{team.tag}]</span>
+                                    <span className="text-white font-bold text-lg truncate">{team.name}</span>
+                                </div>
+                                <div className="flex -space-x-3 overflow-hidden pl-1">
+                                    {team.members?.map((member) => (
+                                        <div
+                                            key={member.id}
+                                            className="h-10 w-10 rounded-full border-2 border-zinc-900 bg-zinc-800 relative z-0 hover:z-10 hover:scale-110 transition-transform cursor-pointer overflow-hidden group"
+                                            title={member.name}
+                                        >
+                                            {member.image ? (
+                                                <Image src={member.image} alt={member.name} fill className="object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center bg-zinc-700 text-[10px] text-zinc-400 font-bold">
+                                                    {member.name[0]?.toUpperCase()}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-zinc-600 text-sm italic py-2">
+                                No team yet.
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
