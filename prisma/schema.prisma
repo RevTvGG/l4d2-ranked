@@ -86,7 +86,7 @@ model User {
   medalsAwarded    UserMedal[]   @relation("AwardedMedals")
   
   // Invite System
-  betaAccess       Boolean       @default(true) // Default true so existing users keep access
+  betaAccess       Boolean       @default(false) // Default false: Private Beta (Invite Only)
   inviteUsed       InviteCode?   @relation("InviteUsedBy")
   invitesCreated   InviteCode[]  @relation("InviteCreator")
 }

@@ -106,6 +106,7 @@ export function getAuthOptions(req?: NextRequest): NextAuthOptions {
                                 countryCode: p.loccountrycode,
                                 totalHours: hours,
                                 rating: 1000,
+                                betaAccess: false, // New users must use an invite code
                             }
                         });
 
