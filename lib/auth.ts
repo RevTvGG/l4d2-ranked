@@ -112,11 +112,12 @@ export function getAuthOptions(req?: NextRequest): NextAuthOptions {
                         // Get user ID and store in token to avoid DB query on every session
                         const dbUser = await prisma.user.findUnique({
                             where: { steamId: steamId },
-                            select: { id: true, rating: true }
+                            select: { id: true, rating: true, role: true }
                         });
                         if (dbUser) {
                             token.id = dbUser.id;
                             token.rating = dbUser.rating;
+                            token.role = dbUser.role;
                         }
 
                         console.log("User synced to DB:", steamId);
@@ -138,19 +139,23 @@ export function getAuthOptions(req?: NextRequest): NextAuthOptions {
                         session.user.id = token.id;
                         // @ts-expect-error - Custom fields
                         session.user.rating = token.rating;
+                        // @ts-expect-error - Custom fields
+                        session.user.role = token.role;
                     } else {
                         // Fallback: Get user ID from database (only if not in token)
                         try {
                             const { prisma } = await import("@/lib/prisma");
                             const user = await prisma.user.findUnique({
                                 where: { steamId: token.steamId as string },
-                                select: { id: true, rating: true }
+                                select: { id: true, rating: true, role: true }
                             });
                             if (user) {
                                 // @ts-expect-error - Custom fields
                                 session.user.id = user.id;
                                 // @ts-expect-error - Custom fields
                                 session.user.rating = user.rating;
+                                // @ts-expect-error - Custom fields
+                                session.user.role = user.role;
                             }
                         } catch (e) {
                             console.error("Failed to fetch user ID:", e);

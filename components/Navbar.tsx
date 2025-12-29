@@ -4,6 +4,8 @@ import Link from "next/link";
 import { AuthButton } from "./AuthButton";
 import { useSession } from "next-auth/react";
 
+const ADMIN_ROLES = ['OWNER', 'ADMIN', 'MODERATOR'];
+
 export function Navbar() {
     const { data: session } = useSession();
 
@@ -12,6 +14,10 @@ export function Navbar() {
         // @ts-expect-error - steamId is active
         ? `/profile/${session.user.name}?steamId=${session.user.steamId}`
         : "/profile/demo";
+
+    // Check if user has admin role
+    // @ts-expect-error - role is custom field
+    const isAdmin = session?.user?.role && ADMIN_ROLES.includes(session.user.role);
 
     return (
         <header className="fixed w-full top-0 z-50 border-b border-white/10 bg-black/50 backdrop-blur-md">
@@ -29,6 +35,9 @@ export function Navbar() {
                     <Link href="/faq" className="hover:text-white transition-colors">FAQ</Link>
                     <Link href="/premium" className="text-yellow-500 hover:text-yellow-400 transition-colors font-bold drop-shadow-sm">PREMIUM 👑</Link>
                     <Link href={profileUrl} className="hover:text-white transition-colors">Profile</Link>
+                    {isAdmin && (
+                        <Link href="/admin" className="text-red-500 hover:text-red-400 transition-colors font-bold">🛡️ Admin</Link>
+                    )}
                 </nav>
                 <div className="flex items-center gap-4">
                     <AuthButton />

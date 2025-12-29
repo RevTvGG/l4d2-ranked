@@ -76,6 +76,7 @@ model User {
   sessions       Session[]
   team           Team?         @relation(fields: [teamId], references: [id])
   reports        Report[]
+  chatMutes      ChatMute[]
 }
 
 model Team {
@@ -281,4 +282,34 @@ enum ServerStatus {
   IN_USE
   OFFLINE
   MAINTENANCE
+}
+
+// ============ ADMIN PANEL MODELS ============
+
+model Announcement {
+  id        String    @id @default(cuid())
+  title     String
+  content   String
+  type      String    @default("INFO") // INFO, WARNING, MAINTENANCE
+  location  String    @default("HOME") // HOME, PLAY, GLOBAL
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+}
+
+model SiteContent {
+  id        String   @id @default(cuid())
+  key       String   @unique // e.g., "home_hero_title", "home_hero_subtitle"
+  content   String
+  updatedAt DateTime @updatedAt
+}
+
+model ChatMute {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reason    String?
+  mutedBy   String?  // Admin who muted
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
