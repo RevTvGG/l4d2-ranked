@@ -430,6 +430,28 @@ export async function joinQueue() {
 
     console.log('[joinQueue] User rating:', user?.rating);
 
+    // Check if user is banned
+    const activeBan = await prisma.ban.findFirst({
+        where: {
+            userId,
+            active: true,
+            OR: [
+                { expiresAt: null },
+                { expiresAt: { gt: new Date() } }
+            ]
+        }
+    });
+
+    if (activeBan) {
+        console.log('[joinQueue] User is banned');
+        return {
+            success: false,
+            message: activeBan.expiresAt
+                ? `You are banned until ${activeBan.expiresAt.toLocaleString()}`
+                : 'You are permanently banned'
+        };
+    }
+
     // Create queue entry
     await prisma.queueEntry.create({
         data: {
