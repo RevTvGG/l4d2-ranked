@@ -4,6 +4,7 @@ import { getProfile } from "@/app/actions/getProfile";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import ReportButton from "@/components/ReportButton";
 
 type Props = {
     params: Promise<{ username: string }>;
@@ -41,6 +42,16 @@ export default async function ProfilePage({ params }: Props) {
             <div className="container mx-auto">
                 <PlayerProfile {...profileData} isOwner={isOwner} />
 
+                {/* Report Button - Only visible when viewing other profiles */}
+                {!isOwner && session && profileData.userId && (
+                    <div className="max-w-6xl mx-auto mt-6 flex justify-end">
+                        <ReportButton
+                            reportedUserId={profileData.userId}
+                            reportedUserName={profileData.username}
+                        />
+                    </div>
+                )}
+
                 <div className="mt-12 text-center text-zinc-600 text-xs">
                     Values are live from the Ranked Database.
                 </div>
@@ -48,4 +59,5 @@ export default async function ProfilePage({ params }: Props) {
         </div>
     );
 }
+
 

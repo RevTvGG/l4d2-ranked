@@ -22,6 +22,7 @@ export async function getProfile(username: string) {
         if (!user) return null;
 
         return {
+            userId: user.id,
             username: user.name || "Unknown",
             steamId: user.steamId || "",
             mainSide: user.mainSide,
@@ -44,6 +45,7 @@ export async function getProfile(username: string) {
                 logoUrl: user.team.logoUrl || undefined
             } : undefined
         }
+
 
     } catch (error) {
         console.error("Error fetching profile:", error)

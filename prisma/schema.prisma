@@ -67,17 +67,20 @@ model User {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   banCount       Int           @default(0)
-  accounts       Account[]
-  bans           Ban[]         @relation("Bans")
-  mapVotes       MapVote[]     @relation("MapVotes")
-  matchPlayers   MatchPlayer[] @relation("MatchPlayers")
-  messages       Message[]     @relation("Messages")
-  queueEntries   QueueEntry[]  @relation("QueueEntries")
-  sessions       Session[]
-  team           Team?         @relation(fields: [teamId], references: [id])
-  reports        Report[]
-  chatMutes      ChatMute[]
+  accounts         Account[]
+  bans             Ban[]         @relation("Bans")
+  mapVotes         MapVote[]     @relation("MapVotes")
+  matchPlayers     MatchPlayer[] @relation("MatchPlayers")
+  messages         Message[]     @relation("Messages")
+  queueEntries     QueueEntry[]  @relation("QueueEntries")
+  sessions         Session[]
+  team             Team?         @relation(fields: [teamId], references: [id])
+  bugReports       Report[]      @relation("BugReports")
+  reportsMade      UserReport[]  @relation("ReportsMade")
+  reportsReceived  UserReport[]  @relation("ReportsReceived")
+  chatMutes        ChatMute[]
 }
+
 
 model Team {
   id           String   @id @default(cuid())
@@ -130,7 +133,9 @@ model Match {
   players        MatchPlayer[]
   queueEntries   QueueEntry[]
   rounds         Round[]
+  messages       Message[]     @relation("MatchMessages")
 }
+
 
 model MatchPlayer {
   id               String             @id @default(cuid())
@@ -228,6 +233,8 @@ model Message {
   createdAt DateTime @default(now())
   userId    String
   user      User     @relation("Messages", fields: [userId], references: [id], onDelete: Cascade)
+  matchId   String?
+  match     Match?   @relation("MatchMessages", fields: [matchId], references: [id], onDelete: Cascade)
 }
 
 enum QueueStatus {
@@ -261,7 +268,7 @@ enum BanReason {
 model Report {
   id        String     @id @default(cuid())
   userId    String
-  user      User       @relation(fields: [userId], references: [id])
+  user      User       @relation("BugReports", fields: [userId], references: [id])
   type      ReportType
   title     String
   content   String
@@ -270,6 +277,7 @@ model Report {
   status    String     @default("OPEN")
   createdAt DateTime   @default(now())
 }
+
 
 enum ReportType {
   BUG
@@ -312,4 +320,33 @@ model ChatMute {
   mutedBy   String?  // Admin who muted
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+model UserReport {
+  id          String       @id @default(cuid())
+  reason      ReportReason
+  description String?
+  status      ReportStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  
+  reporterId  String
+  reporter    User         @relation("ReportsMade", fields: [reporterId], references: [id], onDelete: Cascade)
+  
+  reportedId  String
+  reported    User         @relation("ReportsReceived", fields: [reportedId], references: [id], onDelete: Cascade)
+  
+  matchId     String?      // Optional: link to specific match where incident occurred
+}
+
+
+enum ReportReason {
+  CHEATING
+  TROLLING
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  ACTION_TAKEN
+  DISMISSED
 }
