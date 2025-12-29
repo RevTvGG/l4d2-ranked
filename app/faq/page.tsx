@@ -199,7 +199,7 @@ export default async function FAQPage() {
                             <div className="bg-zinc-900 border border-white/5 rounded-2xl p-6">
                                 <h3 className="font-bold text-white mb-2 uppercase tracking-wide">Impersonation & Copying</h3>
                                 <p className="text-zinc-400 text-sm">
-                                    Copying another team's name, tag, or identity is strictly prohibited. If you spot a team impersonating yours, please <a href="#support" className="text-brand-green hover:underline">report it to administration</a> immediately.
+                                    Copying another team&apos;s name, tag, or identity is strictly prohibited. If you spot a team impersonating yours, please <a href="#support" className="text-brand-green hover:underline">report it to administration</a> immediately.
                                 </p>
                             </div>
 
