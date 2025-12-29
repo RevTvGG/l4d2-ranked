@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { revalidatePath } from 'next/cache';
 
 // POST /api/admin/medals/award - Award medal to user
 export async function POST(request: NextRequest) {
@@ -54,6 +55,14 @@ export async function POST(request: NextRequest) {
                 }
             }
         });
+
+        // Revalidate the profile page
+        if (userMedal.user.name) {
+            // Encode mostly to be safe, though revalidatePath handles paths
+            // We revalidate both the specific profile and the list
+            revalidatePath(`/profile/${userMedal.user.name}`);
+            revalidatePath('/admin/players');
+        }
 
         return NextResponse.json({ success: true, userMedal });
     } catch (error) {
