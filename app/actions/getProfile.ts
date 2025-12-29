@@ -48,9 +48,9 @@ export async function getProfile(username: string) {
             rating: user.rating,
             winRate: user.winRate,
             team: user.team ? {
+                id: user.team.id,
                 name: user.team.name,
-                tag: user.team.tag,
-                logoUrl: user.team.logoUrl || undefined
+                logo: user.team.logo
             } : undefined,
             medals: user.medals.map(m => ({
                 id: m.medal.id,
@@ -58,7 +58,7 @@ export async function getProfile(username: string) {
                 description: m.medal.description,
                 icon: m.medal.icon,
                 color: m.medal.color,
-                rarity: m.medal.rarity,
+                rarity: m.medal.rarity as "COMMON" | "RARE" | "EPIC" | "LEGENDARY",
                 awardedAt: m.awardedAt.toISOString(),
                 note: m.note
             }))

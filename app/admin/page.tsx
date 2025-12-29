@@ -60,6 +60,9 @@ export default async function AdminDashboard() {
                         {/* Admin/Owner Only Features */}
                         {role !== 'MODERATOR' && (
                             <>
+                                {role === 'OWNER' && (
+                                    <AdminLink href="/admin/medals" icon="🏅" title="Medal Management" desc="Create, edit, and manage medals" />
+                                )}
                                 <AdminLink href="/admin/announcements" icon="📢" title="Announcements" desc="Create and manage site announcements" />
                                 <AdminLink href="/admin/content" icon="📝" title="Content Editor" desc="Edit site text and messages" />
                                 <AdminLink href="/admin/servers" icon="🖥️" title="Servers" desc="View and manage game servers" />

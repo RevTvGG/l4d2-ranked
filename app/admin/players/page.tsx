@@ -273,10 +273,10 @@ export default function AdminPlayersPage() {
                                                     setPlayerForMedal(player);
                                                     setShowAwardModal(true);
                                                 }}
-                                                className="p-2 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20 rounded-lg transition-colors border border-yellow-500/20"
+                                                className="px-3 py-1 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20 rounded-lg transition-colors border border-yellow-500/20 font-bold text-sm flex items-center gap-2"
                                                 title="Award Medal"
                                             >
-                                                🏅
+                                                <span>🏅Award</span>
                                             </button>
                                         )}
 
