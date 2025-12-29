@@ -52,13 +52,10 @@ export default async function ProfilePage({ params }: Props) {
                     </div>
                 )}
 
-                <div className="mt-12 text-center text-zinc-600 text-xs font-mono">
-                    Values are live from the Ranked Database.<br />
-                    User ID: {profileData.userId} | Medals: {profileData.medals?.length || 0}
+                <div className="mt-12 text-center text-zinc-600 text-xs">
+                    Values are live from the Ranked Database.
                 </div>
             </div>
         </div>
     );
-}
-
 
