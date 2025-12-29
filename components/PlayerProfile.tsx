@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { MedalBadge } from "./MedalBadge";
 
 
@@ -329,14 +330,14 @@ export function PlayerProfile({
                     {/* Team / Friends */}
                     <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 min-h-[140px] flex flex-col justify-center">
                         <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-widest mb-4">
-                            {team ? 'TEAMMATES' : 'FRIENDS'}
+                            {team ? 'CLUB' : 'FRIENDS'}
                         </h3>
 
                         {team ? (
-                            <div>
+                            <Link href={`/teams/${team.tag}`} className="block group/team hover:bg-white/5 p-2 -m-2 rounded-xl transition-colors">
                                 <div className="flex items-center gap-2 mb-3">
-                                    <span className="text-brand-green font-bold text-lg tracking-tight">[{team.tag}]</span>
-                                    <span className="text-white font-bold text-lg truncate">{team.name}</span>
+                                    <span className="text-brand-green font-bold text-lg tracking-tight group-hover/team:text-brand-green/80 transition-colors">[{team.tag}]</span>
+                                    <span className="text-white font-bold text-lg truncate group-hover/team:text-zinc-200 transition-colors">{team.name}</span>
                                 </div>
                                 <div className="flex -space-x-3 overflow-hidden pl-1">
                                     {team.members?.map((member) => (
@@ -355,7 +356,7 @@ export function PlayerProfile({
                                         </div>
                                     ))}
                                 </div>
-                            </div>
+                            </Link>
                         ) : (
                             <div className="text-zinc-600 text-sm italic py-2">
                                 No team yet.

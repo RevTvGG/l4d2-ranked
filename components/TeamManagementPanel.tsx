@@ -16,13 +16,15 @@ interface Props {
     ownerSteamId: string;
     teamId: string;
     currentLogo: string;
+    currentBanner: string;
     currentDesc: string;
     currentCountries: string;
     currentMaxMembers: number;
+    currentInviteOnly: boolean;
     members: Member[];
 }
 
-export function TeamManagementPanel({ ownerSteamId, teamId, currentLogo, currentDesc, currentCountries, currentMaxMembers, members }: Props) {
+export function TeamManagementPanel({ ownerSteamId, teamId, currentLogo, currentBanner, currentDesc, currentCountries, currentMaxMembers, currentInviteOnly, members }: Props) {
     const { data: session } = useSession();
     const [isOpen, setIsOpen] = useState(false);
     const [msg, setMsg] = useState("");
@@ -126,9 +128,29 @@ export function TeamManagementPanel({ ownerSteamId, teamId, currentLogo, current
                     <section className="space-y-4">
                         <h3 className="text-brand-green font-bold uppercase tracking-widest text-xs">Edit Details</h3>
                         <form action={handleUpdate} className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold text-zinc-500 mb-1">Logo URL</label>
-                                <input name="logoUrl" defaultValue={currentLogo} className="w-full bg-black border border-zinc-800 rounded p-2 text-white text-sm" />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-zinc-500 mb-1">Logo URL</label>
+                                    <input name="logoUrl" defaultValue={currentLogo} className="w-full bg-black border border-zinc-800 rounded p-2 text-white text-sm" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-zinc-500 mb-1">Banner URL (Background)</label>
+                                    <input name="bannerUrl" defaultValue={currentBanner} className="w-full bg-black border border-zinc-800 rounded p-2 text-white text-sm" />
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 bg-zinc-950 p-3 rounded border border-white/5">
+                                <input
+                                    type="checkbox"
+                                    name="inviteOnly"
+                                    id="inviteOnly"
+                                    defaultChecked={currentInviteOnly}
+                                    className="w-4 h-4 rounded bg-zinc-800 border-zinc-700 text-brand-green focus:ring-brand-green"
+                                />
+                                <label htmlFor="inviteOnly" className="cursor-pointer select-none">
+                                    <span className="block text-white font-bold text-sm">Private Team (Invite Only)</span>
+                                    <span className="block text-zinc-500 text-xs">If checked, players cannot join without an invite link (coming soon) or admin addition.</span>
+                                </label>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>

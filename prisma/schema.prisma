@@ -93,9 +93,11 @@ model Team {
   name         String   @unique
   tag          String   @unique
   logoUrl      String?
+  bannerUrl    String?      // Custom background image
   description  String?
   countryCodes String?
   maxMembers   Int      @default(5)
+  inviteOnly   Boolean  @default(false) // Toggle for Public/Private
   ownerId      String
   rating       Int      @default(1000)
   wins         Int      @default(0)

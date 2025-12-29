@@ -63,11 +63,19 @@ export default async function TeamProfilePage({ params, searchParams }: Props) {
             <div className="container mx-auto max-w-5xl">
 
                 {/* HERO */}
-                <div className="relative rounded-3xl overflow-hidden border border-white/10 bg-zinc-900 mb-8">
-                    <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 to-zinc-900/50"></div>
+                <div className="relative rounded-3xl overflow-hidden border border-white/10 bg-zinc-900 mb-8 min-h-[300px] flex items-center">
+                    {/* Background Layer */}
+                    <div className="absolute inset-0 z-0">
+                        {team.bannerUrl ? (
+                            <Image src={team.bannerUrl} alt="Team Banner" fill className="object-cover opacity-40 blur-sm" />
+                        ) : (
+                            <div className="w-full h-full bg-gradient-to-r from-zinc-950 to-zinc-900"></div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-transparent"></div>
+                    </div>
 
-                    <div className="relative p-10 flex flex-col md:flex-row items-center gap-8">
-                        <div className="h-40 w-40 bg-zinc-800 rounded-full border-4 border-white/5 flex items-center justify-center text-6xl shadow-2xl relative overflow-hidden">
+                    <div className="relative z-10 p-10 flex flex-col md:flex-row items-center gap-8 w-full">
+                        <div className="h-40 w-40 bg-zinc-800 rounded-full border-4 border-white/5 flex items-center justify-center text-6xl shadow-2xl relative overflow-hidden shrink-0">
                             {team.logoUrl ? (
                                 <Image src={team.logoUrl} alt={team.name} fill className="object-cover" />
                             ) : (
@@ -79,21 +87,30 @@ export default async function TeamProfilePage({ params, searchParams }: Props) {
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-brand-green/10 text-brand-green text-xs font-bold uppercase tracking-widest mb-4 border border-brand-green/20">
                                 {getFlagEmoji(team.countryCodes)} {team.countryCodes?.split(',').join(' / ') || "International"}
                             </div>
-                            <h1 className="text-5xl md:text-7xl font-black text-white italic tracking-tighter uppercase mb-2">
-                                <span className="text-zinc-600 mr-4">[{team.tag}]</span>
+                            <h1 className="text-5xl md:text-7xl font-black text-white italic tracking-tighter uppercase mb-2 drop-shadow-lg">
+                                <span className="text-zinc-500 mr-4 font-normal not-italic">[{team.tag}]</span>
                                 {team.name}
                             </h1>
-                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-zinc-400 font-medium font-mono">
+                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-zinc-300 font-medium font-mono drop-shadow-md">
                                 <div><span className="text-white font-bold">{team.members.length}</span> MEMBERS</div>
-                                <div className="hidden md:block w-1 h-1 bg-zinc-600 rounded-full"></div>
+                                <div className="hidden md:block w-1 h-1 bg-zinc-500 rounded-full"></div>
                                 <div>AVG RATING: <span className="text-brand-green font-bold">{avgRating}</span></div>
-                                <div className="hidden md:block w-1 h-1 bg-zinc-600 rounded-full"></div>
+                                <div className="hidden md:block w-1 h-1 bg-zinc-500 rounded-full"></div>
+
+                                {team.inviteOnly && (
+                                    <>
+                                        <div className="flex items-center gap-2 text-red-400 font-bold uppercase text-xs tracking-widest">
+                                            <span>🔒 Private</span>
+                                        </div>
+                                        <div className="hidden md:block w-1 h-1 bg-zinc-500 rounded-full"></div>
+                                    </>
+                                )}
 
                                 <div className="flex items-center gap-2 text-sm text-red-400 hover:text-white transition-colors cursor-pointer">
                                     <LeaveTeamButton />
                                 </div>
 
-                                {!isFull && (
+                                {!isFull && !team.inviteOnly && (
                                     <div className="ml-4">
                                         <JoinTeamButton
                                             teamId={team.id}
@@ -144,9 +161,11 @@ export default async function TeamProfilePage({ params, searchParams }: Props) {
                     ownerSteamId={team.ownerId}
                     teamId={team.id}
                     currentLogo={team.logoUrl || ""}
+                    currentBanner={team.bannerUrl || ""}
                     currentDesc={team.description || ""}
                     currentCountries={team.countryCodes || ""}
                     currentMaxMembers={team.maxMembers}
+                    currentInviteOnly={team.inviteOnly}
                     members={membersList}
                 />
 

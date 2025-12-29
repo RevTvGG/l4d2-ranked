@@ -169,8 +169,10 @@ export async function kickMember(ownerSteamId: string, memberSteamId: string) {
 
 export async function updateTeam(ownerSteamId: string, formData: FormData) {
     const logoUrl = formData.get("logoUrl") as string;
+    const bannerUrl = formData.get("bannerUrl") as string;
     const description = formData.get("description") as string;
     const countryCodes = formData.get("countryCodes") as string;
+    const inviteOnly = formData.get("inviteOnly") === "on";
 
     try {
         const { prisma } = await import("@/lib/prisma");
@@ -187,8 +189,10 @@ export async function updateTeam(ownerSteamId: string, formData: FormData) {
             where: { id: owner.team.id },
             data: {
                 logoUrl: logoUrl || undefined,
+                bannerUrl: bannerUrl || undefined,
                 description: description || undefined,
-                countryCodes: countryCodes || undefined
+                countryCodes: countryCodes || undefined,
+                inviteOnly: inviteOnly
             }
         });
 
