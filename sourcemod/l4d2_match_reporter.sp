@@ -8,10 +8,6 @@
 #include <l4d2_survivor_mvp>
 #define REQUIRE_PLUGIN
 
-// MVP Plugin Natives (optional)
-native int SURVMVP_GetMVP();
-native int SURVMVP_GetMVPCI();
-
 #pragma semicolon 1
 #pragma newdecls required
 
