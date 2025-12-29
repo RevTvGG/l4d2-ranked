@@ -11,6 +11,7 @@ interface Team {
     name: string;
     tag: string;
     logoUrl: string | null;
+    bannerUrl: string | null;
     members?: {
         id: string;
         name: string;
@@ -327,42 +328,54 @@ export function PlayerProfile({
                         </div>
                     </div>
 
-                    {/* Team / Friends */}
-                    <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 min-h-[140px] flex flex-col justify-center">
-                        <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-widest mb-4">
-                            {team ? 'CLUB' : 'FRIENDS'}
-                        </h3>
+                    {/* Team Section - Only visible if has team */}
+                    {team && (
+                        <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 min-h-[140px] flex flex-col justify-center relative overflow-hidden group/card">
 
-                        {team ? (
-                            <Link href={`/teams/${team.tag}`} className="block group/team hover:bg-white/5 p-2 -m-2 rounded-xl transition-colors">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <span className="text-brand-green font-bold text-lg tracking-tight group-hover/team:text-brand-green/80 transition-colors">[{team.tag}]</span>
-                                    <span className="text-white font-bold text-lg truncate group-hover/team:text-zinc-200 transition-colors">{team.name}</span>
-                                </div>
-                                <div className="flex -space-x-3 overflow-hidden pl-1">
-                                    {team.members?.map((member) => (
-                                        <div
-                                            key={member.id}
-                                            className="h-10 w-10 rounded-full border-2 border-zinc-900 bg-zinc-800 relative z-0 hover:z-10 hover:scale-110 transition-transform cursor-pointer overflow-hidden group"
-                                            title={member.name}
-                                        >
-                                            {member.image ? (
-                                                <Image src={member.image} alt={member.name} fill className="object-cover" />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center bg-zinc-700 text-[10px] text-zinc-400 font-bold">
-                                                    {member.name[0]?.toUpperCase()}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </Link>
-                        ) : (
-                            <div className="text-zinc-600 text-sm italic py-2">
-                                No team yet.
+                            {/* Banner Background */}
+                            {team.bannerUrl && (
+                                <>
+                                    <Image
+                                        src={team.bannerUrl}
+                                        alt="Team Banner"
+                                        fill
+                                        className="object-cover opacity-20 blur-[1px] group-hover/card:opacity-30 transition-opacity"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/80 to-zinc-900/40" />
+                                </>
+                            )}
+
+                            <div className="relative z-10">
+                                <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-widest mb-4">
+                                    CLUB
+                                </h3>
+
+                                <Link href={`/teams/${team.tag}`} className="block group/team hover:bg-white/5 p-2 -m-2 rounded-xl transition-colors">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <span className="text-brand-green font-bold text-lg tracking-tight group-hover/team:text-brand-green/80 transition-colors">[{team.tag}]</span>
+                                        <span className="text-white font-bold text-lg truncate group-hover/team:text-zinc-200 transition-colors">{team.name}</span>
+                                    </div>
+                                    <div className="flex -space-x-3 overflow-hidden pl-1">
+                                        {team.members?.map((member) => (
+                                            <div
+                                                key={member.id}
+                                                className="h-10 w-10 rounded-full border-2 border-zinc-900 bg-zinc-800 relative z-0 hover:z-10 hover:scale-110 transition-transform cursor-pointer overflow-hidden group"
+                                                title={member.name}
+                                            >
+                                                {member.image ? (
+                                                    <Image src={member.image} alt={member.name} fill className="object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center bg-zinc-700 text-[10px] text-zinc-400 font-bold">
+                                                        {member.name[0]?.toUpperCase()}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </Link>
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

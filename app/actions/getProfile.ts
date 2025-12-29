@@ -63,6 +63,7 @@ export async function getProfile(username: string) {
                 name: user.team.name,
                 tag: user.team.tag,
                 logoUrl: user.team.logoUrl,
+                bannerUrl: user.team.bannerUrl,
                 members: user.team.members.map(m => ({
                     id: m.id,
                     name: m.name || 'Unknown',
