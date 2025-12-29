@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { BanModal } from '@/components/BanModal';
+import { AwardMedalModal } from '@/components/admin/AwardMedalModal';
 
 const ADMIN_ROLES = ['OWNER', 'ADMIN', 'MODERATOR'];
 
@@ -31,6 +32,10 @@ export default function AdminPlayersPage() {
     const [loading, setLoading] = useState(true);
     const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+    // Medal Modal State
+    const [showAwardModal, setShowAwardModal] = useState(false);
+    const [playerForMedal, setPlayerForMedal] = useState<Player | null>(null);
 
     // @ts-expect-error - role is custom field
     const userRole = session?.user?.role;
@@ -112,6 +117,32 @@ export default function AdminPlayersPage() {
             console.error('Role change failed:', error);
         } finally {
             setActionLoading(null);
+        }
+    };
+
+    const handleAwardMedal = async (medalId: string, note: string) => {
+        if (!playerForMedal) return;
+
+        try {
+            const res = await fetch('/api/admin/medals/award', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: playerForMedal.id,
+                    medalId,
+                    note
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert(`Medal awarded to ${playerForMedal.name}!`);
+            } else {
+                alert(data.error || 'Failed to award medal');
+            }
+        } catch (error) {
+            console.error('Failed to award medal:', error);
+            alert('Failed to award medal');
         }
     };
 
@@ -200,7 +231,6 @@ export default function AdminPlayersPage() {
                                             </select>
                                         )}
 
-                                        {/* Ban Button */}
                                         {/* Ban/Unban Button */}
                                         {player.activeBanId ? (
                                             <button
@@ -236,6 +266,20 @@ export default function AdminPlayersPage() {
                                             </button>
                                         )}
 
+                                        {/* Award Medal Button */}
+                                        {userRole === 'OWNER' && (
+                                            <button
+                                                onClick={() => {
+                                                    setPlayerForMedal(player);
+                                                    setShowAwardModal(true);
+                                                }}
+                                                className="p-2 bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20 rounded-lg transition-colors border border-yellow-500/20"
+                                                title="Award Medal"
+                                            >
+                                                🏅
+                                            </button>
+                                        )}
+
                                         {/* View Profile */}
                                         <Link
                                             href={`/profile/${encodeURIComponent(player.name || '')}`}
@@ -248,16 +292,33 @@ export default function AdminPlayersPage() {
                             ))}
                         </div>
                     )}
+
+                    {/* Ban Modal */}
+                    {selectedPlayer && (
+                        <BanModal
+                            isOpen={!!selectedPlayer}
+                            onClose={() => setSelectedPlayer(null)}
+                            onBan={handleBan}
+                            initialSteamId={selectedPlayer?.steamId || ''}
+                            initialPlayerName={selectedPlayer?.name}
+                        />
+                    )}
+
+                    {/* Award Medal Modal */}
+                    {playerForMedal && (
+                        <AwardMedalModal
+                            isOpen={showAwardModal}
+                            onClose={() => {
+                                setShowAwardModal(false);
+                                setPlayerForMedal(null);
+                            }}
+                            onAward={handleAwardMedal}
+                            playerName={playerForMedal.name}
+                        />
+                    )}
+
                 </div>
             </div>
-
-            <BanModal
-                isOpen={!!selectedPlayer}
-                onClose={() => setSelectedPlayer(null)}
-                onBan={handleBan}
-                initialSteamId={selectedPlayer?.steamId || ''}
-                initialPlayerName={selectedPlayer?.name}
-            />
         </div>
     );
 }

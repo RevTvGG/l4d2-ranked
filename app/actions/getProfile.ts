@@ -15,7 +15,15 @@ export async function getProfile(username: string) {
                 name: decodedName
             },
             include: {
-                team: true
+                team: true,
+                medals: {
+                    include: {
+                        medal: true
+                    },
+                    orderBy: {
+                        awardedAt: 'desc'
+                    }
+                }
             }
         })
 
@@ -43,7 +51,17 @@ export async function getProfile(username: string) {
                 name: user.team.name,
                 tag: user.team.tag,
                 logoUrl: user.team.logoUrl || undefined
-            } : undefined
+            } : undefined,
+            medals: user.medals.map(m => ({
+                id: m.medal.id,
+                name: m.medal.name,
+                description: m.medal.description,
+                icon: m.medal.icon,
+                color: m.medal.color,
+                rarity: m.medal.rarity,
+                awardedAt: m.awardedAt.toISOString(),
+                note: m.note
+            }))
         }
 
 

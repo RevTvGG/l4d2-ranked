@@ -1,4 +1,22 @@
-import Image from "next/image";
+import { MedalBadge } from "./MedalBadge";
+
+interface Medal {
+    id: string;
+    name: string;
+    description: string;
+    icon: string;
+    color: string;
+    rarity: 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY';
+    awardedAt: string;
+    note?: string | null;
+}
+
+interface PlayerProfileProps {
+    username: string;
+    // ... existing props
+    medals?: Medal[]; // Add optional medals prop
+}
+
 import { PremiumBadge } from "./PremiumBadge";
 import { ShinyText } from "./ShinyText";
 import { RefreshAvatarButton } from "./RefreshAvatarButton";
@@ -28,6 +46,16 @@ interface PlayerProfileProps {
     profileTheme?: string;
     team?: Team; // Optional: Player might not have a team
     isOwner?: boolean; // True if viewing own profile
+    medals?: {
+        id: string;
+        name: string;
+        description: string;
+        icon: string;
+        color: string;
+        rarity: 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY';
+        awardedAt: string;
+        note?: string | null;
+    }[];
 }
 
 export function PlayerProfile({
@@ -49,6 +77,7 @@ export function PlayerProfile({
     team,
     countryCode,
     isOwner = false,
+    medals = [],
 }: PlayerProfileProps) {
     const themeBg: Record<string, string> = {
         DEFAULT: "border-white/10 bg-zinc-900",
@@ -237,6 +266,20 @@ export function PlayerProfile({
                             <WeaponBar name="Pump Shotgun" usage={15} kills="4,100" />
                         </div>
                     </div>
+
+                    {/* MEDALS SECTION */}
+                    {medals && medals.length > 0 && (
+                        <div className="col-span-2 mt-6">
+                            <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-wider mb-4 flex items-center gap-2">
+                                🏅 Medals & Achievements
+                            </h3>
+                            <div className="flex flex-wrap gap-4">
+                                {medals.map((medal) => (
+                                    <MedalBadge key={medal.id} {...medal} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Sidebar Info */}
