@@ -93,7 +93,8 @@ void OnCheckServerStatusResponse(Handle hRequest, bool bFailure, bool bRequestSu
         return;
     }
     
-    if (eStatusCode == k_EHTTPStatusCode200OK)
+    if (eStatusCode >= 200 && eStatusCode < 300)
+
     {
         // Get response body
         int iBodySize;
