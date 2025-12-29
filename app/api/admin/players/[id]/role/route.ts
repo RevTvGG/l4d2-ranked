@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireOwner } from '@/lib/admin';
+import { getAdminRole } from '@/lib/admin';
 import { prisma } from '@/lib/prisma';
 
 const VALID_ROLES = ['Newcomer', 'MODERATOR', 'ADMIN'];
@@ -9,8 +9,12 @@ export async function PATCH(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        // Only owner can change roles
-        await requireOwner();
+        const currentUserRole = await getAdminRole();
+
+        // Only Owner and Admin can change roles
+        if (!currentUserRole || !['OWNER', 'ADMIN'].includes(currentUserRole)) {
+            return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 });
+        }
 
         const { id } = await params;
         const body = await request.json();
@@ -18,6 +22,11 @@ export async function PATCH(
 
         if (!role || !VALID_ROLES.includes(role)) {
             return NextResponse.json({ success: false, error: 'Invalid role' }, { status: 400 });
+        }
+
+        // Logic Check: Admins cannot promote to Admin
+        if (currentUserRole === 'ADMIN' && role === 'ADMIN') {
+            return NextResponse.json({ success: false, error: 'Admins cannot promote users to Admin. Only Owner can.' }, { status: 403 });
         }
 
         // Check target user exists
@@ -35,13 +44,18 @@ export async function PATCH(
             return NextResponse.json({ success: false, error: 'Cannot change owner role' }, { status: 403 });
         }
 
+        // Logic Check: Admins cannot demote other Admins
+        if (currentUserRole === 'ADMIN' && targetUser.role === 'ADMIN') {
+            return NextResponse.json({ success: false, error: 'Admins cannot modify other Admins.' }, { status: 403 });
+        }
+
         // Update role
         await prisma.user.update({
             where: { id },
             data: { role }
         });
 
-        console.log(`[ADMIN] User ${id} (${targetUser.name}) role changed to ${role}`);
+        console.log(`[ADMIN] User ${id} (${targetUser.name}) role changed to ${role} by ${currentUserRole}`);
 
         return NextResponse.json({ success: true, message: 'Role updated successfully' });
 

@@ -184,17 +184,19 @@ export default function AdminPlayersPage() {
 
                                     {/* Actions */}
                                     <div className="flex gap-2">
-                                        {/* Role Selector (Owner only) */}
-                                        {userRole === 'OWNER' && player.role !== 'OWNER' && (
+                                        {/* Role Selector (Owner & Admin) */}
+                                        {['OWNER', 'ADMIN'].includes(userRole as string) && player.role !== 'OWNER' && (
                                             <select
                                                 value={player.role}
                                                 onChange={(e) => handleRoleChange(player.id, e.target.value)}
-                                                disabled={actionLoading === player.id}
+                                                disabled={actionLoading === player.id || (userRole === 'ADMIN' && player.role === 'ADMIN')}
                                                 className="bg-zinc-800 border border-white/10 rounded px-3 py-2 text-sm text-white"
                                             >
                                                 <option value="Newcomer">User</option>
                                                 <option value="MODERATOR">Moderator</option>
-                                                <option value="ADMIN">Admin</option>
+                                                {userRole === 'OWNER' && (
+                                                    <option value="ADMIN">Admin</option>
+                                                )}
                                             </select>
                                         )}
 
