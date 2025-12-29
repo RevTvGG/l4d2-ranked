@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
                         id: true,
                         name: true,
                         steamId: true,
-                        image: isAdmin
+                        image: true
                     }
                 },
                 bannedBy: isAdmin ? {
