@@ -20,7 +20,6 @@ export default function PlayPage() {
     const [onlineCount, setOnlineCount] = useState(0);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [isVetoing, setIsVetoing] = useState(false);
-    const [serverNews, setServerNews] = useState<string>("Don't forget to join our Discord for tournament announcements. Season 1 ends in 2 weeks!");
 
     // Redirect if not authenticated (client-side check)
     useEffect(() => {
@@ -61,21 +60,7 @@ export default function PlayPage() {
         return () => clearInterval(pollInterval);
     }, [status, session?.user?.id]);
 
-    // Fetch Server News from database
-    useEffect(() => {
-        const fetchServerNews = async () => {
-            try {
-                const res = await fetch('/api/site-content?key=server_news');
-                const data = await res.json();
-                if (data.success && data.content) {
-                    setServerNews(data.content);
-                }
-            } catch (error) {
-                console.error('Failed to fetch server news:', error);
-            }
-        };
-        fetchServerNews();
-    }, []);
+
 
     const handleJoinQueue = async () => {
         console.log('[DEBUG] Join Queue clicked');
@@ -420,12 +405,7 @@ export default function PlayPage() {
                                 </div>
                             </div>
 
-                            <div className="bg-zinc-900/50 border border-white/5 p-6 rounded-2xl backdrop-blur-sm">
-                                <h3 className="font-bold text-white mb-2">📢 Server News</h3>
-                                <p className="text-zinc-500 text-sm leading-relaxed">
-                                    {serverNews}
-                                </p>
-                            </div>
+
                         </div>
                     </div>
                 </div>
