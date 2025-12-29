@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
+import { BanModal } from '@/components/BanModal';
 
 const ADMIN_ROLES = ['OWNER', 'ADMIN', 'MODERATOR'];
 
@@ -28,6 +29,7 @@ export default function AdminPlayersPage() {
     const [players, setPlayers] = useState<Player[]>([]);
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(true);
+    const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
 
     // @ts-expect-error - role is custom field
@@ -64,19 +66,22 @@ export default function AdminPlayersPage() {
         fetchPlayers();
     };
 
-    const handleBan = async (userId: string, duration: number, reason: string) => {
-        setActionLoading(userId);
+    const handleBan = async (data: { steamId: string; reason: string; duration: number; description: string }) => {
+        if (!selectedPlayer) return;
+
+        setActionLoading(selectedPlayer.id);
         try {
-            const res = await fetch(`/api/admin/players/${userId}/ban`, {
+            const res = await fetch(`/api/admin/players/${selectedPlayer.id}/ban`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ duration, reason })
+                body: JSON.stringify(data)
             });
-            const data = await res.json();
-            if (data.success) {
+            const responseData = await res.json();
+            if (responseData.success) {
                 fetchPlayers();
+                setSelectedPlayer(null);
             } else {
-                alert(data.error || 'Failed to ban player');
+                alert(responseData.error || 'Failed to ban player');
             }
         } catch (error) {
             console.error('Ban failed:', error);
@@ -221,13 +226,7 @@ export default function AdminPlayersPage() {
                                             </button>
                                         ) : (
                                             <button
-                                                onClick={() => {
-                                                    const reason = prompt('Ban reason:');
-                                                    if (reason) {
-                                                        const duration = parseInt(prompt('Duration in hours (e.g., 24 for 1 day, 168 for 1 week):') || '24');
-                                                        handleBan(player.id, duration, reason);
-                                                    }
-                                                }}
+                                                onClick={() => setSelectedPlayer(player)}
                                                 disabled={actionLoading === player.id || player.role === 'OWNER'}
                                                 className="px-4 py-2 bg-red-500/20 text-red-400 border border-red-500/30 rounded font-bold text-sm hover:bg-red-500/30 transition-colors disabled:opacity-50"
                                             >
@@ -249,6 +248,14 @@ export default function AdminPlayersPage() {
                     )}
                 </div>
             </div>
+
+            <BanModal
+                isOpen={!!selectedPlayer}
+                onClose={() => setSelectedPlayer(null)}
+                onBan={handleBan}
+                initialSteamId={selectedPlayer?.steamId || ''}
+                initialPlayerName={selectedPlayer?.name}
+            />
         </div>
     );
 }
