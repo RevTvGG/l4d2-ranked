@@ -53,11 +53,13 @@ export default async function AdminDashboard() {
                     <h2 className="text-2xl font-bold mb-6">Quick Actions</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <AdminLink href="/admin/players" icon="👥" title="Player Management" desc="Search, ban, and manage player roles" />
+                        <AdminLink href="/admin/bans" icon="⛔" title="Ban Management" desc="View, create, and remove player bans" />
                         <AdminLink href="/admin/reports" icon="📋" title="Reports" desc="View and process user reports" />
                         <AdminLink href="/admin/announcements" icon="📢" title="Announcements" desc="Create and manage site announcements" />
                         <AdminLink href="/admin/content" icon="📝" title="Content Editor" desc="Edit site text and messages" />
                         <AdminLink href="/admin/chat" icon="💬" title="Chat Moderation" desc="Mute users and manage messages" />
                         <AdminLink href="/admin/servers" icon="🖥️" title="Servers" desc="View and manage game servers" />
+                        <AdminLink href="/admin/guide" icon="📖" title="Admin Guide" desc="Documentation for all admin features" />
                     </div>
 
                 </div>
