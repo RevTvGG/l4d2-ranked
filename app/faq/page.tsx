@@ -103,6 +103,31 @@ export default async function FAQPage() {
                         </div>
                     </Section>
 
+                    {/* STEAM LOGIN SECURITY */}
+                    <Section id="steam-security" title="Is it safe to login with Steam?">
+                        <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-6 mb-4">
+                            <div className="flex items-start gap-3">
+                                <span className="text-3xl">🔒</span>
+                                <div>
+                                    <p className="text-green-400 font-bold mb-2">Yes, it's completely safe!</p>
+                                    <p className="text-zinc-300 mb-3">
+                                        We use Steam's official authentication system (OpenID). This means:
+                                    </p>
+                                    <ul className="text-zinc-400 text-sm space-y-2 list-disc list-inside">
+                                        <li><strong className="text-white">We don't have access to your Steam password</strong></li>
+                                        <li>We only receive public profile information (name, avatar, SteamID)</li>
+                                        <li>We cannot make purchases or access your inventory</li>
+                                        <li>Your data is only used to create your player profile and track match statistics</li>
+                                        <li>You can revoke access anytime from your Steam account settings</li>
+                                    </ul>
+                                    <p className="text-zinc-500 text-xs mt-3">
+                                        Your information is protected and only used to improve your L4D2 Ranked experience.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </Section>
+
                     {/* 4. MMR SYSTEM */}
                     <Section id="mmr" title="MMR & Ranking">
                         <p className="mb-4">
