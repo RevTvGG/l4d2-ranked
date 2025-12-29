@@ -80,9 +80,9 @@ export default function PlayPage() {
             const result = await joinQueue();
             console.log('[DEBUG] Join queue result:', result);
 
-            if (result?.error) {
-                console.error('[DEBUG] Error from joinQueue:', result.error);
-                setErrorMsg(result.error);
+            if (!result.success) {
+                console.error('[DEBUG] Error from joinQueue:', result.message);
+                setErrorMsg(result.message);
                 return;
             }
 
