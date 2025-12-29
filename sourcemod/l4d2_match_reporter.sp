@@ -48,7 +48,7 @@ public Plugin myinfo =
 public void OnAllPluginsLoaded()
 {
     g_bScoreModAvailable = LibraryExists("l4d2_hybrid_scoremod");
-    g_bMvpAvailable = LibraryExists("l4d2_survivor_mvp");
+    g_bMvpAvailable = true; // The MVP plugin doesn't register a library, but it's a required dependency now so we assume it's there.
 }
 
 public void OnLibraryAdded(const char[] name)
