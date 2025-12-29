@@ -384,15 +384,12 @@ void SendMatchComplete(const char[] winner)
         }
         bFirstPlayer = false;
         
-        // Check if this player is MVP (SI damage MVP or CI kills MVP)
+        // Check if this player is MVP (based on SI damage)
         int mvpValue = 0;
         if (g_bMvpAvailable && team == TEAM_SURVIVOR)
         {
-            int mvpSI = SURVMVP_GetMVP();
-            int mvpCI = SURVMVP_GetMVPCI();
-            
-            if (i == mvpSI) mvpValue = 1;       // SI MVP
-            else if (i == mvpCI) mvpValue = 2;  // CI MVP (Common Infected)
+            int mvpPlayer = SURVMVP_GetMVP();
+            if (i == mvpPlayer) mvpValue = 1;  // This player is the MVP
         }
         
         // Build player JSON object
