@@ -20,7 +20,6 @@ const DEFAULT_KEYS = [
     { key: 'home_hero_title', label: 'Home Hero Title', default: 'COMPETITIVE L4D2' },
     { key: 'home_hero_subtitle', label: 'Home Hero Subtitle', default: 'Fair matches. Skill-based ranking. Real competition.' },
     { key: 'play_page_title', label: 'Play Page Title', default: 'MATCHMAKING' },
-    { key: 'server_news', label: '📢 Server News (Play Page)', default: "Don't forget to join our Discord for tournament announcements. Season 1 ends in 2 weeks!" },
     { key: 'maintenance_message', label: 'Maintenance Message', default: '' },
 ];
 
