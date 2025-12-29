@@ -19,7 +19,8 @@ import {
     AlertTriangle,
     Lock,
     Scale,
-    Sword
+    Sword,
+    Crown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +41,7 @@ export function FAQView({ staff }: FAQViewProps) {
         { id: "mmr", label: t.nav.mmr, icon: Trophy },
         { id: "profiles", label: t.nav.profiles, icon: Users },
         { id: "teamRules", label: t.nav.teamRules, icon: Scale },
+        { id: "premium", label: t.nav.premium, icon: Crown },
         { id: "staff", label: t.nav.staff, icon: HeartHandshake },
         { id: "support", label: t.nav.support, icon: Siren },
         { id: "credits", label: t.nav.credits, icon: Info },
@@ -189,7 +191,70 @@ export function FAQView({ staff }: FAQViewProps) {
                         </div>
                     </div>
                 );
+            case "premium":
+                return (
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                        <div className="bg-gradient-to-br from-yellow-500/5 to-amber-500/5 border border-yellow-500/20 rounded-3xl p-8">
+                            <h2 className="text-3xl font-black uppercase text-yellow-500 mb-6 flex items-center gap-3">
+                                <Crown className="w-8 h-8 fill-current" />
+                                {lang === 'en' ? 'Premium Refund Policy' : 'Política de Reembolsos – Premium'}
+                            </h2>
 
+                            <div className="space-y-8">
+                                <div className="space-y-2">
+                                    <h3 className="text-lg font-bold text-white uppercase">
+                                        {lang === 'en' ? 'Immediate Digital Delivery' : 'Entrega inmediata de contenido digital'}
+                                    </h3>
+                                    <p className="text-zinc-400 text-sm leading-relaxed">
+                                        {lang === 'en'
+                                            ? "By subscribing to Premium, you get immediate access to profile improvements like Shiny Name & Badge, Exclusive themes, and Platform support."
+                                            : "Al suscribirte a la membresía Premium, obtienes acceso inmediato a mejoras de perfil como: ✨ Shiny Name & Badge, 🎨 Temas exclusivos, y 📈 Apoyo a la plataforma."
+                                        }
+                                    </p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <h3 className="text-lg font-bold text-white uppercase">
+                                        {lang === 'en' ? 'Non-refundable' : 'No reembolsable tras activación'}
+                                    </h3>
+                                    <p className="text-zinc-400 text-sm leading-relaxed">
+                                        {lang === 'en'
+                                            ? "Once your account receives the premium features, no refunds are accepted as the digital content is delivered immediately and cannot be 'returned'."
+                                            : "Una vez que tu cuenta reciba las mejoras premium, no se aceptan reembolsos, ya que el contenido digital se entrega de forma inmediata y no puede ser “retirado”."
+                                        }
+                                    </p>
+                                </div>
+
+                                <div className="bg-zinc-900 border border-white/5 rounded-xl p-5 space-y-3">
+                                    <h3 className="text-md font-bold text-white uppercase flex items-center gap-2">
+                                        <AlertTriangle className="w-4 h-4 text-orange-400" />
+                                        {lang === 'en' ? 'Exceptional Refunds' : 'Reembolsos excepcionales'}
+                                    </h3>
+                                    <p className="text-zinc-400 text-sm">
+                                        {lang === 'en' ? 'We only consider refunds in cases of:' : 'Solo consideraremos reembolsos en casos de:'}
+                                    </p>
+                                    <ul className="text-zinc-500 text-sm list-disc list-inside space-y-1">
+                                        <li>{lang === 'en' ? 'Accidental duplicate payment' : 'Pago duplicado accidental'}</li>
+                                        <li>{lang === 'en' ? 'Technical failure preventing access' : 'Fallo técnico que impida el acceso a las funciones Premium'}</li>
+                                        <li>{lang === 'en' ? 'Other exceptional cases evaluated by support' : 'Otros casos excepcionales evaluados por nuestro equipo de soporte'}</li>
+                                    </ul>
+                                    <div className="text-xs text-zinc-500 bg-black/30 p-3 rounded-lg mt-2">
+                                        {lang === 'en'
+                                            ? "To request a refund, create a ticket with the format 'bug' and we will analyze the situation."
+                                            : "Para realizar un rembolso, crea un ticket con el formato 'bug' y analizaremos la situación."
+                                        }
+                                    </div>
+                                </div>
+                                <p className="text-xs text-zinc-600 italic">
+                                    {lang === 'en'
+                                        ? "The platform reserves the right to modify this policy at any time, notifying users of changes."
+                                        : "La plataforma se reserva el derecho de modificar esta política en cualquier momento, notificando los cambios a los usuarios."
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                );
             case "staff":
                 return (
                     <div className="space-y-6 animate-in fade-in duration-300">
@@ -237,11 +302,110 @@ export function FAQView({ staff }: FAQViewProps) {
                     </div>
                 )
 
-            // Implement other cases as simple text blocks for brevity given the task constraint
+            case "profiles":
+                return (
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                        <div className="bg-zinc-900 border border-white/5 rounded-2xl p-8 space-y-8">
+                            <div>
+                                <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                                    <span className="text-2xl">👤</span> {lang === 'en' ? 'Player Profile' : 'Perfil de Jugador'}
+                                </h3>
+                                <p className="text-zinc-400 leading-relaxed mb-4">
+                                    {lang === 'en'
+                                        ? "Your personal hub. Track your Win Rate, ADR, and Rank History. Customize your identity."
+                                        : "Tu centro personal. Sigue tu Win Rate, ADR e historial de rango. Personaliza tu identidad."
+                                    }
+                                </p>
+                            </div>
+                            <div className="h-px bg-white/5"></div>
+                            <div className="bg-red-950/20 border border-red-500/20 p-5 rounded-xl">
+                                <h4 className="text-red-400 font-bold uppercase mb-2 flex items-center gap-2">
+                                    <AlertTriangle className="w-4 h-4" />
+                                    {lang === 'en' ? 'Account Responsibility' : 'Responsabilidad de la Cuenta'}
+                                </h4>
+                                <ul className="list-disc list-inside text-sm text-red-200/60 space-y-2">
+                                    <li>
+                                        {lang === 'en'
+                                            ? "You are fully responsible for your account and its security."
+                                            : "Cada cuenta es responsabilidad de la persona de como la administre."
+                                        }
+                                    </li>
+                                    <li>
+                                        {lang === 'en'
+                                            ? "Sharing accounts is strictly prohibited."
+                                            : "Queda prohibido compartir cuentas y es su responsabilidad cuidar la cuenta."
+                                        }
+                                    </li>
+                                    <li>
+                                        {lang === 'en'
+                                            ? "Be respectful to the community. Toxic behavior is not tolerated."
+                                            : "Comportarse y ser respetuoso con la comunidad."
+                                        }
+                                    </li>
+                                    <li>
+                                        {lang === 'en'
+                                            ? "Offensive content in profiles or Steam avatars will result in indefinite or temporary bans."
+                                            : "No poner cosas ofensivas en su perfil ni en su foto de steam ya que se considera baneo indefinido o baneo temporal."
+                                        }
+                                    </li>
+                                    <li>
+                                        <strong>
+                                            {lang === 'en'
+                                                ? "Do not repeat offenses to avoid automatic bans."
+                                                : "No reincidir en baneos automáticos."
+                                            }
+                                        </strong>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                );
+
+            case "support":
+                return (
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                        <div className="bg-zinc-900 border border-white/5 rounded-3xl p-8">
+                            <h2 className="text-2xl font-black uppercase text-white mb-6">
+                                {lang === 'en' ? 'Support & Reporting' : 'Soporte y Reportes'}
+                            </h2>
+                            <p className="text-zinc-400 mb-6">
+                                {lang === 'en'
+                                    ? "Toxic behavior? Cheaters? We are here to help."
+                                    : "¿Comportamiento tóxico? ¿Cheaters? Estamos aquí para ayudar."
+                                }
+                            </p>
+
+                            <div className="bg-brand-green/10 border border-brand-green/20 rounded-xl p-6 flex gap-4 items-start mb-6">
+                                <div className="bg-brand-green text-black rounded-lg p-2 shrink-0">
+                                    <Siren className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-brand-green uppercase mb-1">
+                                        {lang === 'en' ? 'How to Report' : 'Cómo Reportar'}
+                                    </h3>
+                                    <p className="text-zinc-300 text-sm mb-2">
+                                        {lang === 'en'
+                                            ? "On every page, look for the report button in the bottom right corner."
+                                            : "En cada página, busca el botón de reporte en la esquina inferior derecha."
+                                        }
+                                    </p>
+                                    <p className="text-zinc-500 text-xs italic">
+                                        {lang === 'en'
+                                            ? "Please provide evidence (video clips) for toxicity or griefing reports."
+                                            : "Por favor proporciona evidencia (clips de video) para reportes de toxicidad o griefing."
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+
             default:
                 return (
                     <div className="p-8 text-center text-zinc-500 italic animate-in fade-in duration-300">
-                        {lang === 'en' ? 'Section under maintenance.' : 'Sección en mantenimiento.'}
+                        {lang === 'en' ? 'Select a category.' : 'Selecciona una categoría.'}
                     </div>
                 );
         }

@@ -22,6 +22,7 @@ export const FAQ_LABELS = {
             teamRules: "Team Rules",
             staff: "Meet the Team",
             support: "Support",
+            premium: "Premium & Refunds",
             credits: "Credits"
         },
         hero: {
@@ -45,6 +46,7 @@ export const FAQ_LABELS = {
             teamRules: "Reglas de Equipos",
             staff: "Nuestro Equipo",
             support: "Soporte",
+            premium: "Premium y Reembolsos",
             credits: "Créditos"
         },
         hero: {
