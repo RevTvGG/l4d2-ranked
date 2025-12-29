@@ -31,6 +31,7 @@ export function Navbar() {
                     <Link href="/" className="hover:text-white transition-colors">Home</Link>
                     <Link href="/leaderboard" className="hover:text-white transition-colors">Leaderboard</Link>
                     <Link href="/teams" className="hover:text-white transition-colors">Teams</Link>
+                    <Link href="/bans" className="hover:text-white transition-colors">Bans</Link>
                     <Link href="/play" className="text-brand-green hover:text-white transition-colors font-bold uppercase tracking-wide">Matchmaking</Link>
                     <Link href="/faq" className="hover:text-white transition-colors">FAQ</Link>
                     <Link href="/premium" className="text-yellow-500 hover:text-yellow-400 transition-colors font-bold drop-shadow-sm">PREMIUM 👑</Link>
