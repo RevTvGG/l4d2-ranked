@@ -181,6 +181,10 @@ public void OnPluginStart()
     HookEvent("player_hurt", OnPlayerHurt);
     HookEvent("versus_match_finished", OnMatchFinished);
     HookEvent("round_end", OnRoundEnd);
+    HookEvent("player_disconnect", OnPlayerDisconnect, EventHookMode_Pre);
+    
+    // Admin command for canceling matches
+    RegAdminCmd("sm_ranked_cancel_match", Cmd_CancelMatch, ADMFLAG_ROOT, "Cancels match and kicks all players");
     
     AutoExecConfig(true, "l4d2_match_reporter");
     
@@ -678,3 +682,120 @@ public Action Timer_ResetServer(Handle timer)
     return Plugin_Continue;
 }
 
+// ============================================================================
+// AUTO-BAN SYSTEM: Player Disconnect Reporting
+// ============================================================================
+
+public Action OnPlayerDisconnect(Event hEvent, const char[] sEventName, bool dontBroadcast)
+{
+    // Only report if match is active
+    if (!g_bIsMatchLive || g_sMatchId[0] == '\0')
+        return Plugin_Continue;
+    
+    int client = GetClientOfUserId(hEvent.GetInt("userid"));
+    if (client <= 0 || IsFakeClient(client))
+        return Plugin_Continue;
+    
+    char sSteamId[32], sReason[128];
+    GetClientAuthId(client, AuthId_Steam2, sSteamId, sizeof(sSteamId));
+    hEvent.GetString("reason", sReason, sizeof(sReason));
+    
+    // Detect crash vs intentional leave
+    char sTimedOut[64];
+    Format(sTimedOut, sizeof(sTimedOut), "%N timed out", client);
+    
+    bool bIsCrash = (StrContains(sReason, "timed out") != -1 || StrEqual(sReason, "No Steam logon"));
+    
+    PrintToServer("[Match Reporter] Player %N disconnected: %s (Crash: %s)", client, sReason, bIsCrash ? "Yes" : "No");
+    PrintToChatAll("\x04[L4D2 Ranked]\x01 Player \x03%N\x01 disconnected: %s", client, bIsCrash ? "Connection lost" : "Left the game");
+    
+    // Report to API
+    ReportPlayerEvent(sSteamId, bIsCrash ? "PLAYER_CRASH" : "PLAYER_DISCONNECT", sReason);
+    
+    return Plugin_Continue;
+}
+
+void ReportPlayerEvent(const char[] sSteamId, const char[] sEvent, const char[] sReason)
+{
+    char sApiUrl[256], sServerKey[64];
+    g_cvApiUrl.GetString(sApiUrl, sizeof(sApiUrl));
+    g_cvServerKey.GetString(sServerKey, sizeof(sServerKey));
+    
+    // Build URL
+    char sRequestUrl[512];
+    Format(sRequestUrl, sizeof(sRequestUrl), "%s/server/events", sApiUrl);
+    
+    Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodPOST, sRequestUrl);
+    if (hRequest == INVALID_HANDLE)
+    {
+        PrintToServer("[Match Reporter] Failed to create event request");
+        return;
+    }
+    
+    // Build JSON body
+    char sBody[512];
+    Format(sBody, sizeof(sBody), "{\"event\":\"%s\",\"steamId\":\"%s\",\"matchId\":\"%s\",\"reason\":\"%s\"}", 
+        sEvent, sSteamId, g_sMatchId, sReason);
+    
+    SteamWorks_SetHTTPRequestHeaderValue(hRequest, "Content-Type", "application/json");
+    SteamWorks_SetHTTPRequestHeaderValue(hRequest, "Authorization", sServerKey);
+    SteamWorks_SetHTTPRequestRawPostBody(hRequest, "application/json", sBody, strlen(sBody));
+    SteamWorks_SetHTTPCallbacks(hRequest, OnEventReportResponse);
+    SteamWorks_SendHTTPRequest(hRequest);
+}
+
+public void OnEventReportResponse(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, int data)
+{
+    if (bFailure || !bRequestSuccessful || eStatusCode < 200 || eStatusCode >= 300)
+    {
+        PrintToServer("[Match Reporter] Event report failed (status: %d)", eStatusCode);
+    }
+    else
+    {
+        PrintToServer("[Match Reporter] Event reported successfully");
+    }
+    delete hRequest;
+}
+
+// ============================================================================
+// ADMIN COMMAND: Cancel Match
+// ============================================================================
+
+public Action Cmd_CancelMatch(int client, int args)
+{
+    if (g_sMatchId[0] == '\0')
+    {
+        ReplyToCommand(client, "[Ranked] No active match to cancel.");
+        return Plugin_Handled;
+    }
+    
+    char sReason[128] = "Admin cancelled match";
+    if (args >= 1)
+    {
+        GetCmdArgString(sReason, sizeof(sReason));
+    }
+    
+    PrintToChatAll("\x04[L4D2 Ranked]\x01 Match cancelled by admin: \x03%s", sReason);
+    PrintToServer("[Match Reporter] Match cancelled by admin: %s", sReason);
+    
+    // Kick all players
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (IsClientConnected(i) && !IsFakeClient(i))
+        {
+            KickClient(i, "Match cancelled: %s", sReason);
+        }
+    }
+    
+    // Reset server state
+    g_sMatchId[0] = '\0';
+    g_bIsMatchLive = false;
+    ResetPlayerStats();
+    g_iWhitelistCount = 0;
+    g_bWhitelistActive = false;
+    
+    ServerCommand("sm_resetmatch");
+    
+    ReplyToCommand(client, "[Ranked] Match cancelled and server reset.");
+    return Plugin_Handled;
+}

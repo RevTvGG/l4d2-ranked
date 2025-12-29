@@ -39,12 +39,25 @@ export async function POST(request: NextRequest) {
             }
         });
 
-        // Optional: Return players to queue
-        // This could be implemented based on the cancel reason
+        // Get players to kick
+        const matchPlayers = await prisma.matchPlayer.findMany({
+            where: { matchId },
+            include: { user: { select: { steamId: true } } }
+        });
+        const playersToKick = matchPlayers.map(p => p.user.steamId).filter(Boolean);
+
+        // Free up the server
+        if (server.id) {
+            await prisma.gameServer.update({
+                where: { id: server.id },
+                data: { status: 'AVAILABLE' }
+            });
+        }
 
         return successResponse({
             message: 'Match cancelled successfully',
-            reason
+            reason,
+            playersToKick
         });
 
     } catch (error) {
