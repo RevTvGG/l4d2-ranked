@@ -84,6 +84,20 @@ export default function DisclaimerModal() {
                         </p>
                     </div>
 
+                    {/* Critical FAQ Warning */}
+                    <div className="bg-zinc-900 border-2 border-brand-green/50 rounded-xl p-5 text-center space-y-2 relative overflow-hidden group">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-brand-green"></div>
+                        <h3 className="text-brand-green font-black uppercase text-lg tracking-widest">
+                            Important / Importante
+                        </h3>
+                        <p className="text-white font-medium text-sm">
+                            Before playing, you <strong>MUST</strong> read our <span className="text-brand-green underline decoration-dashed underline-offset-4 cursor-help" title="Go to FAQ page">FAQ & Ban Policies</span>.
+                        </p>
+                        <p className="text-zinc-400 text-xs italic">
+                            Antes de jugar, <strong>DEBES</strong> leer nuestras Políticas de Baneo y FAQ.
+                        </p>
+                    </div>
+
                     {/* Acceptance */}
                     <div className="bg-zinc-800 rounded-xl p-4 text-center">
                         <p className="text-zinc-400 text-sm mb-4">

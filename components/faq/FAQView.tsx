@@ -21,7 +21,8 @@ import {
     Scale,
     Sword,
     Crown,
-    Gavel
+    Gavel,
+    Construction
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +44,7 @@ export function FAQView({ staff }: FAQViewProps) {
         { id: "profiles", label: t.nav.profiles, icon: Users },
         { id: "teamRules", label: t.nav.teamRules, icon: Scale },
         { id: "bans", label: t.nav.bans, icon: Gavel },
+        { id: "beta", label: t.nav.beta, icon: Construction },
         { id: "premium", label: t.nav.premium, icon: Crown },
         { id: "staff", label: t.nav.staff, icon: HeartHandshake },
         { id: "support", label: t.nav.support, icon: Siren },
@@ -203,6 +205,69 @@ export function FAQView({ staff }: FAQViewProps) {
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+
+            case "beta":
+                return (
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                        <div className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-3xl p-8">
+                            <h2 className="text-3xl font-black uppercase text-yellow-500 mb-6 flex items-center gap-3">
+                                <Construction className="w-8 h-8 flex-shrink-0" />
+                                {lang === 'en' ? 'Beta Status & Limitations' : 'Estado Beta y Limitaciones'}
+                            </h2>
+
+                            <div className="space-y-6">
+                                <div className="bg-zinc-900/50 p-6 rounded-2xl border border-white/5">
+                                    <p className="text-lg text-white mb-4 leading-relaxed">
+                                        {lang === 'en'
+                                            ? "We are currently in a restricted BETA phase. This means the platform is under active construction and testing."
+                                            : "Actualmente nos encontramos en una fase BETA restringida. Esto significa que la plataforma está bajo construcción y pruebas activas."
+                                        }
+                                    </p>
+                                    <ul className="space-y-3">
+                                        {[
+                                            { en: "The website may occasionally go offline or fail.", es: "La página web puede fallar o estar fuera de línea ocasionalmente." },
+                                            { en: "Queues may be slow because we have a limited number of servers available.", es: "Las colas pueden ser lentas porque tenemos un número limitado de servidores disponibles." },
+                                            { en: "Matchmaking logic might be adjusted live.", es: "La lógica del matchmaking puede ser ajustada en vivo." }
+                                        ].map((item, i) => (
+                                            <li key={i} className="flex gap-3 text-zinc-400">
+                                                <AlertTriangle className="w-5 h-5 text-yellow-500 shrink-0" />
+                                                <span>{lang === 'en' ? item.en : item.es}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                <div className="bg-red-950/20 border border-red-500/20 p-6 rounded-2xl">
+                                    <h3 className="text-xl font-bold text-red-400 uppercase mb-3 flex items-center gap-2">
+                                        <Lock className="w-5 h-5" />
+                                        {lang === 'en' ? 'Registrations Closed' : 'Registros Cerrados'}
+                                    </h3>
+                                    <p className="text-red-200/80 leading-relaxed">
+                                        {lang === 'en'
+                                            ? "To control server load, account creation is currently RESTRICTED. We will gradually open more spots as we scale our infrastructure."
+                                            : "Para controlar la carga de los servidores, la creación de cuentas está actualmente CERRADA y RESTRINGIDA. Iremos abriendo más cupos gradualmente a medida que escalemos nuestra infraestructura."
+                                        }
+                                    </p>
+                                </div>
+
+                                <div className="bg-blue-500/10 border border-blue-500/20 p-6 rounded-2xl text-center">
+                                    <h3 className="text-xl font-bold text-blue-400 uppercase mb-3 text-shadow-glow">
+                                        {lang === 'en' ? 'Grand Launch & Reset' : 'Gran Lanzamiento y Reinicio'}
+                                    </h3>
+                                    <p className="text-blue-100/80 leading-relaxed mb-4">
+                                        {lang === 'en'
+                                            ? "When we launch the final version (V1.0), all Matchmaking Ratings (MMR) and Ranks will be RESET. This ensures a fresh, fair start for everyone."
+                                            : "Cuando lancemos la versión final (V1.0), todo el MMR y los Rangos serán REINICIADOS. Esto asegura un comienzo fresco y justo para todos."
+                                        }
+                                    </p>
+                                    <div className="inline-block bg-blue-500 text-black font-bold px-4 py-2 rounded-lg text-sm uppercase">
+                                        {lang === 'en' ? 'Enjoy the Beta features!' : '¡Disfruten las funciones Beta!'}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

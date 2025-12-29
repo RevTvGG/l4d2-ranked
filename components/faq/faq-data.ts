@@ -23,6 +23,7 @@ export const FAQ_LABELS = {
             staff: "Meet the Team",
             support: "Support",
             bans: "Ban Policy",
+            beta: "Beta Status",
             premium: "Premium & Refunds",
             credits: "Credits"
         },
@@ -48,6 +49,7 @@ export const FAQ_LABELS = {
             staff: "Nuestro Equipo",
             support: "Soporte",
             bans: "Política de Baneos",
+            beta: "Estado Beta",
             premium: "Premium y Reembolsos",
             credits: "Créditos"
         },
