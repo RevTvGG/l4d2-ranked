@@ -200,7 +200,7 @@ export function ProfileEditForm({ user }: { user: any }) {
                             <span className={`text-xs font-bold ${typeof bio === 'string' && bio.length > 300 ? "text-red-500" : "text-zinc-500"}`}>Max 300</span>
                         </div>
                         <p className="text-sm text-zinc-400">
-                            This description will appear in the "Meet the Team" section of the FAQ page alongside your avatar.
+                            This description will appear in the &quot;Meet the Team&quot; section of the FAQ page alongside your avatar.
                         </p>
                         <textarea
                             name="staffBio"
