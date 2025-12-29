@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { PremiumBadge } from "./PremiumBadge";
 import { ShinyText } from "./ShinyText";
+import { RefreshAvatarButton } from "./RefreshAvatarButton";
 
 interface Team {
     name: string;
@@ -66,17 +67,20 @@ export function PlayerProfile({
             {/* 1. HERO SECTION */}
             <div className={`relative rounded-3xl overflow-hidden border shadow-2xl transition-all duration-500 ${containerStyle}`}>
 
-                {/* EDIT BUTTON (Gear Icon) - Only visible to profile owner */}
+                {/* ACTION BUTTONS (Visible to owner) */}
                 {isOwner && (
-                    <a
-                        href="/profile/edit"
-                        className="absolute top-6 right-6 z-30 h-10 w-10 flex items-center justify-center rounded-full bg-black/50 border border-white/10 text-zinc-400 hover:text-white hover:bg-black/80 hover:rotate-90 transition-all backdrop-blur-md"
-                        title="Edit Profile"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.86z" />
-                        </svg>
-                    </a>
+                    <div className="absolute top-6 right-6 z-30 flex items-center gap-2">
+                        <RefreshAvatarButton />
+                        <a
+                            href="/profile/edit"
+                            className="h-10 w-10 flex items-center justify-center rounded-full bg-black/50 border border-white/10 text-zinc-400 hover:text-white hover:bg-black/80 hover:rotate-90 transition-all backdrop-blur-md"
+                            title="Edit Profile"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.86z" />
+                            </svg>
+                        </a>
+                    </div>
                 )}
 
                 {/* Background Image/Gradient */}
