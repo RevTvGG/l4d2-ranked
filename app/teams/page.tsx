@@ -39,6 +39,7 @@ export default async function TeamsPage() {
                                 name={team.name}
                                 tag={team.tag}
                                 logoUrl={team.logoUrl || undefined}
+                                bannerUrl={team.bannerUrl || undefined} // Added bannerUrl
                                 memberCount={team._count.members}
                                 rating={team.rating}
                                 rank={index + 1}
