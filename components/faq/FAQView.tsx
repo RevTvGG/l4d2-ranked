@@ -20,7 +20,8 @@ import {
     Lock,
     Scale,
     Sword,
-    Crown
+    Crown,
+    Gavel
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +42,7 @@ export function FAQView({ staff }: FAQViewProps) {
         { id: "mmr", label: t.nav.mmr, icon: Trophy },
         { id: "profiles", label: t.nav.profiles, icon: Users },
         { id: "teamRules", label: t.nav.teamRules, icon: Scale },
+        { id: "bans", label: t.nav.bans, icon: Gavel },
         { id: "premium", label: t.nav.premium, icon: Crown },
         { id: "staff", label: t.nav.staff, icon: HeartHandshake },
         { id: "support", label: t.nav.support, icon: Siren },
@@ -191,6 +193,71 @@ export function FAQView({ staff }: FAQViewProps) {
                         </div>
                     </div>
                 );
+            case "bans":
+                return (
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                        <div className="bg-zinc-900/50 border border-white/5 rounded-3xl p-8">
+                            <h2 className="text-3xl font-black uppercase text-red-500 mb-6 flex items-center gap-3">
+                                <Gavel className="w-8 h-8" />
+                                {lang === 'en' ? 'Ban Policy' : 'Política de Baneos'}
+                            </h2>
+
+                            <div className="space-y-6">
+                                {/* Auto Bans */}
+                                <div className="bg-zinc-900 border border-white/5 rounded-xl p-5">
+                                    <h3 className="text-lg font-bold text-white uppercase mb-2">
+                                        {lang === 'en' ? 'Automatic Bans' : 'Baneos Automáticos'}
+                                    </h3>
+                                    <p className="text-zinc-400 text-sm">
+                                        {lang === 'en'
+                                            ? "Automatic bans are irrevocable unless you clarify the situation. Moderators have discretion to review these cases."
+                                            : "Los baneos automáticos son irrevocables a menos de que aclares la situación y el moderador tiene criterio."
+                                        }
+                                    </p>
+                                </div>
+
+                                {/* Cheating */}
+                                <div className="bg-red-950/20 border border-red-500/20 rounded-xl p-5">
+                                    <h3 className="text-lg font-bold text-red-400 uppercase mb-2 flex items-center gap-2">
+                                        <Sword className="w-5 h-5" />
+                                        {lang === 'en' ? 'Cheating & Hacking' : 'Cheating y Trampas'}
+                                    </h3>
+                                    <p className="text-red-200/80 text-sm leading-relaxed mb-4">
+                                        {lang === 'en'
+                                            ? "Bans for cheating are IRREVOCABLE. If you try to convince a staff member to unban you, both you and the staff member may be banned and removed from the platform."
+                                            : "Baneos por cheating se consideran IRREVOCABLES. Si tratas de convencer a algún moderador o administrador para que te desbanee automáticamente, la persona del staff pasará a ser baneada y eliminados ambos de la página."
+                                        }
+                                    </p>
+                                    <div className="bg-black/30 p-3 rounded-lg flex items-center gap-3">
+                                        <div className="bg-brand-green/20 text-brand-green p-2 rounded-full">
+                                            <Trophy className="w-4 h-4" />
+                                        </div>
+                                        <p className="text-xs text-brand-green/80">
+                                            {lang === 'en'
+                                                ? "Report a cheater with evidence and receive a special Medal and community recognition!"
+                                                : "Si tienes alguna queja o sabes de alguien haciendo trampas, se te recompensará con una MEDALLA en tu perfil y reconocimiento en la comunidad."
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Toxicity */}
+                                <div className="bg-zinc-900 border border-white/5 rounded-xl p-5">
+                                    <h3 className="text-lg font-bold text-white uppercase mb-2">
+                                        {lang === 'en' ? 'Toxicity & Behavior' : 'Toxicidad y Comportamiento'}
+                                    </h3>
+                                    <p className="text-zinc-400 text-sm">
+                                        {lang === 'en'
+                                            ? "If you reoffend in toxic behavior bans, you will be permanently banned. We want a clean community."
+                                            : "Baneos por tóxico o comportamiento inapropiado: si reincides en estos baneos terminarás baneado permanentemente. No queremos gente molesta."
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+
             case "premium":
                 return (
                     <div className="space-y-6 animate-in fade-in duration-300">
@@ -397,6 +464,40 @@ export function FAQView({ staff }: FAQViewProps) {
                                         }
                                     </p>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            case "credits":
+                return (
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                        <div className="bg-zinc-900 border border-white/5 rounded-3xl p-8">
+                            <h2 className="text-2xl font-black uppercase text-white mb-6">
+                                {lang === 'en' ? 'Credits & Acknowledgements' : 'Créditos y Agradecimientos'}
+                            </h2>
+                            <p className="mb-6 text-zinc-400">
+                                {lang === 'en'
+                                    ? "Special thanks to the following communities and developers for their libraries and support."
+                                    : "Gracias a Sir Please y a AlliedModders por todas las bibliotecas y el apoyo."
+                                }
+                            </p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <a href="https://github.com/SirPlease/L4D2-Competitive-Rework" target="_blank" rel="noopener noreferrer"
+                                    className="block relative h-48 rounded-xl overflow-hidden border border-white/10 group hover:border-brand-green/50 transition-all">
+                                    <Image src="/credits/sirplease.png" alt="SirPlease ZoneMod" fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                                    <div className="absolute inset-0 bg-black/60 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                                        <h3 className="text-2xl font-black text-white uppercase tracking-widest border-b-2 border-brand-green pb-1">SirPlease</h3>
+                                    </div>
+                                </a>
+
+                                <a href="https://www.alliedmods.net/" target="_blank" rel="noopener noreferrer"
+                                    className="block relative h-48 rounded-xl overflow-hidden border border-white/10 group hover:border-blue-500/50 transition-all">
+                                    <Image src="/credits/alliedmodders.png" alt="AlliedModders" fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                                    <div className="absolute inset-0 bg-black/60 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                                        <h3 className="text-2xl font-black text-white uppercase tracking-widest border-b-2 border-blue-500 pb-1">AlliedModders</h3>
+                                    </div>
+                                </a>
                             </div>
                         </div>
                     </div>

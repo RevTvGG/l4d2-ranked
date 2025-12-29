@@ -22,6 +22,7 @@ export const FAQ_LABELS = {
             teamRules: "Team Rules",
             staff: "Meet the Team",
             support: "Support",
+            bans: "Ban Policy",
             premium: "Premium & Refunds",
             credits: "Credits"
         },
@@ -46,6 +47,7 @@ export const FAQ_LABELS = {
             teamRules: "Reglas de Equipos",
             staff: "Nuestro Equipo",
             support: "Soporte",
+            bans: "Política de Baneos",
             premium: "Premium y Reembolsos",
             credits: "Créditos"
         },
