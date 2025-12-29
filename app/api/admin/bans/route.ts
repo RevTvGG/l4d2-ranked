@@ -96,6 +96,25 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
+        // Check if already banned
+        const existingBan = await prisma.ban.findFirst({
+            where: {
+                userId: targetUser.id,
+                active: true,
+                OR: [
+                    { expiresAt: null },
+                    { expiresAt: { gt: new Date() } }
+                ]
+            }
+        });
+
+        if (existingBan) {
+            return NextResponse.json({
+                error: 'User is already banned. Unban them first to change the ban.',
+                existingBanId: existingBan.id
+            }, { status: 400 });
+        }
+
         // Get admin user
         // @ts-expect-error - steamId is custom field
         const adminSteamId = session.user.steamId;
