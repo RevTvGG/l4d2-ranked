@@ -72,6 +72,7 @@ export async function updatePreferences(formData: FormData) {
         });
 
         revalidatePath(`/profile/${steamId}`);
+        revalidatePath('/faq'); // Update Meet the Team section
         return { success: true, message: "Profile updated successfully!" };
 
     } catch (e) {
