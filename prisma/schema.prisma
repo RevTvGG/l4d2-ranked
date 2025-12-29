@@ -69,6 +69,8 @@ model User {
   banCount       Int           @default(0)
   accounts         Account[]
   bans             Ban[]         @relation("Bans")
+  bansGiven        Ban[]         @relation("BansGiven")
+  unbansGiven      Ban[]         @relation("Unbans")
   mapVotes         MapVote[]     @relation("MapVotes")
   matchPlayers     MatchPlayer[] @relation("MatchPlayers")
   messages         Message[]     @relation("Messages")
@@ -80,6 +82,7 @@ model User {
   reportsReceived  UserReport[]  @relation("ReportsReceived")
   chatMutes        ChatMute[]
 }
+
 
 
 model Team {
@@ -203,15 +206,27 @@ model PlayerRoundStats {
 }
 
 model Ban {
-  id        String    @id @default(cuid())
-  userId    String
-  reason    BanReason
-  duration  Int
-  matchId   String?
-  createdAt DateTime  @default(now())
-  expiresAt DateTime
-  active    Boolean   @default(true)
-  user      User      @relation("Bans", fields: [userId], references: [id], onDelete: Cascade)
+  id           String     @id @default(cuid())
+  reason       BanReason
+  description  String?    // Optional description/evidence
+  duration     Int        // Duration in minutes (0 = permanent)
+  matchId      String?
+  createdAt    DateTime   @default(now())
+  expiresAt    DateTime?
+  active       Boolean    @default(true)
+  
+  // Who was banned
+  userId       String
+  user         User       @relation("Bans", fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Who banned them (null = auto-ban)
+  bannedById   String?
+  bannedBy     User?      @relation("BansGiven", fields: [bannedById], references: [id])
+  
+  // Unban tracking
+  unbannedAt   DateTime?
+  unbannedById String?
+  unbannedBy   User?      @relation("Unbans", fields: [unbannedById], references: [id])
 }
 
 model GameServer {
@@ -262,6 +277,8 @@ enum BanReason {
   NO_JOIN
   CRASH
   MANUAL
+  TROLLING
+  CHEATING
 }
 
 
