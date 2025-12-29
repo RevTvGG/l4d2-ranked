@@ -78,9 +78,21 @@ export async function POST(request: NextRequest) {
 
             // C. Update Player Stats & ELO
             for (const pStat of players) {
-                // Find map player
+                // Convert plugin team number to backend team string
+                // Plugin sends: 1 = Survivors (TEAM_A), 2 = Infected (TEAM_B)
+                const pluginTeamString = pStat.team === 1 ? 'TEAM_A' : 'TEAM_B';
+
+                // Find match player by SteamID
                 const matchPlayer = match.players.find(mp => mp.user.steamId === pStat.steam_id);
-                if (!matchPlayer) continue;
+                if (!matchPlayer) {
+                    console.warn(`[match-end] Player not found in match: ${pStat.steam_id}`);
+                    continue;
+                }
+
+                // Log if there's a team mismatch (for debugging)
+                if (matchPlayer.team !== pluginTeamString) {
+                    console.warn(`[match-end] Team mismatch for ${pStat.steam_id}: DB has ${matchPlayer.team}, plugin sent team ${pStat.team} (${pluginTeamString})`);
+                }
 
                 // Update MatchPlayer stats
                 await tx.matchPlayer.update({
