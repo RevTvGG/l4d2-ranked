@@ -1,5 +1,25 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'avatars.steamstatic.com',
+            },
+            {
+                protocol: 'https',
+                hostname: 'steamcdn-a.akamaihd.net',
+            },
+            {
+                protocol: 'https',
+                hostname: 'cdn.cloudflare.steamstatic.com',
+            },
+            {
+                protocol: 'https',
+                hostname: '**.steamstatic.com',
+            },
+        ],
+    },
     typescript: {
         // !! WARN !!
         // Dangerously allow production builds to successfully complete even if
