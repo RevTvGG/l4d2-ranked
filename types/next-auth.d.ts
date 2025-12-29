@@ -13,6 +13,7 @@ declare module "next-auth" {
             steamId?: string
             role?: string
             rating?: number
+            betaAccess?: boolean
         }
     }
 

@@ -84,6 +84,11 @@ model User {
   chatMutes        ChatMute[]
   medals           UserMedal[]   @relation("UserMedals")
   medalsAwarded    UserMedal[]   @relation("AwardedMedals")
+  
+  // Invite System
+  betaAccess       Boolean       @default(true) // Default true so existing users keep access
+  inviteUsed       InviteCode?   @relation("InviteUsedBy")
+  invitesCreated   InviteCode[]  @relation("InviteCreator")
 }
 
 
@@ -408,3 +413,19 @@ model UserMedal {
   @@unique([userId, medalId]) // One medal per user
 }
 
+// ============ INVITE SYSTEM ============
+
+model InviteCode {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  isUsed    Boolean  @default(false)
+  
+  usedBy    String?  @unique
+  usedAt    DateTime?
+  
+  createdBy String
+  createdAt DateTime @default(now())
+  
+  user      User?    @relation("InviteUsedBy", fields: [usedBy], references: [id])
+  creator   User     @relation("InviteCreator", fields: [createdBy], references: [id])
+}
