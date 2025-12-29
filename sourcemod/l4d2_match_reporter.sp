@@ -49,7 +49,99 @@ public void OnAllPluginsLoaded()
 {
     g_bScoreModAvailable = LibraryExists("l4d2_hybrid_scoremod");
     g_bMvpAvailable = true; // The MVP plugin doesn't register a library, but it's a required dependency now so we assume it's there.
+    
+    // Check with the API if we have an assigned match (survives ZoneMod reloads)
+    CreateTimer(2.0, Timer_CheckServerStatus); // Delay to ensure cvars are loaded
 }
+
+public Action Timer_CheckServerStatus(Handle timer)
+{
+    CheckServerStatus();
+    return Plugin_Continue;
+}
+
+void CheckServerStatus()
+{
+    char sApiUrl[256], sServerKey[64];
+    g_cvApiUrl.GetString(sApiUrl, sizeof(sApiUrl));
+    g_cvServerKey.GetString(sServerKey, sizeof(sServerKey));
+    
+    // Build the check-status URL
+    char sRequestUrl[512];
+    Format(sRequestUrl, sizeof(sRequestUrl), "%s/server/check-status?server_key=%s", sApiUrl, sServerKey);
+    
+    Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, sRequestUrl);
+    if (hRequest == INVALID_HANDLE)
+    {
+        PrintToServer("[Match Reporter] Failed to create check-status request");
+        return;
+    }
+    
+    SteamWorks_SetHTTPRequestHeaderValue(hRequest, "Content-Type", "application/json");
+    SteamWorks_SetHTTPCallbacks(hRequest, OnCheckServerStatusResponse);
+    SteamWorks_SendHTTPRequest(hRequest);
+    
+    PrintToServer("[Match Reporter] Checking for assigned match...");
+}
+
+void OnCheckServerStatusResponse(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode)
+{
+    if (bFailure || !bRequestSuccessful)
+    {
+        PrintToServer("[Match Reporter] check-status request failed");
+        delete hRequest;
+        return;
+    }
+    
+    if (eStatusCode == k_EHTTPStatusCode200OK)
+    {
+        // Get response body
+        int iBodySize;
+        SteamWorks_GetHTTPResponseBodySize(hRequest, iBodySize);
+        
+        char[] sBody = new char[iBodySize + 1];
+        SteamWorks_GetHTTPResponseBodyData(hRequest, sBody, iBodySize);
+        
+        // Simple JSON parsing for match_id
+        // Look for "match_id":"..." or "match_id":null
+        if (StrContains(sBody, "\"has_match\":true") != -1)
+        {
+            // Extract match_id value
+            int iStart = StrContains(sBody, "\"match_id\":\"");
+            if (iStart != -1)
+            {
+                iStart += 12; // Length of "match_id":"
+                int iEnd = iStart;
+                while (sBody[iEnd] != '"' && sBody[iEnd] != '\0') iEnd++;
+                
+                // Copy the match ID
+                int len = iEnd - iStart;
+                if (len > 0 && len < sizeof(g_sMatchId))
+                {
+                    for (int j = 0; j < len; j++)
+                    {
+                        g_sMatchId[j] = sBody[iStart + j];
+                    }
+                    g_sMatchId[len] = '\0';
+                    
+                    PrintToServer("[Match Reporter] Found assigned match: %s", g_sMatchId);
+                    PrintToChatAll("\x04[L4D2 Ranked]\x01 Match ID loaded: \x03%s", g_sMatchId);
+                }
+            }
+        }
+        else
+        {
+            PrintToServer("[Match Reporter] No assigned match found for this server");
+        }
+    }
+    else
+    {
+        PrintToServer("[Match Reporter] check-status returned status: %d", eStatusCode);
+    }
+    
+    delete hRequest;
+}
+
 
 public void OnLibraryAdded(const char[] name)
 {
