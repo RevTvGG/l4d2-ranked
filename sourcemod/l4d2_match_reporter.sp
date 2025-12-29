@@ -544,6 +544,10 @@ public void OnMatchCompleteResponse(Handle hRequest, bool bFailure, bool bSucces
     {
         PrintToServer("[Match Reporter] match-end SUCCESS - Status: %d", eStatusCode);
         PrintToChatAll("\x04[L4D2 Ranked]\x01 Match results submitted successfully!");
+        PrintToChatAll("\x04[L4D2 Ranked]\x01 Server will reset in 10 seconds...");
+        
+        // Schedule server cleanup after a delay so players can see the message
+        CreateTimer(10.0, Timer_ResetServer);
     }
     else
     {
@@ -553,3 +557,29 @@ public void OnMatchCompleteResponse(Handle hRequest, bool bFailure, bool bSucces
     
     CloseHandle(hRequest);
 }
+
+public Action Timer_ResetServer(Handle timer)
+{
+    PrintToServer("[Match Reporter] Resetting server for next match...");
+    
+    // Kick all players with a message
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (IsClientConnected(i) && !IsFakeClient(i))
+        {
+            KickClient(i, "Match ended. Thank you for playing L4D2 Ranked!");
+        }
+    }
+    
+    // Reset the competitive config (unload ZoneMod/Confogl)
+    // This uses the standard Confogl command to reset
+    ServerCommand("sm_resetmatch");
+    
+    // Also clear our internal state
+    g_sMatchId[0] = '\0';
+    g_bIsMatchLive = false;
+    ResetPlayerStats();
+    
+    return Plugin_Continue;
+}
+
