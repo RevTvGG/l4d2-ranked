@@ -122,25 +122,20 @@ export async function POST(request: NextRequest) {
                 console.log(`[RCON] Match ID set: ${matchId}`);
             }
 
+
             // Configure player whitelist
             console.log('[RCON] Configuring player whitelist...');
 
-            // Clear any existing whitelist
-            await rcon.execute('sm_cvar sv_steamgroup_exclusive 0');
+            // Use the plugin's whitelist command with all SteamIDs
+            const whitelistCmd = `sm_ranked_whitelist ${steamIds.join(' ')}`;
+            const whitelistResult = await rcon.execute(whitelistCmd);
 
-            // Add each player to whitelist
-            for (const steamId of steamIds) {
-                // Using sm_cvar to set reserved slots (SourceMod native)
-                // This prevents non-whitelisted players from joining
-                const whitelistResult = await rcon.execute(`sm_reservation_add ${steamId}`);
-                if (whitelistResult.success) {
-                    console.log(`[RCON] Whitelisted: ${steamId}`);
-                } else {
-                    console.warn(`[RCON] Failed to whitelist ${steamId}: ${whitelistResult.error}`);
-                }
+            if (whitelistResult.success) {
+                console.log(`[RCON] Whitelist configured for ${steamIds.length} players`);
+            } else {
+                console.warn(`[RCON] Warning: Failed to set whitelist: ${whitelistResult.error}`);
             }
 
-            console.log(`[RCON] Whitelist configured for ${steamIds.length} players`);
 
             // Update server status to IN_USE
             await prisma.gameServer.update({

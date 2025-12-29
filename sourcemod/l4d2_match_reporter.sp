@@ -32,9 +32,15 @@ int g_iPlayerDeaths[MAXPLAYERS + 1];
 int g_iPlayerDamage[MAXPLAYERS + 1];
 int g_iPlayerHeadshots[MAXPLAYERS + 1];
 
+// Whitelist System
+char g_sWhitelistedSteamIDs[8][32];  // Max 8 players per match
+int g_iWhitelistCount = 0;
+bool g_bWhitelistActive = false;
+
 // Optional Plugins
 bool g_bScoreModAvailable = false;
 bool g_bMvpAvailable = false;
+
 
 public Plugin myinfo =
 {
@@ -168,6 +174,7 @@ public void OnPluginStart()
     RegAdminCmd("sm_ranked_status", Cmd_Status, ADMFLAG_GENERIC, "Shows current match reporter status");
     RegAdminCmd("sm_ranked_force_end", Cmd_ForceEnd, ADMFLAG_ROOT, "Forces match to end with specified winner");
     RegAdminCmd("sm_ranked_test_api", Cmd_TestApi, ADMFLAG_ROOT, "Tests API connectivity");
+    RegAdminCmd("sm_ranked_whitelist", Cmd_SetWhitelist, ADMFLAG_ROOT, "Sets SteamID whitelist for match");
 
     // Event Hooks
     HookEvent("player_death", OnPlayerDeath);
@@ -179,6 +186,48 @@ public void OnPluginStart()
     
     PrintToServer("[Match Reporter] Plugin loaded v%s", PLUGIN_VERSION);
 }
+
+public void OnClientAuthorized(int client, const char[] auth)
+{
+    // Don't check bots or if whitelist is not active
+    if (IsFakeClient(client) || !g_bWhitelistActive)
+        return;
+    
+    // Admins can always join
+    if (CheckCommandAccess(client, "sm_ranked_admin", ADMFLAG_ROOT, true))
+    {
+        PrintToChat(client, "\x04[L4D2 Ranked]\x01 Admin detected. Access granted.");
+        return;
+    }
+    
+    // Check if player is in whitelist
+    bool isWhitelisted = false;
+    for (int i = 0; i < g_iWhitelistCount; i++)
+    {
+        if (StrEqual(auth, g_sWhitelistedSteamIDs[i], false))
+        {
+            isWhitelisted = true;
+            break;
+        }
+    }
+    
+    if (!isWhitelisted)
+    {
+        PrintToChat(client, "\x04[L4D2 Ranked]\x03 You are not registered for this match.");
+        CreateTimer(0.5, Timer_KickUnauthorized, GetClientUserId(client));
+    }
+}
+
+public Action Timer_KickUnauthorized(Handle timer, int userid)
+{
+    int client = GetClientOfUserId(userid);
+    if (client > 0 && IsClientConnected(client))
+    {
+        KickClient(client, "You are not registered for this match.");
+    }
+    return Plugin_Continue;
+}
+
 
 public void OnMapStart()
 {
@@ -313,6 +362,46 @@ public void OnTestApiResponse(Handle hRequest, bool bFailure, bool bSuccessful, 
     
     CloseHandle(hRequest);
 }
+
+public Action Cmd_SetWhitelist(int client, int args)
+{
+    if (args < 1)
+    {
+        ReplyToCommand(client, "[Match Reporter] Usage: sm_ranked_whitelist <steamid1> [steamid2] [steamid3] ...");
+        ReplyToCommand(client, "[Match Reporter] Or: sm_ranked_whitelist clear");
+        return Plugin_Handled;
+    }
+    
+    char arg[32];
+    GetCmdArg(1, arg, sizeof(arg));
+    
+    // Clear whitelist
+    if (StrEqual(arg, "clear", false))
+    {
+        g_iWhitelistCount = 0;
+        g_bWhitelistActive = false;
+        ServerCommand("sv_visiblemaxplayers 0"); // Reset to default
+        ReplyToCommand(client, "[Match Reporter] Whitelist cleared.");
+        return Plugin_Handled;
+    }
+    
+    // Set whitelist
+    g_iWhitelistCount = 0;
+    for (int i = 1; i <= args && i <= 8; i++)
+    {
+        GetCmdArg(i, g_sWhitelistedSteamIDs[g_iWhitelistCount], 32);
+        g_iWhitelistCount++;
+    }
+    
+    g_bWhitelistActive = true;
+    ServerCommand("sv_visiblemaxplayers 8"); // Limit to 8 visible slots
+    
+    ReplyToCommand(client, "[Match Reporter] Whitelist set with %d SteamIDs.", g_iWhitelistCount);
+    ReplyToCommand(client, "[Match Reporter] Server slots limited to 8 players.");
+    
+    return Plugin_Handled;
+}
+
 
 // ------------------------------------------------------------------------
 // ReadyUp Forward - Match Goes Live
@@ -579,6 +668,12 @@ public Action Timer_ResetServer(Handle timer)
     g_sMatchId[0] = '\0';
     g_bIsMatchLive = false;
     ResetPlayerStats();
+    
+    // Clear whitelist
+    g_iWhitelistCount = 0;
+    g_bWhitelistActive = false;
+    ServerCommand("sv_visiblemaxplayers 0"); // Reset to default
+    PrintToServer("[Match Reporter] Whitelist cleared, server ready for next match.");
     
     return Plugin_Continue;
 }
