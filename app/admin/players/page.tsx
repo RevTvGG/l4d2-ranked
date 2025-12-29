@@ -308,12 +308,10 @@ export default function AdminPlayersPage() {
                     {playerForMedal && (
                         <AwardMedalModal
                             isOpen={showAwardModal}
-                            onClose={() => {
-                                setShowAwardModal(false);
-                                setPlayerForMedal(null);
-                            }}
+                            onClose={() => setShowAwardModal(false)}
                             onAward={handleAwardMedal}
-                            playerName={playerForMedal.name}
+                            playerName={playerForMedal?.name || ''}
+                            userId={playerForMedal?.id || ''}
                         />
                     )}
 
