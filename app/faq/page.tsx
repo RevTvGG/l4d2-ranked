@@ -47,6 +47,7 @@ export default async function FAQPage() {
                         <NavAnchor href="#how-to-play" label="How to Play" />
                         <NavAnchor href="#mmr" label="MMR System" />
                         <NavAnchor href="#features" label="Profiles & Teams" />
+                        <NavAnchor href="#team-rules" label="Team Rules" />
                         <NavAnchor href="#team" label="Meet the Team" />
                         <NavAnchor href="#support" label="Support" />
                         <NavAnchor href="#credits" label="Credits" />
@@ -185,6 +186,47 @@ export default async function FAQPage() {
                         </div>
                     </Section>
 
+                    {/* TEAM RULES */}
+                    <Section id="team-rules" title="Team Rules & Guidelines">
+                        <div className="space-y-6">
+                            <div className="bg-zinc-900 border border-white/5 rounded-2xl p-6">
+                                <h3 className="font-bold text-white mb-2 uppercase tracking-wide">Refund Policy</h3>
+                                <p className="text-zinc-400 text-sm">
+                                    If you delete your team, <strong className="text-red-400">you will NOT be refunded</strong> for the creation cost or any purchased slots. This action is irreversible.
+                                </p>
+                            </div>
+
+                            <div className="bg-zinc-900 border border-white/5 rounded-2xl p-6">
+                                <h3 className="font-bold text-white mb-2 uppercase tracking-wide">Impersonation & Copying</h3>
+                                <p className="text-zinc-400 text-sm">
+                                    Copying another team's name, tag, or identity is strictly prohibited. If you spot a team impersonating yours, please <a href="#support" className="text-brand-green hover:underline">report it to administration</a> immediately.
+                                </p>
+                            </div>
+
+                            <div className="bg-zinc-900 border border-white/5 rounded-2xl p-6">
+                                <h3 className="font-bold text-white mb-2 uppercase tracking-wide">Member Management & Invites</h3>
+                                <p className="text-zinc-400 text-sm mb-2">
+                                    As a Team Captain, <strong>you are responsible for who you invite</strong>.
+                                </p>
+                                <ul className="list-disc list-inside text-zinc-500 text-sm space-y-1">
+                                    <li>If you leak your invite link, you must kick any unwanted users yourself. Administration is not responsible for unauthorized joins via leaked links.</li>
+                                    <li>If you have issues with specific players, kick them. If they harass you, report them.</li>
+                                </ul>
+                            </div>
+
+                            <div className="bg-red-950/30 border border-red-500/20 rounded-2xl p-6">
+                                <h3 className="font-bold text-red-500 mb-2 uppercase tracking-wide flex items-center gap-2">
+                                    <span>🚫</span> Explicit Content
+                                </h3>
+                                <p className="text-red-200/70 text-sm">
+                                    Setting a team logo or banner with explicit, offensive, or NSFW content will result in an <strong>immediate ban</strong> from the platform without refund.
+                                    <br /><br />
+                                    <strong>Team Members Warning:</strong> All members of a team found violating this rule may also be subject to a temporary (1-week) ban. Choose your teammates carefully.
+                                </p>
+                            </div>
+                        </div>
+                    </Section>
+
                     {/* MEET THE TEAM */}
                     <Section id="team" title="Meet the Team">
                         <p className="mb-8">
@@ -201,8 +243,8 @@ export default async function FAQPage() {
                                     {/* Avatar */}
                                     <div className="shrink-0 relative">
                                         <div className={`w-32 h-32 rounded-full overflow-hidden border-4 shadow-2xl ${member.role === 'OWNER' ? 'border-brand-green shadow-brand-green/20' :
-                                                member.role === 'ADMIN' ? 'border-red-500 shadow-red-500/20' :
-                                                    'border-blue-500 shadow-blue-500/20'
+                                            member.role === 'ADMIN' ? 'border-red-500 shadow-red-500/20' :
+                                                'border-blue-500 shadow-blue-500/20'
                                             }`}>
                                             <Image
                                                 src={member.image || "/default_avatar.jpg"}
@@ -213,8 +255,8 @@ export default async function FAQPage() {
                                             />
                                         </div>
                                         <div className={`absolute -bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-lg ${member.role === 'OWNER' ? 'bg-brand-green text-black' :
-                                                member.role === 'ADMIN' ? 'bg-red-500 text-white' :
-                                                    'bg-blue-500 text-white'
+                                            member.role === 'ADMIN' ? 'bg-red-500 text-white' :
+                                                'bg-blue-500 text-white'
                                             }`}>
                                             {member.role}
                                         </div>
