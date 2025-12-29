@@ -1,7 +1,20 @@
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import Image from "next/image";
 
 
 export default async function FAQPage() {
+    // Fetch Staff
+    const staff = await prisma.user.findMany({
+        where: { role: { in: ['OWNER', 'ADMIN', 'MODERATOR'] } },
+        select: { name: true, image: true, role: true, staffBio: true, steamId: true }
+    });
+
+    const sortedStaff = staff.sort((a, b) => {
+        const order: Record<string, number> = { OWNER: 0, ADMIN: 1, MODERATOR: 2 };
+        return (order[a.role as string] || 99) - (order[b.role as string] || 99);
+    });
+
     return (
         <div className="min-h-screen bg-zinc-950 text-white font-sans selection:bg-brand-green selection:text-black pb-24">
 
@@ -34,6 +47,7 @@ export default async function FAQPage() {
                         <NavAnchor href="#how-to-play" label="How to Play" />
                         <NavAnchor href="#mmr" label="MMR System" />
                         <NavAnchor href="#features" label="Profiles & Teams" />
+                        <NavAnchor href="#team" label="Meet the Team" />
                         <NavAnchor href="#support" label="Support" />
                         <NavAnchor href="#credits" label="Credits" />
                     </div>
@@ -168,6 +182,55 @@ export default async function FAQPage() {
                                     As a Team Leader, you can recruit members and manage your roster directly from the Team Settings panel.
                                 </p>
                             </div>
+                        </div>
+                    </Section>
+
+                    {/* MEET THE TEAM */}
+                    <Section id="team" title="Meet the Team">
+                        <p className="mb-8">
+                            The dedicated team behind L4D2 Ranked.
+                        </p>
+                        <div className="grid grid-cols-1 gap-6">
+                            {sortedStaff.map((member) => (
+                                <div key={member.steamId} className="bg-zinc-900 border border-white/5 rounded-2xl p-6 flex flex-col md:flex-row items-center md:items-start gap-6 relative overflow-hidden group hover:border-white/10 transition-all">
+                                    {/* Role Badge Background */}
+                                    <div className="absolute -top-10 -right-10 text-[10rem] opacity-[0.03] font-black italic uppercase select-none pointer-events-none group-hover:opacity-[0.05] transition-opacity">
+                                        {member.role}
+                                    </div>
+
+                                    {/* Avatar */}
+                                    <div className="shrink-0 relative">
+                                        <div className={`w-32 h-32 rounded-full overflow-hidden border-4 shadow-2xl ${member.role === 'OWNER' ? 'border-brand-green shadow-brand-green/20' :
+                                                member.role === 'ADMIN' ? 'border-red-500 shadow-red-500/20' :
+                                                    'border-blue-500 shadow-blue-500/20'
+                                            }`}>
+                                            <Image
+                                                src={member.image || "/default_avatar.jpg"}
+                                                alt={member.name || "Staff"}
+                                                width={128}
+                                                height={128}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                        <div className={`absolute -bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-lg ${member.role === 'OWNER' ? 'bg-brand-green text-black' :
+                                                member.role === 'ADMIN' ? 'bg-red-500 text-white' :
+                                                    'bg-blue-500 text-white'
+                                            }`}>
+                                            {member.role}
+                                        </div>
+                                    </div>
+
+                                    {/* Info */}
+                                    <div className="text-center md:text-left flex-1 relative z-10 w-full">
+                                        <h3 className="text-2xl font-black text-white italic uppercase mb-2">
+                                            {member.name}
+                                        </h3>
+                                        <div className="text-zinc-400 text-sm leading-relaxed bg-black/20 p-4 rounded-xl border border-white/5 whitespace-pre-wrap">
+                                            {member.staffBio || "No bio available."}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </Section>
 

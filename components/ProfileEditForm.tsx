@@ -190,6 +190,29 @@ export function ProfileEditForm({ user }: { user: any }) {
                     />
                 </div>
 
+                {/* STAFF BIO (Admins/Mods only) */}
+                {['OWNER', 'ADMIN', 'MODERATOR'].includes(user.role) && (
+                    <div className="space-y-4 pt-4 border-t border-white/10">
+                        <div className="flex justify-between items-end">
+                            <h3 className="text-xl font-black text-brand-green italic uppercase flex items-center gap-2">
+                                🛡️ Staff Bio <span className="text-xs bg-brand-green/20 px-2 py-0.5 rounded text-white not-italic">For FAQ Page</span>
+                            </h3>
+                            <span className={`text-xs font-bold ${typeof bio === 'string' && bio.length > 300 ? "text-red-500" : "text-zinc-500"}`}>Max 300</span>
+                        </div>
+                        <p className="text-sm text-zinc-400">
+                            This description will appear in the "Meet the Team" section of the FAQ page alongside your avatar.
+                        </p>
+                        <textarea
+                            name="staffBio"
+                            className="w-full bg-zinc-900 border border-brand-green/30 rounded-xl p-4 text-white placeholder:text-zinc-700 focus:outline-none focus:border-brand-green resize-none text-sm"
+                            rows={4}
+                            placeholder="Write something about yourself as a staff member..."
+                            defaultValue={user?.staffBio || ""}
+                            maxLength={300}
+                        />
+                    </div>
+                )}
+
                 <button
                     type="submit"
                     className="w-full bg-brand-green hover:bg-white hover:text-black text-black font-black text-lg py-4 rounded-xl shadow-lg shadow-brand-green/20 hover:scale-[1.02] transition-all"

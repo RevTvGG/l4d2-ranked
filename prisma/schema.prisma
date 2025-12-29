@@ -55,6 +55,7 @@ model User {
   communication  String?
   skillLevel     String?
   bio            String?
+  staffBio       String?       // Special bio for Meet the Team section (Staff only)
   isPremium      Boolean       @default(false)
   profileTheme   String        @default("DEFAULT")
   rating         Int           @default(1000)

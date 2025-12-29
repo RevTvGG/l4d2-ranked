@@ -20,6 +20,7 @@ export async function updatePreferences(formData: FormData) {
     const communication = formData.get("communication") as string;
     const skillLevel = formData.get("skillLevel") as string;
     const bio = formData.get("bio") as string;
+    const staffBio = formData.get("staffBio") as string;
 
     if (!mainSide) {
         return { success: false, message: "Please select a Main Side." };
@@ -38,18 +39,36 @@ export async function updatePreferences(formData: FormData) {
     if (communication && !validComm.includes(communication)) return { success: false, message: "Invalid Comm Style" };
     if (skillLevel && !validSkill.includes(skillLevel)) return { success: false, message: "Invalid Skill Level" };
     if (bio && bio.length > 140) return { success: false, message: "Bio too long (max 140)" };
+    if (staffBio && staffBio.length > 300) return { success: false, message: "Staff Bio too long (max 300)" };
 
     try {
         const { prisma } = await import("@/lib/prisma");
+
+        // Fetch current user to check role for Staff Bio permission
+        const currentUser = await prisma.user.findUnique({
+            where: { steamId },
+            select: { role: true }
+        });
+
+        const isStaff = currentUser?.role && ['OWNER', 'ADMIN', 'MODERATOR'].includes(currentUser.role);
+
+        // Prepare update data
+        const updateData: any = {
+            mainSide,
+            survivorWeapon: (mainSide === "INFECTED") ? null : survivorWeapon,
+            communication,
+            skillLevel,
+            bio
+        };
+
+        // Only update staffBio if user is staff
+        if (isStaff && staffBio !== null) {
+            updateData.staffBio = staffBio;
+        }
+
         await prisma.user.update({
             where: { steamId },
-            data: {
-                mainSide,
-                survivorWeapon: (mainSide === "INFECTED") ? null : survivorWeapon,
-                communication,
-                skillLevel,
-                bio
-            }
+            data: updateData
         });
 
         revalidatePath(`/profile/${steamId}`);
