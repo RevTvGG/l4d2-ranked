@@ -24,7 +24,7 @@ const translations = {
         countryLabel: "What country are you from?",
         countryPlaceholder: "Select your country...",
         communityLabel: "Do you play in any other competitive community?",
-        communityPlaceholder: "e.g., FACEIT, ESL, other L4D2 pugs...",
+        communityPlaceholder: "e.g., cedapug, l4d2center...",
         authLabel: "Would you agree to use two-factor authentication (e.g., phone verification) if required?",
         authYes: "Yes, I agree",
         authNo: "No, I would not",
@@ -51,7 +51,7 @@ const translations = {
         countryLabel: "¿De qué país eres?",
         countryPlaceholder: "Selecciona tu país...",
         communityLabel: "¿Juegas en alguna otra comunidad competitiva?",
-        communityPlaceholder: "ej: FACEIT, ESL, otros pugs de L4D2...",
+        communityPlaceholder: "e.g., cedapug, l4d2center...",
         authLabel: "¿Estarías de acuerdo si en algún punto tendrías que usar un método de doble autenticación como vincular un número de teléfono?",
         authYes: "Sí, estoy de acuerdo",
         authNo: "No, no estaría de acuerdo",
@@ -70,10 +70,11 @@ const translations = {
 };
 
 const countries = [
-    "Argentina", "Bolivia", "Brasil", "Canada", "Chile", "Colombia", "Costa Rica",
-    "Cuba", "Dominican Republic", "Ecuador", "El Salvador", "Guatemala", "Honduras",
-    "Mexico", "Nicaragua", "Panama", "Paraguay", "Peru", "Puerto Rico", "Spain",
-    "United States", "Uruguay", "Venezuela", "Other"
+    "Argentina", "Australia", "Bolivia", "Brasil", "Canada", "Chile", "China", "Colombia", "Costa Rica",
+    "Cuba", "Dominican Republic", "Ecuador", "El Salvador", "France", "Germany", "Guatemala", "Honduras",
+    "India", "Indonesia", "Italy", "Japan", "Mexico", "Nicaragua", "Panama", "Paraguay", "Peru",
+    "Philippines", "Poland", "Puerto Rico", "Russia", "South Korea", "Spain", "Sweden", "Thailand",
+    "Turkey", "United Kingdom", "United States", "Uruguay", "Venezuela", "Vietnam", "Other"
 ];
 
 export default function BetaRequestPage() {
@@ -136,7 +137,7 @@ export default function BetaRequestPage() {
     }
 
     return (
-        <div className="min-h-screen bg-black text-white py-12 px-4">
+        <div className="min-h-screen bg-black text-white pt-32 pb-12 px-4">
             {/* Language Switcher */}
             <div className="fixed top-4 right-4 z-50">
                 <button
@@ -264,8 +265,8 @@ export default function BetaRequestPage() {
                                     type="button"
                                     onClick={() => setForm({ ...form, agreesWith2FA: true })}
                                     className={`flex-1 py-3 rounded-xl border text-sm font-medium transition-all ${form.agreesWith2FA
-                                            ? 'bg-brand-green/20 border-brand-green text-brand-green'
-                                            : 'bg-black/30 border-white/10 text-zinc-400 hover:border-white/20'
+                                        ? 'bg-brand-green/20 border-brand-green text-brand-green'
+                                        : 'bg-black/30 border-white/10 text-zinc-400 hover:border-white/20'
                                         }`}
                                 >
                                     {t.authYes}
@@ -274,8 +275,8 @@ export default function BetaRequestPage() {
                                     type="button"
                                     onClick={() => setForm({ ...form, agreesWith2FA: false })}
                                     className={`flex-1 py-3 rounded-xl border text-sm font-medium transition-all ${!form.agreesWith2FA
-                                            ? 'bg-red-500/20 border-red-500 text-red-400'
-                                            : 'bg-black/30 border-white/10 text-zinc-400 hover:border-white/20'
+                                        ? 'bg-red-500/20 border-red-500 text-red-400'
+                                        : 'bg-black/30 border-white/10 text-zinc-400 hover:border-white/20'
                                         }`}
                                 >
                                     {t.authNo}
