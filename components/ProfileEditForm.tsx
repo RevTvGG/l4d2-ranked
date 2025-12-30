@@ -87,120 +87,122 @@ export function ProfileEditForm({ user }: { user: any }) {
             </div>
 
             {/* PREMIUM CUSTOMIZATION (Extended) */}
-            {isPremium && (
-                <div className="bg-zinc-900 border border-amber-500/20 p-8 rounded-3xl shadow-xl space-y-8 animate-in fade-in slide-in-from-bottom-4">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-xl font-black text-amber-500 italic uppercase flex items-center gap-2">
-                            👑 Premium Customization
-                        </h3>
-                    </div>
+            <form action={handleSubmit} className="space-y-8 bg-zinc-900 border border-white/10 p-8 rounded-3xl shadow-xl">
 
-                    {/* 1. Profile Frame */}
-                    <div className="space-y-4">
-                        <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Avatar Frame</label>
-                        <input type="hidden" name="profileFrame" value={profileFrame} />
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            {["NONE", "GOLD", "FIRE", "ICE", "ELECTRIC", "RAINBOW"].map((frame) => (
-                                <div
-                                    key={frame}
-                                    onClick={() => setProfileFrame(frame)}
-                                    className={`p-3 rounded-xl border-2 cursor-pointer transition-all ${profileFrame === frame ? 'bg-amber-500/10 border-amber-500 text-amber-500' : 'bg-black/20 border-white/10 text-zinc-500 hover:border-white/30'}`}
-                                >
-                                    <div className="font-bold text-xs uppercase text-center">{frame}</div>
-                                </div>
-                            ))}
+                {/* PREMIUM CUSTOMIZATION (Extended) */}
+                {isPremium && (
+                    <div className="bg-black/20 border border-amber-500/20 p-6 rounded-2xl space-y-8 mb-8">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-xl font-black text-amber-500 italic uppercase flex items-center gap-2">
+                                👑 Premium Customization
+                            </h3>
                         </div>
-                    </div>
 
-                    {/* 2. Custom Title & Name Gradient */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Custom Title</label>
-                            <input
-                                type="text"
-                                name="customTitle"
-                                value={customTitle}
-                                onChange={(e) => setCustomTitle(e.target.value)}
-                                maxLength={30}
-                                placeholder="e.g. The King"
-                                className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-amber-500 focus:outline-none"
-                            />
-                            <p className="text-[10px] text-zinc-600">Displayed below your name</p>
+                        {/* 1. Profile Frame */}
+                        <div className="space-y-4">
+                            <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Avatar Frame</label>
+                            <input type="hidden" name="profileFrame" value={profileFrame} />
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                {["NONE", "GOLD", "FIRE", "ICE", "ELECTRIC", "RAINBOW"].map((frame) => (
+                                    <div
+                                        key={frame}
+                                        onClick={() => setProfileFrame(frame)}
+                                        className={`p-3 rounded-xl border-2 cursor-pointer transition-all ${profileFrame === frame ? 'bg-amber-500/10 border-amber-500 text-amber-500' : 'bg-black/20 border-white/10 text-zinc-500 hover:border-white/30'}`}
+                                    >
+                                        <div className="font-bold text-xs uppercase text-center">{frame}</div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Profile Color (Hex)</label>
-                            <div className="flex items-center gap-4">
-                                <input
-                                    type="color"
-                                    value={profileColor || "#ffffff"}
-                                    onChange={(e) => setProfileColor(e.target.value)}
-                                    className="h-10 w-20 rounded cursor-pointer bg-transparent"
-                                />
+
+                        {/* 2. Custom Title & Name Gradient */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Custom Title</label>
                                 <input
                                     type="text"
-                                    name="profileColor"
-                                    value={profileColor || ""}
-                                    onChange={(e) => setProfileColor(e.target.value)}
-                                    placeholder="#ffffff"
-                                    className="flex-1 bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-amber-500 focus:outline-none font-mono"
+                                    name="customTitle"
+                                    value={customTitle}
+                                    onChange={(e) => setCustomTitle(e.target.value)}
+                                    maxLength={30}
+                                    placeholder="e.g. The King"
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-amber-500 focus:outline-none"
+                                />
+                                <p className="text-[10px] text-zinc-600">Displayed below your name</p>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Profile Color (Hex)</label>
+                                <div className="flex items-center gap-4">
+                                    <input
+                                        type="color"
+                                        value={profileColor || "#ffffff"}
+                                        onChange={(e) => setProfileColor(e.target.value)}
+                                        className="h-10 w-20 rounded cursor-pointer bg-transparent"
+                                    />
+                                    <input
+                                        type="text"
+                                        name="profileColor"
+                                        value={profileColor || ""}
+                                        onChange={(e) => setProfileColor(e.target.value)}
+                                        placeholder="#ffffff"
+                                        className="flex-1 bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-amber-500 focus:outline-none font-mono"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 3. Name Gradient (Advanced) */}
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                                <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Custom Name Gradient</label>
+                                <span className="text-[10px] text-zinc-600 bg-zinc-900 border border-white/5 px-2 py-1 rounded">Tailwind CSS Classes</span>
+                            </div>
+                            <input
+                                type="text"
+                                name="nameGradient"
+                                value={nameGradient}
+                                onChange={(e) => setNameGradient(e.target.value)}
+                                placeholder="e.g. from-pink-500 via-red-500 to-yellow-500"
+                                className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm font-mono text-zinc-300 focus:border-amber-500 focus:outline-none"
+                            />
+                            {nameGradient && (
+                                <div className="text-center p-4 bg-black/40 rounded-xl border border-white/5">
+                                    <span className={`text-2xl font-black bg-gradient-to-r ${nameGradient} bg-clip-text text-transparent`}>
+                                        {user.name}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* 4. Banner & Glow */}
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Custom Banner URL</label>
+                                <input
+                                    type="url"
+                                    name="profileBanner"
+                                    value={profileBanner}
+                                    onChange={(e) => setProfileBanner(e.target.value)}
+                                    placeholder="https://imgur.com/..."
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-amber-500 focus:outline-none"
                                 />
                             </div>
-                        </div>
-                    </div>
 
-                    {/* 3. Name Gradient (Advanced) */}
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                            <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Custom Name Gradient</label>
-                            <span className="text-[10px] text-zinc-600 bg-zinc-900 border border-white/5 px-2 py-1 rounded">Tailwind CSS Classes</span>
-                        </div>
-                        <input
-                            type="text"
-                            name="nameGradient"
-                            value={nameGradient}
-                            onChange={(e) => setNameGradient(e.target.value)}
-                            placeholder="e.g. from-pink-500 via-red-500 to-yellow-500"
-                            className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-sm font-mono text-zinc-300 focus:border-amber-500 focus:outline-none"
-                        />
-                        {nameGradient && (
-                            <div className="text-center p-4 bg-black/40 rounded-xl border border-white/5">
-                                <span className={`text-2xl font-black bg-gradient-to-r ${nameGradient} bg-clip-text text-transparent`}>
-                                    {user.name}
-                                </span>
+                            <div className="flex items-center gap-3 pt-2">
+                                <input
+                                    type="checkbox"
+                                    name="profileGlow"
+                                    id="glow"
+                                    checked={profileGlow}
+                                    onChange={(e) => setProfileGlow(e.target.checked)}
+                                    className="w-5 h-5 rounded bg-black/40 border-white/10 text-brand-green focus:ring-brand-green"
+                                />
+                                <label htmlFor="glow" className="text-sm font-bold text-white uppercase cursor-pointer select-none">Enable Avatar Glow Effect</label>
                             </div>
-                        )}
-                    </div>
-
-                    {/* 4. Banner & Glow */}
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Custom Banner URL</label>
-                            <input
-                                type="url"
-                                name="profileBanner"
-                                value={profileBanner}
-                                onChange={(e) => setProfileBanner(e.target.value)}
-                                placeholder="https://imgur.com/..."
-                                className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-amber-500 focus:outline-none"
-                            />
-                        </div>
-
-                        <div className="flex items-center gap-3 pt-2">
-                            <input
-                                type="checkbox"
-                                name="profileGlow"
-                                id="glow"
-                                checked={profileGlow}
-                                onChange={(e) => setProfileGlow(e.target.checked)}
-                                className="w-5 h-5 rounded bg-black/40 border-white/10 text-brand-green focus:ring-brand-green"
-                            />
-                            <label htmlFor="glow" className="text-sm font-bold text-white uppercase cursor-pointer select-none">Enable Avatar Glow Effect</label>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            <form action={handleSubmit} className="space-y-8 bg-zinc-900 border border-white/10 p-8 rounded-3xl shadow-xl">
                 {msg && (
                     <div className={`p-4 rounded-xl text-center font-bold ${msg.includes("updated") || msg.includes("Activ") || msg.includes("Apply") ? "bg-brand-green/20 text-brand-green" : "bg-red-500/20 text-red-500"}`}>
                         {msg}
