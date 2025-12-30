@@ -76,7 +76,31 @@ export async function POST(request: NextRequest) {
                 data: { status: 'AVAILABLE' }
             });
 
-            // C. Update Player Stats & ELO
+            // C. Calculate Team ELO Changes
+            const teamAPlayers = match.players
+                .filter(mp => mp.team === 'TEAM_A')
+                .map(mp => ({
+                    steamId: mp.user.steamId!,
+                    currentElo: mp.user.rating
+                }));
+
+            const teamBPlayers = match.players
+                .filter(mp => mp.team === 'TEAM_B')
+                .map(mp => ({
+                    steamId: mp.user.steamId!,
+                    currentElo: mp.user.rating
+                }));
+
+            // Use proper ELO calculation
+            const { calculateTeamEloChanges } = await import('@/lib/elo');
+            const winnerLetter = winningTeam === 'TEAM_A' ? 'A' : winningTeam === 'TEAM_B' ? 'B' : 'A';
+            const eloChanges = winningTeam !== 'DRAW'
+                ? calculateTeamEloChanges(teamAPlayers, teamBPlayers, winnerLetter)
+                : null;
+
+            console.log('[match-end] ELO Changes calculated:', eloChanges ? 'Yes' : 'Draw - No changes');
+
+            // D. Update Player Stats & ELO
             for (const pStat of players) {
                 // Convert plugin team number to backend team string
                 // Plugin sends: 1 = Survivors (TEAM_A), 2 = Infected (TEAM_B)
@@ -94,6 +118,11 @@ export async function POST(request: NextRequest) {
                     console.warn(`[match-end] Team mismatch for ${pStat.steam_id}: DB has ${matchPlayer.team}, plugin sent team ${pStat.team} (${pluginTeamString})`);
                 }
 
+                // Get ELO change for this player
+                const eloData = eloChanges?.all.find(e => e.steamId === pStat.steam_id);
+                const newElo = eloData?.newElo || matchPlayer.user.rating;
+                const eloChange = eloData?.change || 0;
+
                 // Update MatchPlayer stats
                 await tx.matchPlayer.update({
                     where: { id: matchPlayer.id },
@@ -102,7 +131,7 @@ export async function POST(request: NextRequest) {
                         deaths: pStat.deaths,
                         headshots: pStat.headshots,
                         damage: pStat.damage,
-                        eloChange: 0 // TODO: Calculate ELO
+                        eloChange: eloChange
                     }
                 });
 
@@ -110,19 +139,17 @@ export async function POST(request: NextRequest) {
                 const isWinner = (winningTeam === 'TEAM_A' && matchPlayer.team === 'TEAM_A') ||
                     (winningTeam === 'TEAM_B' && matchPlayer.team === 'TEAM_B');
 
-                // Simple ELO calc (Placeholder)
-                const eloDelta = isWinner ? 25 : -25;
-                const newElo = (matchPlayer.user.rating || 1000) + eloDelta;
-
                 await tx.user.update({
                     where: { id: matchPlayer.userId },
                     data: {
                         wins: { increment: isWinner ? 1 : 0 },
-                        losses: { increment: isWinner ? 0 : 1 },
+                        losses: { increment: (isWinner || winningTeam === 'DRAW') ? 0 : 1 },
                         rating: newElo,
                         totalHours: { increment: 1 } // +1 hour per match (approx)
                     }
                 });
+
+                console.log(`[ELO] ${matchPlayer.user.name}: ${matchPlayer.user.rating} → ${newElo} (${eloChange >= 0 ? '+' : ''}${eloChange})`);
             }
 
             // D. Cleanup Queue
