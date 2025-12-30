@@ -138,8 +138,8 @@ export default function BetaVerifyPage() {
                         <div className="mt-6 pt-4 border-t border-white/5 text-center">
                             <p className="text-zinc-600 text-xs">
                                 Don&apos;t have an invite code?{" "}
-                                <Link href="/" className="text-brand-green hover:underline">
-                                    Join our Discord
+                                <Link href="/beta/request" className="text-brand-green hover:underline">
+                                    Request Beta Access
                                 </Link>
                             </p>
                         </div>

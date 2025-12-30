@@ -442,3 +442,32 @@ model InviteCode {
   user      User?    @relation("InviteUsedBy", fields: [usedBy], references: [id])
   creator   User     @relation("InviteCreator", fields: [createdBy], references: [id])
 }
+
+// ============ BETA REQUEST SYSTEM ============
+
+model BetaRequest {
+  id              String   @id @default(cuid())
+  
+  // Identifiers
+  steamId         String   @unique  // One request per Steam account
+  steamUrl        String?
+  
+  // Form fields
+  discord         String?
+  country         String
+  otherCommunity  String?
+  agreesWith2FA   Boolean
+  howHeardAbout   String
+  whyInterested   String
+  
+  // Metadata
+  ipAddress       String?
+  userAgent       String?
+  language        String   @default("en")
+  
+  // Status
+  status          String   @default("PENDING")  // PENDING, APPROVED, REJECTED
+  createdAt       DateTime @default(now())
+  reviewedAt      DateTime?
+  reviewedBy      String?
+}
