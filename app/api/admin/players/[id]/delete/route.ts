@@ -3,20 +3,22 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-// DELETE /api/admin/players/[userId]/delete
+// DELETE /api/admin/players/[id]/delete
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { userId: string } }
+    { params }: { params: { id: string } }
 ) {
     try {
         const session = await getServerSession(authOptions);
 
+        // @ts-ignore - custom session field
         if (!session?.user?.id) {
             return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 });
         }
 
         // Only OWNER can delete users
         const admin = await prisma.user.findUnique({
+            // @ts-ignore - custom session field
             where: { id: session.user.id },
             select: { role: true }
         });
@@ -26,7 +28,7 @@ export async function DELETE(
         }
 
         const targetUser = await prisma.user.findUnique({
-            where: { id: params.userId },
+            where: { id: params.id },
             select: { id: true, role: true, name: true }
         });
 
@@ -42,48 +44,40 @@ export async function DELETE(
         // Delete all related data first (cascade should handle most, but be explicit)
         await prisma.$transaction(async (tx) => {
             // Delete queue entries
-            await tx.queueEntry.deleteMany({ where: { userId: params.userId } });
+            await tx.queueEntry.deleteMany({ where: { userId: params.id } });
 
             // Delete match players (but keep match records)
-            await tx.matchPlayer.deleteMany({ where: { userId: params.userId } });
+            await tx.matchPlayer.deleteMany({ where: { userId: params.id } });
 
             // Delete messages
-            await tx.message.deleteMany({ where: { userId: params.userId } });
+            await tx.message.deleteMany({ where: { userId: params.id } });
 
             // Delete map votes
-            await tx.mapVote.deleteMany({ where: { userId: params.userId } });
+            await tx.mapVote.deleteMany({ where: { userId: params.id } });
 
             // Delete reports made by user
-            await tx.report.deleteMany({ where: { userId: params.userId } });
+            await tx.report.deleteMany({ where: { userId: params.id } });
 
             // Delete user reports
             await tx.userReport.deleteMany({
-                where: { OR: [{ reporterId: params.userId }, { reportedId: params.userId }] }
+                where: { OR: [{ reporterId: params.id }, { reportedId: params.id }] }
             });
 
             // Delete chat mutes
-            await tx.chatMute.deleteMany({ where: { userId: params.userId } });
-
-            // Delete user medals
-            await tx.userMedal.deleteMany({ where: { userId: params.userId } });
-
-            // Delete invite codes used by this user (unlink)
-            await tx.inviteCode.updateMany({
-                where: { usedBy: params.userId },
-                data: { usedBy: null, isUsed: false, usedAt: null }
-            });
+            await tx.chatMute.deleteMany({ where: { userId: params.id } });
 
             // Delete accounts (OAuth)
-            await tx.account.deleteMany({ where: { userId: params.userId } });
+            await tx.account.deleteMany({ where: { userId: params.id } });
 
             // Delete sessions
-            await tx.session.deleteMany({ where: { userId: params.userId } });
+            await tx.session.deleteMany({ where: { userId: params.id } });
 
             // Finally delete the user
-            await tx.user.delete({ where: { id: params.userId } });
+            await tx.user.delete({ where: { id: params.id } });
         });
 
-        console.log(`[ADMIN] User deleted: ${targetUser.name} (${params.userId}) by ${session.user.id}`);
+        // @ts-ignore - custom session field
+        console.log(`[ADMIN] User deleted: ${targetUser.name} (${params.id}) by ${session.user.id}`);
 
         return NextResponse.json({
             success: true,
