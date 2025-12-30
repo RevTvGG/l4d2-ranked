@@ -12,6 +12,7 @@ const PUBLIC_ROUTES = [
     "/leaderboard",
     "/bans",
     "/beta/verify",
+    "/beta/request",
     "/api",
 ];
 
