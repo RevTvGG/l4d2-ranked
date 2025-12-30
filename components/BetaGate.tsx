@@ -43,10 +43,9 @@ export function BetaGate({ children }: BetaGateProps) {
     const needsCheck = status === "authenticated" && !isPublicRoute(pathname);
 
     useEffect(() => {
-        // Reset verification when pathname changes to a protected route
-        if (needsCheck && !isVerified) {
-            setIsVerified(false);
-        }
+        // Reset verification states when pathname changes
+        setIsVerified(false);
+        setIsRedirecting(false);
     }, [pathname]);
 
     useEffect(() => {

@@ -422,13 +422,23 @@ export async function joinQueue() {
         return { success: false, message: 'No servers available. Please try again later.' };
     }
 
-    // Get user rating for MMR
+    // Get user data including rating and betaAccess
     const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { rating: true },
+        select: { rating: true, betaAccess: true },
     });
 
     console.log('[joinQueue] User rating:', user?.rating);
+    console.log('[joinQueue] User betaAccess:', user?.betaAccess);
+
+    // Check if user has beta access
+    if (!user?.betaAccess) {
+        console.log('[joinQueue] User does not have beta access');
+        return {
+            success: false,
+            message: 'Beta access required. Please enter your invite code at /beta/verify'
+        };
+    }
 
     // Check if user is banned
     const activeBan = await prisma.ban.findFirst({
