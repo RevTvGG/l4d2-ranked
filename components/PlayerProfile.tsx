@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MedalBadge } from "./MedalBadge";
+import { MedalList } from "./MedalList";
 
 
 import { PremiumBadge } from "./PremiumBadge";
@@ -288,30 +288,7 @@ export function PlayerProfile({
                             <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-wider mb-4 flex items-center gap-2">
                                 🏅 Medals & Achievements
                             </h3>
-                            <div className="flex flex-wrap gap-4">
-                                {medals.map((medal) => (
-                                    <MedalBadge
-                                        key={medal.id}
-                                        {...medal}
-                                        onRemove={isOwner ? async (medalId) => {
-                                            try {
-                                                const res = await fetch(`/api/admin/medals/revoke?userId=${userId}&medalId=${medalId}`, {
-                                                    method: 'DELETE'
-                                                });
-                                                if (res.ok) {
-                                                    // Refresh the page or update state
-                                                    window.location.reload();
-                                                } else {
-                                                    alert('Failed to revoke medal');
-                                                }
-                                            } catch (error) {
-                                                console.error(error);
-                                                alert('Error revoking medal');
-                                            }
-                                        } : undefined}
-                                    />
-                                ))}
-                            </div>
+                            <MedalList medals={medals} userId={userId} isOwner={isOwner} />
                         </div>
                     )}
                 </div>

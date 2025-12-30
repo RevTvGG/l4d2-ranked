@@ -182,7 +182,7 @@ export default function AdminGuidePage() {
                         </Section>
 
                         {/* Section: Auto-Ban */}
-                        <Section title="🤖 Auto-Ban (Robocop)" icon="⚡">
+                        <Section title="🤖 Sistema de Ban Automático" icon="⚡">
                             <p className="text-zinc-400 mb-4">
                                 El sistema automáticamente banea jugadores por:
                             </p>
