@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
 import { BanModal } from '@/components/BanModal';
+import { PremiumBadge } from '@/components/PremiumBadge';
 import { AwardMedalModal } from '@/components/admin/AwardMedalModal';
 
 const ADMIN_ROLES = ['OWNER', 'ADMIN', 'MODERATOR'];
@@ -220,8 +221,12 @@ export default function AdminPlayersPage() {
 
                                     {/* Info */}
                                     <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-1">
-                                            <span className="font-bold text-lg text-white">{player.name}</span>
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <span className="font-bold text-lg text-white flex items-center gap-2">
+                                                {player.name}
+                                                {/* @ts-expect-error - isPremium added in api */}
+                                                {player.isPremium && <PremiumBadge theme="GOLD" />}
+                                            </span>
                                             <span className={`text-xs px-2 py-0.5 rounded font-bold ${player.role === 'OWNER' ? 'bg-red-500/20 text-red-400' :
                                                 player.role === 'ADMIN' ? 'bg-orange-500/20 text-orange-400' :
                                                     player.role === 'MODERATOR' ? 'bg-blue-500/20 text-blue-400' :
@@ -254,42 +259,45 @@ export default function AdminPlayersPage() {
                                                     <option value="ADMIN">Admin</option>
                                                 )}
                                             </select>
-                                        )}
+                                        )
+                                        }
 
                                         {/* Ban/Unban Button */}
-                                        {player.activeBanId ? (
-                                            <button
-                                                onClick={async () => {
-                                                    if (!confirm('Are you sure you want to unban this player?')) return;
-                                                    setActionLoading(player.id);
-                                                    try {
-                                                        const res = await fetch(`/api/admin/bans/${player.activeBanId}`, { method: 'DELETE' });
-                                                        const data = await res.json();
-                                                        if (data.success) {
-                                                            fetchPlayers();
-                                                        } else {
-                                                            alert(data.error || 'Failed to unban');
+                                        {
+                                            player.activeBanId ? (
+                                                <button
+                                                    onClick={async () => {
+                                                        if (!confirm('Are you sure you want to unban this player?')) return;
+                                                        setActionLoading(player.id);
+                                                        try {
+                                                            const res = await fetch(`/api/admin/bans/${player.activeBanId}`, { method: 'DELETE' });
+                                                            const data = await res.json();
+                                                            if (data.success) {
+                                                                fetchPlayers();
+                                                            } else {
+                                                                alert(data.error || 'Failed to unban');
+                                                            }
+                                                        } catch (error) {
+                                                            console.error('Unban failed:', error);
+                                                        } finally {
+                                                            setActionLoading(null);
                                                         }
-                                                    } catch (error) {
-                                                        console.error('Unban failed:', error);
-                                                    } finally {
-                                                        setActionLoading(null);
-                                                    }
-                                                }}
-                                                disabled={actionLoading === player.id}
-                                                className="px-4 py-2 bg-brand-green/20 text-brand-green border border-brand-green/30 rounded font-bold text-sm hover:bg-brand-green/30 transition-colors disabled:opacity-50"
-                                            >
-                                                {actionLoading === player.id ? '...' : '✅ Unban'}
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() => setSelectedPlayer(player)}
-                                                disabled={actionLoading === player.id || player.role === 'OWNER'}
-                                                className="px-4 py-2 bg-red-500/20 text-red-400 border border-red-500/30 rounded font-bold text-sm hover:bg-red-500/30 transition-colors disabled:opacity-50"
-                                            >
-                                                {actionLoading === player.id ? '...' : '🚫 Ban'}
-                                            </button>
-                                        )}
+                                                    }}
+                                                    disabled={actionLoading === player.id}
+                                                    className="px-4 py-2 bg-brand-green/20 text-brand-green border border-brand-green/30 rounded font-bold text-sm hover:bg-brand-green/30 transition-colors disabled:opacity-50"
+                                                >
+                                                    {actionLoading === player.id ? '...' : '✅ Unban'}
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() => setSelectedPlayer(player)}
+                                                    disabled={actionLoading === player.id || player.role === 'OWNER'}
+                                                    className="px-4 py-2 bg-red-500/20 text-red-400 border border-red-500/30 rounded font-bold text-sm hover:bg-red-500/30 transition-colors disabled:opacity-50"
+                                                >
+                                                    {actionLoading === player.id ? '...' : '🚫 Ban'}
+                                                </button>
+                                            )
+                                        }
 
                                         {/* Award Medal Button */}
                                         {userRole === 'OWNER' && (
@@ -429,7 +437,7 @@ export default function AdminPlayersPage() {
                     )}
 
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

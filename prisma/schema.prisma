@@ -56,8 +56,21 @@ model User {
   skillLevel     String?
   bio            String?
   staffBio       String?       // Special bio for Meet the Team section (Staff only)
-  isPremium      Boolean       @default(false)
-  profileTheme   String        @default("DEFAULT")
+  
+  // Premium System
+  isPremium        Boolean       @default(false)
+  premiumSince     DateTime?
+  premiumExpiresAt DateTime?
+  
+  // Premium Customization
+  profileTheme   String        @default("DEFAULT")  // DEFAULT, DARK, NEON, GOLD, FIRE, ICE, CUSTOM
+  profileColor   String?       // Hex color for custom theme
+  profileGlow    Boolean       @default(false)     // Glow effect on avatar
+  profileBanner  String?       // Custom banner URL
+  nameGradient   String?       // Tailwind gradient classes
+  profileFrame   String?       // Avatar frame: NONE, GOLD, FIRE, ICE, ELECTRIC, RAINBOW, PREMIUM
+  customTitle    String?       // Custom title under name (max 30 chars)
+  
   rating         Int           @default(1000)
   rank           String        @default("Unranked")
   role           String        @default("Newcomer")

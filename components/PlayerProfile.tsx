@@ -48,6 +48,12 @@ interface PlayerProfileProps {
     bio?: string | null;
     isPremium?: boolean;
     profileTheme?: string;
+    profileColor?: string | null;
+    profileGlow?: boolean;
+    profileBanner?: string | null;
+    nameGradient?: string | null;
+    profileFrame?: string | null;
+    customTitle?: string | null;
     team?: Team; // Optional: Player might not have a team
     isOwner?: boolean; // True if viewing own profile
     medals?: {
@@ -79,6 +85,12 @@ export function PlayerProfile({
     bio,
     isPremium,
     profileTheme = "DEFAULT",
+    profileColor,
+    profileGlow,
+    profileBanner,
+    nameGradient,
+    profileFrame,
+    customTitle,
     team,
     countryCode,
     isOwner = false,
@@ -118,33 +130,55 @@ export function PlayerProfile({
                 )}
 
                 {/* Background Image/Gradient */}
-                <div className="absolute inset-0 bg-[url('/l4d2_bg.jpg')] bg-cover bg-center opacity-40 mix-blend-luminosity"></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent"></div>
+                <div className="absolute inset-0 z-0">
+                    {profileBanner ? (
+                        <Image
+                            src={profileBanner}
+                            alt="Profile Banner"
+                            fill
+                            className="object-cover opacity-50 blur-[2px] transition-all duration-700 hover:blur-0 hover:scale-105"
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-[url('/l4d2_bg.jpg')] bg-cover bg-center opacity-40 mix-blend-luminosity"></div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent"></div>
+                </div>
 
-                <div className="relative p-8 md:p-12 flex flex-col md:flex-row items-end gap-8">
+                <div className="relative p-8 md:p-12 flex flex-col md:flex-row items-end gap-8 z-10">
                     {/* Avatar Hexagon Wrapper */}
-                    <div className="relative shrink-0">
+                    <div className="relative shrink-0 group/avatar">
                         <a
                             href={`https://steamcommunity.com/profiles/${steamId}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={`block h-32 w-32 md:h-40 md:w-40 rounded-2xl rotate-3 border-4 overflow-hidden shadow-2xl relative z-10 transition-transform hover:rotate-0 hover:scale-105 duration-300 ${isPremium ? 'border-amber-300 shadow-amber-500/50' : 'border-white/10 bg-zinc-800'}`}
+                            className={`block h-32 w-32 md:h-40 md:w-40 rounded-2xl rotate-3 border-4 overflow-hidden shadow-2xl relative z-20 transition-all hover:rotate-0 hover:scale-105 duration-300
+                                ${profileFrame === 'GOLD' ? 'border-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.5)]' :
+                                    profileFrame === 'FIRE' ? 'border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.6)] animate-pulse-slow' :
+                                        profileFrame === 'ICE' ? 'border-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.6)]' :
+                                            profileFrame === 'ELECTRIC' ? 'border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)]' :
+                                                profileFrame === 'RAINBOW' ? 'border-transparent bg-gradient-to-r from-red-500 via-green-500 to-blue-500 p-[3px]' :
+                                                    isPremium ? 'border-amber-300 shadow-amber-500/50' : 'border-white/10 bg-zinc-800'}
+                            `}
                         >
-                            {steamAvatarUrl ? (
-                                <Image
-                                    src={steamAvatarUrl}
-                                    alt={`${username}'s avatar`}
-                                    fill
-                                    className="object-cover"
-                                    unoptimized
-                                />
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-zinc-800 text-zinc-500 text-4xl font-bold">
-                                    {username?.[0]?.toUpperCase() || '?'}
-                                </div>
-                            )}
+                            {/* Wrapper for rainbow frame needing internal consistency */}
+                            <div className={`w-full h-full rounded-xl overflow-hidden ${profileFrame === 'RAINBOW' ? 'bg-zinc-900 border-2 border-zinc-900' : ''}`}>
+                                {steamAvatarUrl ? (
+                                    <Image
+                                        src={steamAvatarUrl}
+                                        alt={`${username}'s avatar`}
+                                        fill
+                                        className="object-cover"
+                                        unoptimized
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-zinc-800 text-zinc-500 text-4xl font-bold">
+                                        {username?.[0]?.toUpperCase() || '?'}
+                                    </div>
+                                )}
+                            </div>
                         </a>
-                        <div className="absolute inset-0 -rotate-3 rounded-2xl bg-brand-green/20 blur-xl z-0"></div>
+                        {/* Glow Effect */}
+                        {(isPremium || profileGlow) && <div className={`absolute inset-0 -rotate-3 rounded-2xl blur-xl z-0 ${profileGlow ? 'bg-brand-green/40 animate-pulse' : 'bg-brand-green/20'}`}></div>}
                     </div>
 
                     {/* Main Info */}
@@ -218,16 +252,33 @@ export function PlayerProfile({
                             </div>
                         </div>
 
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase italic leading-none break-words max-w-full">
-                            {isPremium ? (
-                                <span className="flex flex-wrap items-center gap-2">
-                                    <ShinyText text={username} theme={profileTheme} />
-                                    <PremiumBadge theme={profileTheme} />
+                        <div className="flex flex-col">
+                            {customTitle && (
+                                <span className={`text-sm font-bold uppercase tracking-widest mb-1 ${profileTheme === 'FIRE' ? 'text-orange-500' :
+                                        profileTheme === 'ICE' ? 'text-cyan-400' :
+                                            profileTheme === 'GOLD' ? 'text-yellow-400' :
+                                                'text-brand-green'
+                                    }`}>
+                                    {customTitle}
                                 </span>
-                            ) : (
-                                username
                             )}
-                        </h1>
+                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase italic leading-none break-words max-w-full">
+                                {isPremium ? (
+                                    <span className="flex flex-wrap items-center gap-2">
+                                        {nameGradient ? (
+                                            <span className={`bg-gradient-to-r ${nameGradient} bg-clip-text text-transparent animate-gradient-x`}>
+                                                {username}
+                                            </span>
+                                        ) : (
+                                            <ShinyText text={username} theme={profileTheme} />
+                                        )}
+                                        <PremiumBadge theme={profileTheme} />
+                                    </span>
+                                ) : (
+                                    username
+                                )}
+                            </h1>
+                        </div>
 
                         {/* BIO SECTION */}
                         {bio && (

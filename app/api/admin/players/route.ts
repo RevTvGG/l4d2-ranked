@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
                 wins: true,
                 losses: true,
                 banCount: true,
+                isPremium: true,
                 createdAt: true,
                 bans: {
                     where: {

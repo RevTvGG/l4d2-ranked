@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { Copy, RefreshCw, Trophy, Shield, PlayCircle } from 'lucide-react';
 import MatchChat from './match-chat';
 import { toast } from 'sonner';
+import { PremiumBadge } from '../PremiumBadge';
+import { ShinyText } from '../ShinyText';
 
 interface Player {
     id: string;
@@ -14,6 +16,8 @@ interface Player {
         image?: string;
         rating: number;
         steamId: string;
+        isPremium?: boolean;
+        profileTheme?: string;
     };
     team: 'TEAM_A' | 'TEAM_B';
 }
@@ -162,7 +166,7 @@ export default function MatchView({ initialMatch }: MatchViewProps) {
                         {teamAPlayers.map(player => (
                             <Link href={`/profile/${player.user.name}`} key={player.id} className="flex items-center justify-between group hover:bg-white/5 p-2 rounded-lg -mx-2 transition-colors">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden border border-white/10 group-hover:border-blue-500/50 transition-colors">
+                                    <div className={`w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden border ${player.user.isPremium ? 'border-amber-400' : 'border-white/10'} group-hover:border-blue-500/50 transition-colors`}>
                                         {player.user.image ? (
                                             <img src={player.user.image} alt={player.user.name} className="w-full h-full object-cover" />
                                         ) : (
@@ -170,7 +174,14 @@ export default function MatchView({ initialMatch }: MatchViewProps) {
                                         )}
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="font-medium leading-none text-gray-200 group-hover:text-blue-400 transition-colors">{player.user.name}</span>
+                                        <span className="font-medium leading-none text-gray-200 group-hover:text-blue-400 transition-colors flex items-center gap-1.5">
+                                            {player.user.isPremium ? (
+                                                <ShinyText text={player.user.name} theme={player.user.profileTheme} />
+                                            ) : (
+                                                player.user.name
+                                            )}
+                                            {player.user.isPremium && <PremiumBadge theme={player.user.profileTheme} />}
+                                        </span>
                                         <span className="text-xs text-gray-500">{player.user.rating} ELO</span>
                                     </div>
                                 </div>
@@ -196,7 +207,7 @@ export default function MatchView({ initialMatch }: MatchViewProps) {
                         {teamBPlayers.map(player => (
                             <Link href={`/profile/${player.user.name}`} key={player.id} className="flex items-center justify-between group hover:bg-white/5 p-2 rounded-lg -mx-2 transition-colors">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden border border-white/10 group-hover:border-red-500/50 transition-colors">
+                                    <div className={`w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden border ${player.user.isPremium ? 'border-amber-400' : 'border-white/10'} group-hover:border-red-500/50 transition-colors`}>
                                         {player.user.image ? (
                                             <img src={player.user.image} alt={player.user.name} className="w-full h-full object-cover" />
                                         ) : (
@@ -204,7 +215,14 @@ export default function MatchView({ initialMatch }: MatchViewProps) {
                                         )}
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="font-medium leading-none text-gray-200 group-hover:text-red-400 transition-colors">{player.user.name}</span>
+                                        <span className="font-medium leading-none text-gray-200 group-hover:text-red-400 transition-colors flex items-center gap-1.5">
+                                            {player.user.isPremium ? (
+                                                <ShinyText text={player.user.name} theme={player.user.profileTheme} />
+                                            ) : (
+                                                player.user.name
+                                            )}
+                                            {player.user.isPremium && <PremiumBadge theme={player.user.profileTheme} />}
+                                        </span>
                                         <span className="text-xs text-gray-500">{player.user.rating} ELO</span>
                                     </div>
                                 </div>

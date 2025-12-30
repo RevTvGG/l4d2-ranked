@@ -7,6 +7,8 @@ import { notFound } from "next/navigation";
 import { LeaveTeamButton } from "@/components/LeaveTeamButton";
 import { TeamManagementPanel } from "@/components/TeamManagementPanel";
 import { JoinTeamButton } from "@/components/JoinTeamButton";
+import { PremiumBadge } from "@/components/PremiumBadge";
+import { ShinyText } from "@/components/ShinyText";
 
 
 // Helper for flags
@@ -129,13 +131,20 @@ export default async function TeamProfilePage({ params, searchParams }: Props) {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {team.members.map((member) => (
-                        <div key={member.name} className={`p-4 rounded-xl border ${member.steamId === team.ownerId ? 'bg-zinc-900 border-brand-green/30' : 'bg-zinc-900/50 border-white/5'} flex items-center gap-4`}>
-                            <div className="h-12 w-12 bg-zinc-800 rounded-lg relative overflow-hidden">
+                        <div key={member.name} className={`p-4 rounded-xl border ${member.isPremium ? 'bg-zinc-900 border-amber-500/30' : member.steamId === team.ownerId ? 'bg-zinc-900 border-brand-green/30' : 'bg-zinc-900/50 border-white/5'} flex items-center gap-4`}>
+                            <div className={`h-12 w-12 bg-zinc-800 rounded-lg relative overflow-hidden ${member.isPremium ? 'border border-amber-400' : ''}`}>
                                 {member.image && <Image src={member.image} alt={member.name || "??"} fill className="object-cover" />}
                             </div>
                             <div>
                                 <div className="flex items-center gap-2">
-                                    <span className="font-bold text-white text-lg">{member.name}</span>
+                                    <span className="font-bold text-white text-lg flex items-center gap-2">
+                                        {member.isPremium ? (
+                                            <ShinyText text={member.name || "Unknown"} theme={member.profileTheme} />
+                                        ) : (
+                                            member.name
+                                        )}
+                                        {member.isPremium && <PremiumBadge theme={member.profileTheme} />}
+                                    </span>
                                     {member.steamId === team.ownerId && <span className="text-[10px] bg-brand-green text-black px-1.5 py-0.5 rounded font-black uppercase">CPT</span>}
                                 </div>
                                 <div className="text-xs text-zinc-500 font-mono">{member.role} • {member.countryCode || "UNK"}</div>

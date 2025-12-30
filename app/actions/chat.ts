@@ -53,7 +53,8 @@ export async function sendMessage(content: string) {
                         name: true,
                         image: true,
                         rank: true,
-                        isPremium: true
+                        isPremium: true,
+                        profileTheme: true
                     }
                 }
             }

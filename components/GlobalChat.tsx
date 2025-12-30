@@ -4,6 +4,9 @@ import { useState, useEffect, useRef } from 'react'
 import { sendMessage, getMessages } from '@/app/actions/chat'
 import Image from 'next/image'
 
+import { PremiumBadge } from './PremiumBadge'
+import { ShinyText } from './ShinyText'
+
 // Types
 type Message = {
     id: string
@@ -38,7 +41,6 @@ export default function GlobalChat({ currentUser }: { currentUser: any }) {
 
     const fetchMessages = async () => {
         const msgs = await getMessages();
-        // Simple diff check could happen here, but React handles reconciling reasonably well.
         if (msgs) {
             setMessages(msgs as any);
         }
@@ -52,22 +54,17 @@ export default function GlobalChat({ currentUser }: { currentUser: any }) {
         setInput(""); // Optimistic clear
         setLoading(true);
 
-        // Optimistic UI could be added here, but preserving order with polling is tricky.
-        // We'll rely on the fast re-fetch for now or immediate manual push.
-
         const result = await sendMessage(tempContent);
         setLoading(false);
 
         if (result.success) {
-            // Immediate fetch to see own message
             fetchMessages();
-            // Scroll to bottom after sending
             setTimeout(() => {
                 chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
             }, 100);
         } else {
             alert("Failed to send message: " + result.error);
-            setInput(tempContent); // Revert on fail
+            setInput(tempContent);
         }
     }
 
@@ -97,7 +94,7 @@ export default function GlobalChat({ currentUser }: { currentUser: any }) {
                                 {/* Avatar */}
                                 <div className="shrink-0 pt-1">
                                     <a href={`/profile/${msg.user.name}`} className="block transition-transform hover:scale-110">
-                                        <div className={`relative h-8 w-8 rounded-lg overflow-hidden border ${msg.user.isPremium ? 'border-amber-400' : 'border-zinc-700'}`}>
+                                        <div className={`relative h-8 w-8 rounded-lg overflow-hidden border ${msg.user.isPremium ? 'border-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]' : 'border-zinc-700'}`}>
                                             {msg.user.image ? (
                                                 <Image
                                                     src={msg.user.image}
@@ -119,8 +116,13 @@ export default function GlobalChat({ currentUser }: { currentUser: any }) {
                                 {/* Content */}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-baseline gap-2">
-                                        <span className={`text-sm font-bold truncate ${msg.user.isPremium ? 'text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-500' : 'text-zinc-300'}`}>
-                                            {msg.user.name}
+                                        <span className="text-sm font-bold truncate flex items-center gap-1.5">
+                                            {msg.user.isPremium ? (
+                                                <ShinyText text={msg.user.name || 'Unknown'} theme={msg.user.profileTheme} />
+                                            ) : (
+                                                <span className="text-zinc-300">{msg.user.name}</span>
+                                            )}
+                                            {msg.user.isPremium && <PremiumBadge theme={msg.user.profileTheme} />}
                                         </span>
                                         <span className="text-[10px] text-zinc-600 font-mono">
                                             {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

@@ -17,7 +17,9 @@ export async function getTeamByTag(tag: string) {
                         rating: true,
                         role: true,
                         countryCode: true,
-                        steamId: true
+                        steamId: true,
+                        isPremium: true,
+                        profileTheme: true
                     }
                 }
             }
