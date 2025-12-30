@@ -37,6 +37,9 @@ export default function AdminPlayersPage() {
     const [showAwardModal, setShowAwardModal] = useState(false);
     const [playerForMedal, setPlayerForMedal] = useState<Player | null>(null);
 
+    // Delete Confirmation State
+    const [deleteConfirm, setDeleteConfirm] = useState<{ player: Player; step: 1 | 2 } | null>(null);
+
     // @ts-expect-error - role is custom field
     const userRole = session?.user?.role;
     const isAdmin = userRole && ADMIN_ROLES.includes(userRole);
@@ -143,6 +146,28 @@ export default function AdminPlayersPage() {
         } catch (error) {
             console.error('Failed to award medal:', error);
             alert('Failed to award medal');
+        }
+    };
+
+    const handleDeleteUser = async (userId: string) => {
+        setActionLoading(userId);
+        try {
+            const res = await fetch(`/api/admin/players/${userId}/delete`, {
+                method: 'DELETE'
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(data.message);
+                fetchPlayers();
+            } else {
+                alert(data.error || 'Failed to delete user');
+            }
+        } catch (error) {
+            console.error('Delete failed:', error);
+            alert('Failed to delete user');
+        } finally {
+            setActionLoading(null);
+            setDeleteConfirm(null);
         }
     };
 
@@ -287,6 +312,18 @@ export default function AdminPlayersPage() {
                                         >
                                             View
                                         </Link>
+
+                                        {/* Delete User Button (OWNER only) */}
+                                        {userRole === 'OWNER' && player.role !== 'OWNER' && (
+                                            <button
+                                                onClick={() => setDeleteConfirm({ player, step: 1 })}
+                                                disabled={actionLoading === player.id}
+                                                className="px-3 py-2 bg-red-900/30 text-red-500 border border-red-500/30 rounded font-bold text-sm hover:bg-red-900/50 transition-colors disabled:opacity-50"
+                                                title="Delete User"
+                                            >
+                                                🗑️
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             ))}
@@ -313,6 +350,78 @@ export default function AdminPlayersPage() {
                             playerName={playerForMedal?.name || ''}
                             userId={playerForMedal?.id || ''}
                         />
+                    )}
+
+                    {/* Delete Confirmation Modal (Double Confirmation) */}
+                    {deleteConfirm && (
+                        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                            <div className="bg-zinc-900 border border-red-500/30 rounded-2xl p-8 max-w-md w-full">
+                                {deleteConfirm.step === 1 ? (
+                                    <>
+                                        <h2 className="text-2xl font-black text-red-500 mb-4">⚠️ Delete User?</h2>
+                                        <p className="text-zinc-400 mb-6">
+                                            You are about to delete <span className="text-white font-bold">{deleteConfirm.player.name}</span>.
+                                            This will remove ALL their data including matches, stats, and messages.
+                                        </p>
+                                        <p className="text-red-400 text-sm mb-6 bg-red-500/10 p-3 rounded-lg">
+                                            ⚠️ This action is IRREVERSIBLE!
+                                        </p>
+                                        <div className="flex gap-4">
+                                            <button
+                                                onClick={() => setDeleteConfirm(null)}
+                                                className="flex-1 px-4 py-3 bg-zinc-800 border border-white/10 rounded-xl font-bold hover:bg-zinc-700 transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={() => setDeleteConfirm({ ...deleteConfirm, step: 2 })}
+                                                className="flex-1 px-4 py-3 bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl font-bold hover:bg-red-500/30 transition-colors"
+                                            >
+                                                Continue →
+                                            </button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <h2 className="text-2xl font-black text-red-500 mb-4">🚨 FINAL CONFIRMATION</h2>
+                                        <p className="text-zinc-400 mb-4">
+                                            Type <span className="text-red-400 font-mono bg-red-500/10 px-2 py-1 rounded">DELETE</span> to confirm permanent deletion of:
+                                        </p>
+                                        <p className="text-white font-bold text-xl mb-6 text-center">
+                                            {deleteConfirm.player.name}
+                                        </p>
+                                        <input
+                                            type="text"
+                                            placeholder="Type DELETE"
+                                            id="delete-confirm-input"
+                                            className="w-full bg-black border border-red-500/30 rounded-xl px-4 py-3 text-white text-center font-mono mb-6 focus:border-red-500 outline-none"
+                                        />
+                                        <div className="flex gap-4">
+                                            <button
+                                                onClick={() => setDeleteConfirm(null)}
+                                                className="flex-1 px-4 py-3 bg-zinc-800 border border-white/10 rounded-xl font-bold hover:bg-zinc-700 transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    const input = document.getElementById('delete-confirm-input') as HTMLInputElement;
+                                                    if (input?.value === 'DELETE') {
+                                                        handleDeleteUser(deleteConfirm.player.id);
+                                                    } else {
+                                                        alert('Please type DELETE to confirm');
+                                                    }
+                                                }}
+                                                disabled={actionLoading === deleteConfirm.player.id}
+                                                className="flex-1 px-4 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-500 transition-colors disabled:opacity-50"
+                                            >
+                                                {actionLoading === deleteConfirm.player.id ? 'Deleting...' : '🗑️ DELETE PERMANENTLY'}
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
                     )}
 
                 </div>

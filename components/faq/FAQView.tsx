@@ -268,6 +268,25 @@ export function FAQView({ staff }: FAQViewProps) {
                                         {lang === 'en' ? 'Enjoy the Beta features!' : '¡Disfruten las funciones Beta!'}
                                     </div>
                                 </div>
+
+                                {/* Unverified Account Warning */}
+                                <div className="bg-red-950/30 border-2 border-red-500/50 p-6 rounded-2xl">
+                                    <h3 className="text-xl font-bold text-red-500 uppercase mb-3 flex items-center gap-2">
+                                        🗑️ {lang === 'en' ? 'Account Deletion Warning' : 'Advertencia de Eliminación de Cuentas'}
+                                    </h3>
+                                    <p className="text-red-200/90 leading-relaxed mb-4">
+                                        {lang === 'en'
+                                            ? "If you register without a valid invite code, your account will remain in an UNVERIFIED state. Unverified accounts have NO access to the platform features and WILL BE PERIODICALLY DELETED by the administration team without prior notice."
+                                            : "Si te registras sin un código de invitación válido, tu cuenta permanecerá en estado NO VERIFICADO. Las cuentas no verificadas NO tienen acceso a las funciones de la plataforma y SERÁN ELIMINADAS PERIÓDICAMENTE por el equipo de administración sin previo aviso."
+                                        }
+                                    </p>
+                                    <p className="text-red-300/80 text-sm bg-red-500/10 p-3 rounded-lg">
+                                        {lang === 'en'
+                                            ? "⚠️ To get an invite code, join our Discord or contact an existing member."
+                                            : "⚠️ Para obtener un código de invitación, únete a nuestro Discord o contacta a un miembro existente."
+                                        }
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
