@@ -161,9 +161,27 @@ export async function voteMap(matchId: string, mapName: string) {
                 }
             });
 
-            // Trigger server configuration (optional hook here or handled by cron/polling)
-            // For now, let's assume external worker or next step picks it up.
-            // Or better: Call server RCON immediately if possible.
+            // AUTO-TRIGGER: Start the server via RCON
+            console.log('[VOTE] Auto-triggering server start...');
+            try {
+                const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+                const response = await fetch(`${baseUrl}/api/server/start-match`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ matchId })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('[VOTE] Server started successfully:', result);
+                } else {
+                    const error = await response.text();
+                    console.error('[VOTE] Server start failed:', error);
+                }
+            } catch (serverError) {
+                console.error('[VOTE] Error starting server:', serverError);
+                // Don't fail the vote action, match can be started manually
+            }
         }
 
         revalidatePath('/play');

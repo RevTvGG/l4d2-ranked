@@ -364,24 +364,34 @@ export default function PlayPage() {
                                             </div>
                                         )}
 
-                                        {/* READY TO CONNECT */}
-                                        {isMatchReady && (
-                                            <div className="bg-brand-green text-black p-6 rounded-xl space-y-4 shadow-xl shadow-brand-green/20">
-                                                <div className="text-center font-black text-2xl tracking-tighter">🎮 MATCH READY</div>
+                                        {/* READY TO CONNECT / WAITING FOR PLAYERS / IN PROGRESS */}
+                                        {(isMatchReady || isLive) && (
+                                            <div className={`p-6 rounded-xl space-y-4 shadow-xl ${matchData?.status === 'IN_PROGRESS'
+                                                    ? 'bg-amber-500 text-black shadow-amber-500/20'
+                                                    : 'bg-brand-green text-black shadow-brand-green/20'
+                                                }`}>
+                                                <div className="text-center font-black text-2xl tracking-tighter">
+                                                    {matchData?.status === 'IN_PROGRESS' ? '⚔️ MATCH IN PROGRESS' :
+                                                        matchData?.status === 'WAITING_FOR_PLAYERS' ? '⏳ WAITING FOR PLAYERS' :
+                                                            '🎮 MATCH READY'}
+                                                </div>
 
                                                 {/* Server Info */}
                                                 <div className="bg-black/20 p-4 rounded-lg space-y-2 font-mono text-sm">
                                                     <div className="flex justify-between">
                                                         <span className="opacity-60">Server IP:</span>
-                                                        <span className="font-bold select-all">50.20.249.93:27015</span>
+                                                        <span className="font-bold select-all">
+                                                            {matchData?.serverIp || matchData?.server?.ipAddress || 'Loading...'}
+                                                            {(matchData?.serverPort || matchData?.server?.port) && `:${matchData?.serverPort || matchData?.server?.port}`}
+                                                        </span>
                                                     </div>
                                                     <div className="flex justify-between">
                                                         <span className="opacity-60">Password:</span>
-                                                        <span className="font-bold select-all">{matchData?.serverPassword || 'Loading...'}</span>
+                                                        <span className="font-bold select-all">{matchData?.serverPassword || 'No password'}</span>
                                                     </div>
                                                     <div className="flex justify-between">
                                                         <span className="opacity-60">Map:</span>
-                                                        <span className="font-bold">{matchData?.mapName || 'Unknown Map'}</span>
+                                                        <span className="font-bold">{matchData?.mapName || matchData?.selectedMap || 'Unknown Map'}</span>
                                                     </div>
                                                 </div>
 
@@ -394,8 +404,20 @@ export default function PlayPage() {
                                                         <li>Copy and paste the command below:</li>
                                                     </ol>
                                                     <div className="bg-black/40 p-3 rounded font-mono text-xs select-all break-all">
-                                                        connect 50.20.249.93:27015; password {matchData?.serverPassword || '...'}
+                                                        connect {matchData?.serverIp || matchData?.server?.ipAddress || '...'}{(matchData?.serverPort || matchData?.server?.port) && `:${matchData?.serverPort || matchData?.server?.port}`}{matchData?.serverPassword && `; password ${matchData?.serverPassword}`}
                                                     </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            const ip = matchData?.serverIp || matchData?.server?.ipAddress || '';
+                                                            const port = matchData?.serverPort || matchData?.server?.port || '';
+                                                            const pwd = matchData?.serverPassword || '';
+                                                            const cmd = `connect ${ip}${port ? `:${port}` : ''}${pwd ? `; password ${pwd}` : ''}`;
+                                                            navigator.clipboard.writeText(cmd);
+                                                        }}
+                                                        className="w-full bg-black/30 hover:bg-black/40 py-2 rounded font-bold text-sm transition-colors"
+                                                    >
+                                                        📋 Copy Connect Command
+                                                    </button>
                                                     <ol start={4} className="text-sm space-y-2 list-decimal list-inside opacity-90">
                                                         <li>Once connected, type <code className="bg-black/30 px-1 rounded">!ready</code> in chat</li>
                                                         <li>Wait for all 8 players to ready up</li>
