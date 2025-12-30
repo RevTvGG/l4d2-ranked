@@ -79,24 +79,17 @@ export async function POST(request: NextRequest) {
             // Connect to server
             await rcon.connect();
 
-            // Change to match map
-            const mapResult = await rcon.execute(`changelevel ${mapToLoad}`);
-            if (!mapResult.success) {
-                throw new Error(`Failed to change map: ${mapResult.error}`);
+            // Use sm_forcematch to load ZoneMod and change map in one command
+            console.log(`[RCON] Loading ZoneMod and changing to map: ${mapToLoad}`);
+            const forceMatchResult = await rcon.execute(`sm_forcematch zonemod ${mapToLoad}`);
+            if (!forceMatchResult.success) {
+                throw new Error(`Failed to force match: ${forceMatchResult.error}`);
             }
-            console.log(`[RCON] Changed map to: ${mapToLoad}`);
+            console.log(`[RCON] Successfully loaded ZoneMod with map: ${mapToLoad}`);
 
-            // Disconnect because server will restart
-            await rcon.disconnect();
-            console.log('[RCON] Disconnected for map change');
-
-            // Wait for map to load completely
-            console.log('[RCON] Waiting for map to load...');
-            await new Promise((resolve) => setTimeout(resolve, 12000));
-
-            // Reconnect after map loads
-            await rcon.connect();
-            console.log('[RCON] Reconnected after map change');
+            // Wait for config to load and map to change
+            console.log('[RCON] Waiting for ZoneMod and map to load...');
+            await new Promise((resolve) => setTimeout(resolve, 15000));
 
             // Set match ID for the reporter plugin
             const apiUrl = process.env.NEXTAUTH_URL;
@@ -106,7 +99,7 @@ export async function POST(request: NextRequest) {
 
             // Configure plugin API URL first
             console.log('[RCON] Configuring plugin API URL...');
-            const urlConfigResult = await rcon.execute(`sm_cvar l4d2_ranked_api_url "${apiUrl}/api"`);
+            const urlConfigResult = await rcon.execute(`sm_cvar l4d2_ranked_api_url \"${apiUrl}/api\"`);
             if (!urlConfigResult.success) {
                 console.warn(`[RCON] Warning: Failed to set API URL: ${urlConfigResult.error}`);
             } else {
