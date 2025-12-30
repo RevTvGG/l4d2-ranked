@@ -174,207 +174,205 @@ export function ProfileEditForm({ user }: { user: any }) {
                             </div>
                             <input type="hidden" name="profileColor" value={profileColor} />
                         </div>
-                    </div>
 
-                        {/* 3. Name Gradient (Advanced) */}
-                {/* 3. Name Gradient (Visual Selectset) */}
-                <div className="space-y-4">
-                    <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Name Gradient Style</label>
-                    <input type="hidden" name="nameGradient" value={nameGradient} />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {GRADIENT_PRESETS.map((preset) => (
-                            <div
-                                key={preset.name}
-                                onClick={() => setNameGradient(preset.class)}
-                                className={`p-4 rounded-xl cursor-pointer border-2 transition-all hover:scale-[1.02] ${nameGradient === preset.class ? "border-white bg-zinc-800" : "border-white/5 bg-black/20 hover:border-white/20"}`}
-                            >
-                                <span className={`text-lg font-black bg-gradient-to-r ${preset.class} bg-clip-text text-transparent`}>
-                                    {user.name || "PLAYER NAME"}
-                                </span>
-                                <div className="text-[10px] text-zinc-500 uppercase font-bold mt-1">{preset.name}</div>
+                        {/* 3. Name Gradient (Visual Selectset) */}
+                        <div className="space-y-4">
+                            <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Name Gradient Style</label>
+                            <input type="hidden" name="nameGradient" value={nameGradient} />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {GRADIENT_PRESETS.map((preset) => (
+                                    <div
+                                        key={preset.name}
+                                        onClick={() => setNameGradient(preset.class)}
+                                        className={`p-4 rounded-xl cursor-pointer border-2 transition-all hover:scale-[1.02] ${nameGradient === preset.class ? "border-white bg-zinc-800" : "border-white/5 bg-black/20 hover:border-white/20"}`}
+                                    >
+                                        <span className={`text-lg font-black bg-gradient-to-r ${preset.class} bg-clip-text text-transparent`}>
+                                            {user.name || "PLAYER NAME"}
+                                        </span>
+                                        <div className="text-[10px] text-zinc-500 uppercase font-bold mt-1">{preset.name}</div>
+                                    </div>
+                                ))}
+                                <div
+                                    onClick={() => setNameGradient("")}
+                                    className={`p-4 rounded-xl cursor-pointer border-2 transition-all hover:scale-[1.02] ${nameGradient === "" ? "border-white bg-zinc-800" : "border-white/5 bg-black/20 hover:border-white/20"}`}
+                                >
+                                    <span className="text-lg font-black text-white">
+                                        {user.name || "PLAYER NAME"}
+                                    </span>
+                                    <div className="text-[10px] text-zinc-500 uppercase font-bold mt-1">None</div>
+                                </div>
                             </div>
-                        ))}
-                        <div
-                            onClick={() => setNameGradient("")}
-                            className={`p-4 rounded-xl cursor-pointer border-2 transition-all hover:scale-[1.02] ${nameGradient === "" ? "border-white bg-zinc-800" : "border-white/5 bg-black/20 hover:border-white/20"}`}
-                        >
-                            <span className="text-lg font-black text-white">
-                                {user.name || "PLAYER NAME"}
-                            </span>
-                            <div className="text-[10px] text-zinc-500 uppercase font-bold mt-1">None</div>
+                        </div>
+
+                        {/* 4. Banner & Glow */}
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Custom Banner URL</label>
+                                <input
+                                    type="url"
+                                    name="profileBanner"
+                                    value={profileBanner}
+                                    onChange={(e) => setProfileBanner(e.target.value)}
+                                    placeholder="https://imgur.com/..."
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-amber-500 focus:outline-none"
+                                />
+                            </div>
+
+                            <div className="flex items-center gap-3 pt-2">
+                                <input
+                                    type="checkbox"
+                                    name="profileGlow"
+                                    id="glow"
+                                    checked={profileGlow}
+                                    onChange={(e) => setProfileGlow(e.target.checked)}
+                                    className="w-5 h-5 rounded bg-black/40 border-white/10 text-brand-green focus:ring-brand-green"
+                                />
+                                <label htmlFor="glow" className="text-sm font-bold text-white uppercase cursor-pointer select-none">Enable Avatar Glow Effect</label>
+                            </div>
                         </div>
                     </div>
-                </div>
+                )
+                }
 
-                {/* 4. Banner & Glow */}
+                {
+                    msg && (
+                        <div className={`p-4 rounded-xl text-center font-bold ${msg.includes("updated") || msg.includes("Activ") || msg.includes("Apply") ? "bg-brand-green/20 text-brand-green" : "bg-red-500/20 text-red-500"}`}>
+                            {msg}
+                        </div>
+                    )
+                }
+
+                {/* QUESTION 1 */}
                 <div className="space-y-4">
-                    <div className="space-y-2">
-                        <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Custom Banner URL</label>
-                        <input
-                            type="url"
-                            name="profileBanner"
-                            value={profileBanner}
-                            onChange={(e) => setProfileBanner(e.target.value)}
-                            placeholder="https://imgur.com/..."
-                            className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-amber-500 focus:outline-none"
-                        />
-                    </div>
+                    <h3 className="text-xl font-black text-white italic uppercase">1. What do you play best?</h3>
+                    <input type="hidden" name="mainSide" value={mainSide} />
 
-                    <div className="flex items-center gap-3 pt-2">
-                        <input
-                            type="checkbox"
-                            name="profileGlow"
-                            id="glow"
-                            checked={profileGlow}
-                            onChange={(e) => setProfileGlow(e.target.checked)}
-                            className="w-5 h-5 rounded bg-black/40 border-white/10 text-brand-green focus:ring-brand-green"
+                    <div className="grid grid-cols-3 gap-4">
+                        <SelectionCard
+                            label="Survivor"
+                            emoji="🧍"
+                            selected={mainSide === "SURVIVOR"}
+                            onClick={() => setMainSide("SURVIVOR")}
                         />
-                        <label htmlFor="glow" className="text-sm font-bold text-white uppercase cursor-pointer select-none">Enable Avatar Glow Effect</label>
+                        <SelectionCard
+                            label="Infected"
+                            emoji="🦠"
+                            selected={mainSide === "INFECTED"}
+                            onClick={() => setMainSide("INFECTED")}
+                        />
+                        <SelectionCard
+                            label="Both"
+                            emoji="☯️"
+                            selected={mainSide === "BOTH"}
+                            onClick={() => setMainSide("BOTH")}
+                        />
                     </div>
                 </div>
-        </div>
-    )
-}
 
-{
-    msg && (
-        <div className={`p-4 rounded-xl text-center font-bold ${msg.includes("updated") || msg.includes("Activ") || msg.includes("Apply") ? "bg-brand-green/20 text-brand-green" : "bg-red-500/20 text-red-500"}`}>
-            {msg}
-        </div>
-    )
-}
+                {/* QUESTION 2 (Conditional) */}
+                {
+                    (mainSide === "SURVIVOR" || mainSide === "BOTH") && (
+                        <div className="space-y-4 animate-in fade-in slide-in-from-top-4">
+                            <h3 className="text-xl font-black text-white italic uppercase">2. Preferred Weapon?</h3>
+                            <input type="hidden" name="survivorWeapon" value={weapon} />
 
-{/* QUESTION 1 */ }
-<div className="space-y-4">
-    <h3 className="text-xl font-black text-white italic uppercase">1. What do you play best?</h3>
-    <input type="hidden" name="mainSide" value={mainSide} />
+                            <div className="grid grid-cols-3 gap-4">
+                                <SelectionCard
+                                    label="SMG"
+                                    emoji="🔫"
+                                    selected={weapon === "SMG"}
+                                    onClick={() => setWeapon("SMG")}
+                                />
+                                <SelectionCard
+                                    label="Shotgun"
+                                    emoji="💥"
+                                    selected={weapon === "SHOTGUN"}
+                                    onClick={() => setWeapon("SHOTGUN")}
+                                />
+                                <SelectionCard
+                                    label="Flexible"
+                                    emoji="🔁"
+                                    selected={weapon === "BOTH"}
+                                    onClick={() => setWeapon("BOTH")}
+                                />
+                            </div>
+                        </div>
+                    )
+                }
 
-    <div className="grid grid-cols-3 gap-4">
-        <SelectionCard
-            label="Survivor"
-            emoji="🧍"
-            selected={mainSide === "SURVIVOR"}
-            onClick={() => setMainSide("SURVIVOR")}
-        />
-        <SelectionCard
-            label="Infected"
-            emoji="🦠"
-            selected={mainSide === "INFECTED"}
-            onClick={() => setMainSide("INFECTED")}
-        />
-        <SelectionCard
-            label="Both"
-            emoji="☯️"
-            selected={mainSide === "BOTH"}
-            onClick={() => setMainSide("BOTH")}
-        />
-    </div>
-</div>
+                {/* QUESTION 3: Communication */}
+                <div className="space-y-4">
+                    <h3 className="text-xl font-black text-white italic uppercase">3. Communication Style</h3>
+                    <input type="hidden" name="communication" value={comm} />
+                    <div className="grid grid-cols-2 gap-4">
+                        <SelectionCard label="Mic Active" emoji="🎙️" selected={comm === "MIC_ACTIVE"} onClick={() => setComm("MIC_ACTIVE")} />
+                        <SelectionCard label="Only Info" emoji="🎧" selected={comm === "ONLY_INFO"} onClick={() => setComm("ONLY_INFO")} />
+                        <SelectionCard label="Listen Only" emoji="👂" selected={comm === "LISTEN"} onClick={() => setComm("LISTEN")} />
+                        <SelectionCard label="No Mic" emoji="❌" selected={comm === "NO_MIC"} onClick={() => setComm("NO_MIC")} />
+                    </div>
+                </div>
 
-{/* QUESTION 2 (Conditional) */ }
-{
-    (mainSide === "SURVIVOR" || mainSide === "BOTH") && (
-        <div className="space-y-4 animate-in fade-in slide-in-from-top-4">
-            <h3 className="text-xl font-black text-white italic uppercase">2. Preferred Weapon?</h3>
-            <input type="hidden" name="survivorWeapon" value={weapon} />
+                {/* QUESTION 4: Skill Level */}
+                <div className="space-y-4">
+                    <h3 className="text-xl font-black text-white italic uppercase">4. Perceived Skill Level</h3>
+                    <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Does not affect matchmaking</p>
+                    <input type="hidden" name="skillLevel" value={skill} />
+                    <div className="grid grid-cols-2 gap-4">
+                        <SelectionCard label="Casual" emoji="☕" selected={skill === "CASUAL"} onClick={() => setSkill("CASUAL")} />
+                        <SelectionCard label="Semi-Comp" emoji="⚔️" selected={skill === "SEMI_COMP"} onClick={() => setSkill("SEMI_COMP")} />
+                        <SelectionCard label="Competitive" emoji="🏆" selected={skill === "COMPETITIVE"} onClick={() => setSkill("COMPETITIVE")} />
+                        <SelectionCard label="Tournament" emoji="👽" selected={skill === "TOURNAMENT"} onClick={() => setSkill("TOURNAMENT")} />
+                    </div>
+                </div>
 
-            <div className="grid grid-cols-3 gap-4">
-                <SelectionCard
-                    label="SMG"
-                    emoji="🔫"
-                    selected={weapon === "SMG"}
-                    onClick={() => setWeapon("SMG")}
-                />
-                <SelectionCard
-                    label="Shotgun"
-                    emoji="💥"
-                    selected={weapon === "SHOTGUN"}
-                    onClick={() => setWeapon("SHOTGUN")}
-                />
-                <SelectionCard
-                    label="Flexible"
-                    emoji="🔁"
-                    selected={weapon === "BOTH"}
-                    onClick={() => setWeapon("BOTH")}
-                />
-            </div>
-        </div>
-    )
-}
+                {/* QUESTION 5: Bio */}
+                <div className="space-y-4">
+                    <div className="flex justify-between items-end">
+                        <h3 className="text-xl font-black text-white italic uppercase">5. Short Bio</h3>
+                        <span className={`text-xs font-bold ${bio.length > 140 ? "text-red-500" : "text-zinc-500"}`}>{bio.length}/140</span>
+                    </div>
+                    <textarea
+                        name="bio"
+                        className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-white placeholder:text-zinc-700 focus:outline-none focus:border-brand-green resize-none text-sm"
+                        rows={3}
+                        placeholder="E.g. Main tank, prefer clean setups. No links."
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
+                        maxLength={140}
+                    />
+                </div>
 
-{/* QUESTION 3: Communication */ }
-<div className="space-y-4">
-    <h3 className="text-xl font-black text-white italic uppercase">3. Communication Style</h3>
-    <input type="hidden" name="communication" value={comm} />
-    <div className="grid grid-cols-2 gap-4">
-        <SelectionCard label="Mic Active" emoji="🎙️" selected={comm === "MIC_ACTIVE"} onClick={() => setComm("MIC_ACTIVE")} />
-        <SelectionCard label="Only Info" emoji="🎧" selected={comm === "ONLY_INFO"} onClick={() => setComm("ONLY_INFO")} />
-        <SelectionCard label="Listen Only" emoji="👂" selected={comm === "LISTEN"} onClick={() => setComm("LISTEN")} />
-        <SelectionCard label="No Mic" emoji="❌" selected={comm === "NO_MIC"} onClick={() => setComm("NO_MIC")} />
-    </div>
-</div>
+                {/* STAFF BIO (Admins/Mods only) */}
+                {
+                    ['OWNER', 'ADMIN', 'MODERATOR'].includes(user.role) && (
+                        <div className="space-y-4 pt-4 border-t border-white/10">
+                            <div className="flex justify-between items-end">
+                                <h3 className="text-xl font-black text-brand-green italic uppercase flex items-center gap-2">
+                                    🛡️ Staff Bio <span className="text-xs bg-brand-green/20 px-2 py-0.5 rounded text-white not-italic">For FAQ Page</span>
+                                </h3>
+                                <span className={`text-xs font-bold ${typeof bio === 'string' && bio.length > 300 ? "text-red-500" : "text-zinc-500"}`}>Max 300</span>
+                            </div>
+                            <p className="text-sm text-zinc-400">
+                                This description will appear in the &quot;Meet the Team&quot; section of the FAQ page alongside your avatar.
+                            </p>
+                            <textarea
+                                name="staffBio"
+                                className="w-full bg-zinc-900 border border-brand-green/30 rounded-xl p-4 text-white placeholder:text-zinc-700 focus:outline-none focus:border-brand-green resize-none text-sm"
+                                rows={4}
+                                placeholder="Write something about yourself as a staff member..."
+                                defaultValue={user?.staffBio || ""}
+                                maxLength={300}
+                            />
+                        </div>
+                    )
+                }
 
-{/* QUESTION 4: Skill Level */ }
-<div className="space-y-4">
-    <h3 className="text-xl font-black text-white italic uppercase">4. Perceived Skill Level</h3>
-    <p className="text-xs text-zinc-500 uppercase tracking-widest font-bold">Does not affect matchmaking</p>
-    <input type="hidden" name="skillLevel" value={skill} />
-    <div className="grid grid-cols-2 gap-4">
-        <SelectionCard label="Casual" emoji="☕" selected={skill === "CASUAL"} onClick={() => setSkill("CASUAL")} />
-        <SelectionCard label="Semi-Comp" emoji="⚔️" selected={skill === "SEMI_COMP"} onClick={() => setSkill("SEMI_COMP")} />
-        <SelectionCard label="Competitive" emoji="🏆" selected={skill === "COMPETITIVE"} onClick={() => setSkill("COMPETITIVE")} />
-        <SelectionCard label="Tournament" emoji="👽" selected={skill === "TOURNAMENT"} onClick={() => setSkill("TOURNAMENT")} />
-    </div>
-</div>
-
-{/* QUESTION 5: Bio */ }
-<div className="space-y-4">
-    <div className="flex justify-between items-end">
-        <h3 className="text-xl font-black text-white italic uppercase">5. Short Bio</h3>
-        <span className={`text-xs font-bold ${bio.length > 140 ? "text-red-500" : "text-zinc-500"}`}>{bio.length}/140</span>
-    </div>
-    <textarea
-        name="bio"
-        className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-white placeholder:text-zinc-700 focus:outline-none focus:border-brand-green resize-none text-sm"
-        rows={3}
-        placeholder="E.g. Main tank, prefer clean setups. No links."
-        value={bio}
-        onChange={(e) => setBio(e.target.value)}
-        maxLength={140}
-    />
-</div>
-
-{/* STAFF BIO (Admins/Mods only) */ }
-{
-    ['OWNER', 'ADMIN', 'MODERATOR'].includes(user.role) && (
-        <div className="space-y-4 pt-4 border-t border-white/10">
-            <div className="flex justify-between items-end">
-                <h3 className="text-xl font-black text-brand-green italic uppercase flex items-center gap-2">
-                    🛡️ Staff Bio <span className="text-xs bg-brand-green/20 px-2 py-0.5 rounded text-white not-italic">For FAQ Page</span>
-                </h3>
-                <span className={`text-xs font-bold ${typeof bio === 'string' && bio.length > 300 ? "text-red-500" : "text-zinc-500"}`}>Max 300</span>
-            </div>
-            <p className="text-sm text-zinc-400">
-                This description will appear in the &quot;Meet the Team&quot; section of the FAQ page alongside your avatar.
-            </p>
-            <textarea
-                name="staffBio"
-                className="w-full bg-zinc-900 border border-brand-green/30 rounded-xl p-4 text-white placeholder:text-zinc-700 focus:outline-none focus:border-brand-green resize-none text-sm"
-                rows={4}
-                placeholder="Write something about yourself as a staff member..."
-                defaultValue={user?.staffBio || ""}
-                maxLength={300}
-            />
-        </div>
-    )
-}
-
-<button
-    type="submit"
-    className="w-full bg-brand-green hover:bg-white hover:text-black text-black font-black text-lg py-4 rounded-xl shadow-lg shadow-brand-green/20 hover:scale-[1.02] transition-all"
->
-    SAVE PROFILE
-</button>
+                <button
+                    type="submit"
+                    className="w-full bg-brand-green hover:bg-white hover:text-black text-black font-black text-lg py-4 rounded-xl shadow-lg shadow-brand-green/20 hover:scale-[1.02] transition-all"
+                >
+                    SAVE PROFILE
+                </button>
             </form >
         </div >
     )
