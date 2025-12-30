@@ -13,13 +13,20 @@ const PUBLIC_ROUTES = [
     "/bans",
     "/beta/verify",
     "/api",
-    "/profile", // Allow viewing profiles
 ];
 
-// Check if a path is public
-function isPublicRoute(pathname: string): boolean {
-    // Profile pages are public for viewing
-    if (pathname.startsWith("/profile/")) return true;
+// Check if a path is public (some paths depend on who's viewing)
+function isPublicRoute(pathname: string, username?: string | null): boolean {
+    // Profile pages: public EXCEPT viewing your own profile
+    if (pathname.startsWith("/profile/")) {
+        const viewingProfile = pathname.split("/")[2]; // /profile/[username]
+        // If viewing someone else's profile, it's public
+        // If viewing your own profile, requires beta
+        if (username && viewingProfile === username) {
+            return false; // Own profile = protected
+        }
+        return true; // Other profiles = public
+    }
 
     return PUBLIC_ROUTES.some(route =>
         pathname === route || pathname.startsWith(route + "/")
@@ -39,8 +46,11 @@ export function BetaGate({ children }: BetaGateProps) {
     const [isVerified, setIsVerified] = useState(false);
     const [isRedirecting, setIsRedirecting] = useState(false);
 
+    // Get current user's username
+    const currentUsername = session?.user?.name;
+
     // Determine if we need to check (authenticated + protected route)
-    const needsCheck = status === "authenticated" && !isPublicRoute(pathname);
+    const needsCheck = status === "authenticated" && !isPublicRoute(pathname, currentUsername);
 
     useEffect(() => {
         // Reset verification states when pathname changes
@@ -50,7 +60,7 @@ export function BetaGate({ children }: BetaGateProps) {
 
     useEffect(() => {
         // Skip check for public routes
-        if (isPublicRoute(pathname)) {
+        if (isPublicRoute(pathname, currentUsername)) {
             setIsVerified(true);
             return;
         }
