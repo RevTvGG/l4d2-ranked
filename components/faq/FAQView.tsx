@@ -528,28 +528,137 @@ export function FAQView({ staff }: FAQViewProps) {
             case "staff":
                 return (
                     <div className="space-y-6 animate-in fade-in duration-300">
-                        {staff.map((member: any) => (
-                            <div key={member.name} className="flex flex-col md:flex-row gap-6 bg-zinc-900 border border-white/5 p-6 rounded-2xl items-center md:items-start text-center md:text-left">
-                                <div className="shrink-0 relative">
-                                    <div className={cn("w-24 h-24 rounded-full border-2 overflow-hidden",
-                                        member.role === 'OWNER' ? 'border-brand-green' : member.role === 'ADMIN' ? 'border-red-500' : 'border-blue-500'
-                                    )}>
-                                        <Image src={member.image || "/default_avatar.jpg"} alt={member.name} width={96} height={96} className="object-cover h-full w-full" />
+                        {/* Staff Role Hierarchy */}
+                        <div className="bg-zinc-900/50 border border-white/5 rounded-3xl p-8">
+                            <h2 className="text-2xl font-black uppercase text-white mb-6">
+                                {lang === 'en' ? 'Staff Hierarchy & Permissions' : 'Jerarquía y Permisos del Staff'}
+                            </h2>
+                            <p className="text-zinc-400 mb-8 text-lg">
+                                {lang === 'en'
+                                    ? "Our staff team maintains a strict hierarchy to ensure fair moderation and accountability. Each role has specific permissions and responsibilities."
+                                    : "Nuestro equipo de staff mantiene una jerarquía estricta para asegurar una moderación justa y responsabilidad. Cada rol tiene permisos y responsabilidades específicas."
+                                }
+                            </p>
+
+                            <div className="grid gap-6">
+                                {/* OWNER Role */}
+                                <div className="bg-gradient-to-br from-brand-green/10 to-transparent border border-brand-green/30 rounded-2xl p-6">
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <div className="w-12 h-12 rounded-xl bg-brand-green flex items-center justify-center text-black font-bold text-xl">
+                                            👑
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-brand-green uppercase">Owner</h3>
+                                            <p className="text-zinc-500 text-sm">{lang === 'en' ? 'Platform Owner & Developer' : 'Dueño y Desarrollador de la Plataforma'}</p>
+                                        </div>
                                     </div>
-                                    <div className={cn("absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded text-[10px] font-bold uppercase",
-                                        member.role === 'OWNER' ? 'bg-brand-green text-black' : member.role === 'ADMIN' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
-                                    )}>
-                                        {member.role}
-                                    </div>
+                                    <ul className="space-y-2 text-sm">
+                                        {[
+                                            { en: "Full access to all platform features", es: "Acceso completo a todas las funciones de la plataforma" },
+                                            { en: "Can assign/remove Admin and Moderator roles", es: "Puede asignar/remover roles de Admin y Moderador" },
+                                            { en: "Can delete ANY user account (except other Owners)", es: "Puede eliminar CUALQUIER cuenta de usuario (excepto otros Owners)" },
+                                            { en: "Access to invite code generation system", es: "Acceso al sistema de generación de códigos de invitación" },
+                                            { en: "Can create, edit, and award medals", es: "Puede crear, editar y otorgar medallas" },
+                                            { en: "Server management and configuration", es: "Gestión y configuración de servidores" }
+                                        ].map((item, i) => (
+                                            <li key={i} className="flex items-center gap-2 text-zinc-300">
+                                                <span className="text-brand-green">✓</span>
+                                                {lang === 'en' ? item.en : item.es}
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </div>
-                                <div className="flex-1">
-                                    <h3 className="text-2xl font-black italic uppercase text-white mb-2">{member.name}</h3>
-                                    <p className="text-zinc-400 text-sm bg-black/30 p-4 rounded-xl border border-white/5">
-                                        {member.staffBio || (lang === 'en' ? "No bio available." : "Sin biografía disponible.")}
-                                    </p>
+
+                                {/* ADMIN Role */}
+                                <div className="bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/30 rounded-2xl p-6">
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <div className="w-12 h-12 rounded-xl bg-orange-500 flex items-center justify-center text-white font-bold text-xl">
+                                            ⚙️
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-orange-400 uppercase">Admin</h3>
+                                            <p className="text-zinc-500 text-sm">{lang === 'en' ? 'Senior Moderator & Manager' : 'Moderador Senior y Gestor'}</p>
+                                        </div>
+                                    </div>
+                                    <ul className="space-y-2 text-sm">
+                                        {[
+                                            { en: "Can ban/unban players", es: "Puede banear/desbanear jugadores" },
+                                            { en: "Can delete regular users and Moderators", es: "Puede eliminar usuarios regulares y Moderadores" },
+                                            { en: "CANNOT delete other Admins or Owners", es: "NO PUEDE eliminar otros Admins u Owners" },
+                                            { en: "Can promote users to Moderator", es: "Puede promover usuarios a Moderador" },
+                                            { en: "Access to announcements and content editing", es: "Acceso a anuncios y edición de contenido" },
+                                            { en: "Server status monitoring", es: "Monitoreo del estado de servidores" }
+                                        ].map((item, i) => (
+                                            <li key={i} className="flex items-center gap-2 text-zinc-300">
+                                                <span className="text-orange-400">✓</span>
+                                                {lang === 'en' ? item.en : item.es}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                {/* MODERATOR Role */}
+                                <div className="bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/30 rounded-2xl p-6">
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <div className="w-12 h-12 rounded-xl bg-blue-500 flex items-center justify-center text-white font-bold text-xl">
+                                            🛡️
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-blue-400 uppercase">Moderator</h3>
+                                            <p className="text-zinc-500 text-sm">{lang === 'en' ? 'Community Moderator' : 'Moderador de la Comunidad'}</p>
+                                        </div>
+                                    </div>
+                                    <ul className="space-y-2 text-sm">
+                                        {[
+                                            { en: "Can ban/unban players", es: "Puede banear/desbanear jugadores" },
+                                            { en: "Can review and process reports", es: "Puede revisar y procesar reportes" },
+                                            { en: "Can mute users in chat", es: "Puede silenciar usuarios en el chat" },
+                                            { en: "CANNOT delete any user accounts", es: "NO PUEDE eliminar cuentas de usuario" },
+                                            { en: "CANNOT change user roles", es: "NO PUEDE cambiar roles de usuario" },
+                                            { en: "CANNOT access configuration sections", es: "NO PUEDE acceder a secciones de configuración" }
+                                        ].map((item, i) => (
+                                            <li key={i} className="flex items-center gap-2 text-zinc-300">
+                                                <span className={item.en.includes("CANNOT") ? "text-red-400" : "text-blue-400"}>
+                                                    {item.en.includes("CANNOT") ? "✗" : "✓"}
+                                                </span>
+                                                {lang === 'en' ? item.en : item.es}
+                                            </li>
+                                        ))}
+                                    </ul>
                                 </div>
                             </div>
-                        ))}
+                        </div>
+
+                        {/* Staff Members */}
+                        <div className="bg-zinc-900/50 border border-white/5 rounded-3xl p-8">
+                            <h2 className="text-2xl font-black uppercase text-white mb-6">
+                                {lang === 'en' ? 'Our Staff Team' : 'Nuestro Equipo de Staff'}
+                            </h2>
+                            <div className="grid gap-4">
+                                {staff.map((member: any) => (
+                                    <div key={member.name} className="flex flex-col md:flex-row gap-6 bg-zinc-900 border border-white/5 p-6 rounded-2xl items-center md:items-start text-center md:text-left hover:border-white/10 transition-colors">
+                                        <div className="shrink-0 relative">
+                                            <div className={cn("w-20 h-20 rounded-full border-2 overflow-hidden",
+                                                member.role === 'OWNER' ? 'border-brand-green' : member.role === 'ADMIN' ? 'border-orange-500' : 'border-blue-500'
+                                            )}>
+                                                <Image src={member.image || "/default_avatar.jpg"} alt={member.name} width={80} height={80} className="object-cover h-full w-full" />
+                                            </div>
+                                            <div className={cn("absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded text-[10px] font-bold uppercase",
+                                                member.role === 'OWNER' ? 'bg-brand-green text-black' : member.role === 'ADMIN' ? 'bg-orange-500 text-white' : 'bg-blue-500 text-white'
+                                            )}>
+                                                {member.role}
+                                            </div>
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className="text-xl font-bold text-white mb-2">{member.name}</h3>
+                                            <p className="text-zinc-500 text-sm">
+                                                {member.staffBio || (lang === 'en' ? "No bio available." : "Sin biografía disponible.")}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 )
 

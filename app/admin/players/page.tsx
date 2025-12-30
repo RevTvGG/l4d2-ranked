@@ -313,17 +313,21 @@ export default function AdminPlayersPage() {
                                             View
                                         </Link>
 
-                                        {/* Delete User Button (OWNER only) */}
-                                        {userRole === 'OWNER' && player.role !== 'OWNER' && (
-                                            <button
-                                                onClick={() => setDeleteConfirm({ player, step: 1 })}
-                                                disabled={actionLoading === player.id}
-                                                className="px-3 py-2 bg-red-900/30 text-red-500 border border-red-500/30 rounded font-bold text-sm hover:bg-red-900/50 transition-colors disabled:opacity-50"
-                                                title="Delete User"
-                                            >
-                                                🗑️
-                                            </button>
-                                        )}
+                                        {/* Delete User Button (OWNER and ADMIN) */}
+                                        {/* OWNER can delete anyone except OWNER */}
+                                        {/* ADMIN can delete regular users and mods, but not other ADMINs */}
+                                        {(['OWNER', 'ADMIN'].includes(userRole as string)) &&
+                                            player.role !== 'OWNER' &&
+                                            !(userRole === 'ADMIN' && player.role === 'ADMIN') && (
+                                                <button
+                                                    onClick={() => setDeleteConfirm({ player, step: 1 })}
+                                                    disabled={actionLoading === player.id}
+                                                    className="px-3 py-2 bg-red-900/30 text-red-500 border border-red-500/30 rounded font-bold text-sm hover:bg-red-900/50 transition-colors disabled:opacity-50"
+                                                    title="Delete User"
+                                                >
+                                                    🗑️
+                                                </button>
+                                            )}
                                     </div>
                                 </div>
                             ))}

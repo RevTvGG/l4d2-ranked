@@ -16,15 +16,15 @@ export async function DELETE(
             return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 });
         }
 
-        // Only OWNER can delete users
+        // Only OWNER and ADMIN can delete users
         const admin = await prisma.user.findUnique({
             // @ts-ignore - custom session field
             where: { id: session.user.id },
             select: { role: true }
         });
 
-        if (admin?.role !== 'OWNER') {
-            return NextResponse.json({ success: false, error: 'Only OWNER can delete users' }, { status: 403 });
+        if (!admin || !['OWNER', 'ADMIN'].includes(admin.role)) {
+            return NextResponse.json({ success: false, error: 'Only OWNER or ADMIN can delete users' }, { status: 403 });
         }
 
         const targetUser = await prisma.user.findUnique({
@@ -36,9 +36,15 @@ export async function DELETE(
             return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
         }
 
-        // Cannot delete OWNER
+        // Permission hierarchy:
+        // - OWNER can delete anyone except other OWNERs
+        // - ADMIN can delete regular users and moderators, but NOT other ADMINs or OWNERs
         if (targetUser.role === 'OWNER') {
             return NextResponse.json({ success: false, error: 'Cannot delete OWNER account' }, { status: 403 });
+        }
+
+        if (admin.role === 'ADMIN' && targetUser.role === 'ADMIN') {
+            return NextResponse.json({ success: false, error: 'Admins cannot delete other Admins' }, { status: 403 });
         }
 
         // Delete all related data first (cascade should handle most, but be explicit)
