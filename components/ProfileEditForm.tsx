@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from "react"
-import { updatePreferences, updateTheme } from "@/app/actions/user"
+import { updatePreferences } from "@/app/actions/user"
 import { useRouter } from "next/navigation"
 
 export function ProfileEditForm({ user }: { user: any }) {
@@ -33,32 +33,22 @@ export function ProfileEditForm({ user }: { user: any }) {
 
     const isPremium = user?.isPremium || false;
 
-    async function handleThemeChange(theme: string) {
+    async function handleStyleChange(theme: string, color: string | null) {
         if (!isPremium && theme !== "DEFAULT") {
-            setMsg("Upgrade to Premium to unlock themes!");
+            setMsg("Upgrade to Premium to unlock styles!");
             return;
         }
-        setMsg(`Applying ${theme}...`);
-        // Optimistic update
         setCurrentTheme(theme);
-
-        const res = await updateTheme(theme);
-        setMsg(res.message);
-        if (res.success) {
-            router.refresh();
-        } else {
-            // Revert if failed
-            setCurrentTheme(user?.profileTheme || "DEFAULT");
-        }
+        setProfileColor(color || "");
     }
 
-    const themes = [
-        { id: "DEFAULT", name: "Default", color: "bg-zinc-800 border-white/10" },
-        { id: "GOLD", name: "Gold", color: "bg-yellow-950/50 border-yellow-500/50 text-yellow-500" },
-        { id: "DIAMOND", name: "Diamond", color: "bg-cyan-950/50 border-cyan-500/50 text-cyan-400" },
-        { id: "RUBY", name: "Ruby", color: "bg-red-950/50 border-red-500/50 text-red-500" },
-        { id: "EMERALD", name: "Emerald", color: "bg-emerald-950/50 border-emerald-500/50 text-emerald-500" },
-        { id: "VOID", name: "Void", color: "bg-purple-950/50 border-purple-500/50 text-purple-500" },
+    const STYLE_PRESETS = [
+        { id: "DEFAULT", name: "Default", color: "#27272a", theme: "DEFAULT" },
+        { id: "GOLD", name: "Gold", color: "#eab308", theme: "GOLD" },
+        { id: "DIAMOND", name: "Diamond", color: "#22d3ee", theme: "DIAMOND" },
+        { id: "RUBY", name: "Ruby", color: "#ef4444", theme: "RUBY" },
+        { id: "EMERALD", name: "Emerald", color: "#10b981", theme: "EMERALD" },
+        { id: "VOID", name: "Void", color: "#a855f7", theme: "VOID" },
     ];
 
     const GRADIENT_PRESETS = [
@@ -71,42 +61,19 @@ export function ProfileEditForm({ user }: { user: any }) {
     ];
 
     const COLOR_PRESETS = [
-        "#ffffff", // White
-        "#22c55e", // Brand Green
-        "#ef4444", // Red
-        "#3b82f6", // Blue
-        "#eab308", // Yellow
-        "#a855f7", // Purple
-        "#ec4899", // Pink
-        "#f97316", // Orange
+        { name: "White", hex: "#ffffff" },
+        { name: "Green", hex: "#22c55e" },
+        { name: "Red", hex: "#ef4444" },
+        { name: "Blue", hex: "#3b82f6" },
+        { name: "Yellow", hex: "#eab308" },
+        { name: "Purple", hex: "#a855f7" },
+        { name: "Pink", hex: "#ec4899" },
+        { name: "Orange", hex: "#f97316" },
     ];
 
     return (
         <div className="max-w-xl mx-auto space-y-8">
 
-            {/* THEME SELECTOR (Premium) */}
-            <div className="bg-zinc-900 border border-white/10 p-8 rounded-3xl shadow-xl space-y-4">
-                <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-black text-white italic uppercase flex items-center gap-2">
-                        🎨 Profile Theme
-                        {!isPremium && <span className="text-[10px] bg-yellow-500 text-black px-1.5 py-0.5 rounded font-bold uppercase">PREMIUM ONLY (PREVIEW)</span>}
-                    </h3>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {themes.map((t) => (
-                        <div
-                            key={t.id}
-                            onClick={() => handleThemeChange(t.id)}
-                            className={`p-3 rounded-xl border-2 cursor-pointer transition-all hover:scale-105 ${t.color} ${currentTheme === t.id ? 'ring-2 ring-white scale-105' : 'opacity-80 hover:opacity-100'}`}
-                        >
-                            <div className="font-bold text-sm uppercase tracking-wider text-center">{t.name}</div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* PREMIUM CUSTOMIZATION (Extended) */}
             <form action={handleSubmit} className="space-y-8 bg-zinc-900 border border-white/10 p-8 rounded-3xl shadow-xl">
 
                 {/* PREMIUM CUSTOMIZATION (Extended) */}
@@ -118,7 +85,50 @@ export function ProfileEditForm({ user }: { user: any }) {
                             </h3>
                         </div>
 
-                        {/* 1. Profile Frame */}
+                        {/* 1. Profile Style (Unified) */}
+                        <div className="space-y-4">
+                            <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Profile Style</label>
+                            <input type="hidden" name="profileTheme" value={currentTheme} />
+                            <input type="hidden" name="profileColor" value={profileColor} />
+
+                            {/* Themes */}
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                {STYLE_PRESETS.map((style) => (
+                                    <div
+                                        key={style.id}
+                                        onClick={() => handleStyleChange(style.theme, null)}
+                                        className={`p-3 rounded-xl border-2 cursor-pointer transition-all flex items-center gap-3 ${currentTheme === style.theme && !profileColor ? 'bg-zinc-800 border-white ring-1 ring-white' : 'bg-black/20 border-white/10 hover:border-white/30'}`}
+                                    >
+                                        <div className="w-4 h-4 rounded-full shadow-lg" style={{ backgroundColor: style.color }}></div>
+                                        <div className={`font-bold text-xs uppercase ${currentTheme === style.theme && !profileColor ? 'text-white' : 'text-zinc-500'}`}>{style.name}</div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Custom Colors */}
+                            <div className="flex flex-wrap gap-3 pt-2">
+                                {COLOR_PRESETS.map((preset) => (
+                                    <div
+                                        key={preset.hex}
+                                        onClick={() => handleStyleChange("DEFAULT", preset.hex)}
+                                        className={`w-8 h-8 rounded-full cursor-pointer hover:scale-110 transition-transform ${profileColor === preset.hex ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-900" : ""}`}
+                                        style={{ backgroundColor: preset.hex }}
+                                        title={preset.name}
+                                    />
+                                ))}
+                                <div className="flex items-center gap-2 relative group">
+                                    <input
+                                        type="color"
+                                        value={profileColor || "#ffffff"}
+                                        onChange={(e) => handleStyleChange("DEFAULT", e.target.value)}
+                                        className="w-8 h-8 rounded-full cursor-pointer opacity-0 absolute inset-0 z-10"
+                                    />
+                                    <div className={`w-8 h-8 rounded-full bg-gradient-to-tr from-white to-black border border-white/20 flex items-center justify-center text-[10px] text-black font-bold ${profileColor && !COLOR_PRESETS.find(p => p.hex === profileColor) ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-900" : ""}`}>+</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 2. Profile Frame */}
                         <div className="space-y-4">
                             <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Avatar Frame</label>
                             <input type="hidden" name="profileFrame" value={profileFrame} />

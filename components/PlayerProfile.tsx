@@ -105,13 +105,24 @@ export function PlayerProfile({
         VOID: "border-purple-500/50 bg-purple-950/30 shadow-purple-500/20",
     };
 
-    const containerStyle = themeBg[profileTheme] || themeBg.DEFAULT;
+    // If profileColor is set, it overrides the theme classes with a custom style
+    const hasCustomColor = !!profileColor;
+    const customStyle = hasCustomColor ? {
+        borderColor: profileColor,
+        backgroundColor: `${profileColor}10`, // Low opacity hex
+        boxShadow: `0 0 40px -10px ${profileColor}40` // Glow
+    } : {};
+
+    const containerClasses = hasCustomColor ? "bg-black/80" : (themeBg[profileTheme] || themeBg.DEFAULT);
 
     return (
         <div className="w-full max-w-6xl mx-auto space-y-6">
 
             {/* 1. HERO SECTION */}
-            <div className={`relative rounded-3xl overflow-hidden border shadow-2xl transition-all duration-500 ${containerStyle}`}>
+            <div
+                className={`relative rounded-3xl overflow-hidden border shadow-2xl transition-all duration-500 ${containerClasses}`}
+                style={customStyle}
+            >
 
                 {/* ACTION BUTTONS (Visible to owner) */}
                 {isOwner && (
@@ -139,7 +150,10 @@ export function PlayerProfile({
                             className="object-cover opacity-50 blur-[2px] transition-all duration-700 hover:blur-0 hover:scale-105"
                         />
                     ) : (
-                        <div className="w-full h-full bg-[url('/l4d2_bg.jpg')] bg-cover bg-center opacity-40 mix-blend-luminosity"></div>
+                        <div
+                            className="w-full h-full bg-[url('/l4d2_bg.jpg')] bg-cover bg-center opacity-40 mix-blend-luminosity"
+                            style={hasCustomColor ? { backgroundColor: profileColor, mixBlendMode: 'overlay', opacity: 0.1 } : {}}
+                        ></div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent"></div>
                 </div>
@@ -255,9 +269,9 @@ export function PlayerProfile({
                         <div className="flex flex-col">
                             {customTitle && (
                                 <span className={`text-sm font-bold uppercase tracking-widest mb-1 ${profileTheme === 'FIRE' ? 'text-orange-500' :
-                                        profileTheme === 'ICE' ? 'text-cyan-400' :
-                                            profileTheme === 'GOLD' ? 'text-yellow-400' :
-                                                'text-brand-green'
+                                    profileTheme === 'ICE' ? 'text-cyan-400' :
+                                        profileTheme === 'GOLD' ? 'text-yellow-400' :
+                                            'text-brand-green'
                                     }`}>
                                     {customTitle}
                                 </span>
