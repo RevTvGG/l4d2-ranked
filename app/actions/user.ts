@@ -22,6 +22,14 @@ export async function updatePreferences(formData: FormData) {
     const bio = formData.get("bio") as string;
     const staffBio = formData.get("staffBio") as string;
 
+    // Premium Fields
+    const customTitle = formData.get("customTitle") as string;
+    const profileColor = formData.get("profileColor") as string;
+    const nameGradient = formData.get("nameGradient") as string;
+    const profileBanner = formData.get("profileBanner") as string;
+    const profileFrame = formData.get("profileFrame") as string;
+    const profileGlow = formData.get("profileGlow") === "on";
+
     if (!mainSide) {
         return { success: false, message: "Please select a Main Side." };
     }
@@ -47,7 +55,7 @@ export async function updatePreferences(formData: FormData) {
         // Fetch current user to check role for Staff Bio permission
         const currentUser = await prisma.user.findUnique({
             where: { steamId },
-            select: { role: true }
+            select: { role: true, isPremium: true }
         });
 
         const isStaff = currentUser?.role && ['OWNER', 'ADMIN', 'MODERATOR'].includes(currentUser.role);
@@ -60,6 +68,16 @@ export async function updatePreferences(formData: FormData) {
             skillLevel,
             bio
         };
+
+        // Update Premium Fields if user is Premium
+        if (currentUser?.isPremium) {
+            updateData.customTitle = customTitle && customTitle.length <= 30 ? customTitle : undefined;
+            updateData.profileColor = profileColor;
+            updateData.nameGradient = nameGradient;
+            updateData.profileBanner = profileBanner;
+            updateData.profileFrame = profileFrame;
+            updateData.profileGlow = profileGlow;
+        }
 
         // Only update staffBio if user is staff
         if (isStaff && staffBio !== null) {
