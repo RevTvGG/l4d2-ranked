@@ -237,20 +237,26 @@ export default function AdminPlayersPage() {
                                                 {player.role}
                                             </span>
                                             {/* Beta Verification Badge */}
-                                            {/* @ts-expect-error - betaAccess added in api */}
-                                            {player.betaAccess && (
-                                                <div className="group relative">
-                                                    <span className="bg-brand-green/10 text-brand-green border border-brand-green/20 p-1 rounded-md" title="Beta Verified">
+                                            <div className="group relative">
+                                                {player.betaAccess ? (
+                                                    <span className="bg-brand-green/10 text-brand-green border border-brand-green/20 p-1 rounded-md flex items-center justify-center h-6 w-6" title="Beta Verified">
                                                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                                         </svg>
                                                     </span>
-                                                    {/* Tooltip */}
-                                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black border border-white/10 rounded text-[10px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                                        Beta Verified
-                                                    </div>
+                                                ) : (
+                                                    <span className="bg-zinc-800 text-zinc-500 border border-white/5 p-1 rounded-md flex items-center justify-center h-6 w-6" title="No Beta Access">
+                                                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                        </svg>
+                                                    </span>
+                                                )}
+
+                                                {/* Tooltip */}
+                                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black border border-white/10 rounded text-[10px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                                                    {player.betaAccess ? "Beta Verified" : "No Beta Access"}
                                                 </div>
-                                            )}
+                                            </div>
                                         </div>
                                         <div className="text-sm text-zinc-500 space-x-4">
                                             <span>SteamID: {player.steamId}</span>
