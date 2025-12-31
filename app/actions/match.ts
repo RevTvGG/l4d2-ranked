@@ -164,7 +164,7 @@ export async function voteMap(matchId: string, mapName: string) {
             // AUTO-TRIGGER: Start the server via RCON
             console.log('[VOTE] Auto-triggering server start...');
             try {
-                const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+                const baseUrl = process.env.NEXTAUTH_URL || (process.env.NODE_ENV === 'production' ? 'https://www.l4d2ranked.online' : 'http://localhost:3000');
                 const response = await fetch(`${baseUrl}/api/server/start-match`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
