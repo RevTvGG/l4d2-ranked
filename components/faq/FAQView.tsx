@@ -346,10 +346,15 @@ export function FAQView({ staff }: FAQViewProps) {
                                         }
                                     </p>
                                     <p className="text-red-300/80 text-sm bg-red-500/10 p-3 rounded-lg">
-                                        {lang === 'en'
-                                            ? "⚠️ To get an invite code, join our Discord or contact an existing member."
-                                            : "⚠️ Para obtener un código de invitación, únete a nuestro Discord o contacta a un miembro existente."
-                                        }
+                                        {lang === 'en' ? (
+                                            <>
+                                                ⚠️ To get an invite code, <Link href="/beta/request" className="text-brand-green hover:underline font-bold">fill out the request form</Link> or contact an existing member.
+                                            </>
+                                        ) : (
+                                            <>
+                                                ⚠️ Para obtener un código de invitación, <Link href="/beta/request" className="text-brand-green hover:underline font-bold">completa el formulario de solicitud</Link> o contacta a un miembro existente.
+                                            </>
+                                        )}
                                     </p>
                                 </div>
                             </div>
