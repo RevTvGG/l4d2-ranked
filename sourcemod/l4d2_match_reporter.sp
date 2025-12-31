@@ -11,7 +11,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION "2.1.1"
+#define PLUGIN_VERSION "2.2.0"
 
 // Constants
 #define TEAM_SURVIVOR 2
@@ -185,6 +185,12 @@ public void OnPluginStart()
     
     // Admin command for canceling matches
     RegAdminCmd("sm_ranked_cancel_match", Cmd_CancelMatch, ADMFLAG_ROOT, "Cancels match and kicks all players");
+    
+    // Block spectate commands during matches
+    AddCommandListener(Cmd_BlockSpectate, "jointeam");
+    RegConsoleCmd("sm_s", Cmd_BlockSpectate, "Blocked during ranked matches");
+    RegConsoleCmd("sm_spec", Cmd_BlockSpectate, "Blocked during ranked matches");
+    RegConsoleCmd("sm_spectate", Cmd_BlockSpectate, "Blocked during ranked matches");
     
     AutoExecConfig(true, "l4d2_match_reporter");
     
@@ -438,6 +444,46 @@ public Action Cmd_SetWhitelist(int client, int args)
     ReplyToCommand(client, "[Match Reporter] Whitelist set with %d SteamIDs.", g_iWhitelistCount);
     ReplyToCommand(client, "[Match Reporter] Server slots limited to 8 players.");
     
+    return Plugin_Handled;
+}
+
+// ------------------------------------------------------------------------
+// Block Spectate Commands During Match
+// ------------------------------------------------------------------------
+
+public Action Cmd_BlockSpectate(int client, const char[] command, int argc)
+{
+    // Allow if no match is active
+    if (!g_bIsMatchLive || g_sMatchId[0] == '\0')
+        return Plugin_Continue;
+    
+    // Allow admins to spectate for moderation purposes
+    if (CheckCommandAccess(client, "sm_ranked_admin", ADMFLAG_ROOT, true))
+        return Plugin_Continue;
+    
+    // Check if jointeam command is trying to go to spectator
+    if (StrEqual(command, "jointeam", false))
+    {
+        if (argc >= 1)
+        {
+            char sArg[8];
+            GetCmdArg(1, sArg, sizeof(sArg));
+            int team = StringToInt(sArg);
+            
+            // Block team 1 (spectator)
+            if (team == 1)
+            {
+                PrintToChat(client, "\x04[L4D2 Ranked]\x03 You cannot spectate during an active match!");
+                PrintToChat(client, "\x04[L4D2 Ranked]\x01 Leaving your team may result in penalties.");
+                return Plugin_Handled;
+            }
+        }
+        return Plugin_Continue;
+    }
+    
+    // Block sm_s, sm_spec, sm_spectate
+    PrintToChat(client, "\x04[L4D2 Ranked]\x03 Spectate commands are disabled during ranked matches!");
+    PrintToChat(client, "\x04[L4D2 Ranked]\x01 You must stay with your team until the match ends.");
     return Plugin_Handled;
 }
 
