@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { verifyServerKey } from '@/lib/serverAuth';
+import { getRankFromElo } from "@/lib/rankingSystem";
 import { successResponse, errorResponse, validationError, unauthorizedResponse } from '../../../../lib/api-response';
 
 // Input Schema
@@ -148,12 +149,16 @@ export async function POST(request: NextRequest) {
                 // Add new rating to history
                 const newHistory = [...currentHistory, newElo];
 
+                // Calculate new Rank based on ELO
+                const newRank = getRankFromElo(newElo).name;
+
                 await tx.user.update({
                     where: { id: matchPlayer.userId },
                     data: {
                         wins: { increment: isWinner ? 1 : 0 },
                         losses: { increment: (isWinner || winningTeam === 'DRAW') ? 0 : 1 },
                         rating: newElo,
+                        rank: newRank,
                         // Update Aggregates
                         totalKills: { increment: pStat.kills },
                         totalDeaths: { increment: pStat.deaths },
