@@ -131,17 +131,37 @@ export async function POST(request: NextRequest) {
             }
 
 
-            // Configure player whitelist
+
+            // Configure player whitelist with retry logic
             console.log('[RCON] Configuring player whitelist...');
-
-            // Use the plugin's whitelist command with all SteamIDs
             const whitelistCmd = `sm_ranked_whitelist ${steamIds.join(' ')}`;
-            const whitelistResult = await rcon.execute(whitelistCmd);
 
-            if (whitelistResult.success) {
-                console.log(`[RCON] Whitelist configured for ${steamIds.length} players`);
+            let whitelistSet = false;
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                const whitelistResult = await rcon.execute(whitelistCmd);
+                if (whitelistResult.success) {
+                    console.log(`[RCON] Whitelist configured on attempt ${attempt} for ${steamIds.length} players`);
+                    whitelistSet = true;
+                    break;
+                } else {
+                    console.warn(`[RCON] Whitelist attempt ${attempt}/3 failed: ${whitelistResult.error}`);
+                    if (attempt < 3) {
+                        await new Promise((resolve) => setTimeout(resolve, 3000));
+                    }
+                }
+            }
+
+            if (!whitelistSet) {
+                console.error('[RCON] CRITICAL: Failed to set whitelist after 3 attempts!');
+            }
+
+            // Hide server from browser (set visible max players to 8)
+            console.log('[RCON] Hiding server from browser...');
+            const hideServerResult = await rcon.execute('sv_visiblemaxplayers 8');
+            if (hideServerResult.success) {
+                console.log('[RCON] Server hidden (sv_visiblemaxplayers 8)');
             } else {
-                console.warn(`[RCON] Warning: Failed to set whitelist: ${whitelistResult.error}`);
+                console.warn(`[RCON] Warning: Failed to hide server: ${hideServerResult.error}`);
             }
 
 
