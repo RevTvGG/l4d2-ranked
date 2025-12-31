@@ -593,8 +593,14 @@ public Action Timer_AutoEndMatch(Handle timer)
     }
     
     // Get campaign scores using Left4DHooks
-    int teamAScore = L4D2_GetVersusCampaignScores(0); // Team index 0
-    int teamBScore = L4D2_GetVersusCampaignScores(1); // Team index 1
+    int teamAScore = 0;
+    int teamBScore = 0;
+    
+    if (!L4D2_GetVersusCampaignScores(teamAScore, teamBScore))
+    {
+        PrintToServer("[Match Reporter] Failed to retrieve campaign scores!");
+        return Plugin_Continue;
+    }
     
     PrintToServer("[Match Reporter] Campaign scores: Team A=%d, Team B=%d", teamAScore, teamBScore);
     
