@@ -12,7 +12,10 @@ export async function getProfile(username: string) {
         const { prisma } = await import("@/lib/prisma");
         const user = await prisma.user.findFirst({
             where: {
-                name: decodedName
+                OR: [
+                    { name: decodedName },
+                    { steamId: decodedName }
+                ]
             },
             include: {
                 team: {
