@@ -81,6 +81,71 @@ export function FAQView({ staff }: FAQViewProps) {
                                 </p>
                             </div>
                         </div>
+
+                        {/* STEAM SECURITY & INFRASTRUCTURE */}
+                        <div className="bg-zinc-900/50 border border-white/5 rounded-3xl p-8">
+                            <h2 className="text-2xl font-black uppercase text-white mb-6 flex items-center gap-3">
+                                <span className="text-3xl text-brand-green">🛡️</span>
+                                {lang === 'en' ? 'Steam Login Security & Infrastructure' : 'Seguridad con Steam e Infraestructura'}
+                            </h2>
+                            <div className="space-y-6 text-zinc-400 leading-relaxed text-sm md:text-base">
+                                <div className="bg-black/20 p-6 rounded-xl border-l-4 border-brand-green">
+                                    <h3 className="font-bold text-white uppercase mb-2">
+                                        {lang === 'en' ? 'Why is it Safe?' : '¿Por qué es seguro?'}
+                                    </h3>
+                                    <p>
+                                        {lang === 'en'
+                                            ? "We use the official Steam OpenID protocol for authentication. This means we NEVER see, access, or store your Steam password or login credentials. When you sign in, you are redirected securely to Valve's official site, and they simply tell us: 'Yes, this user is verified'. This mechanism ensures your account remains 100% secure under Valve's protection."
+                                            : "Utilizamos el protocolo oficial Steam OpenID para la autenticación. Esto significa que NUNCA vemos, accedemos ni almacenamos tu contraseña de Steam o credenciales de inicio de sesión. Cuando inicias sesión, eres redirigido de forma segura al sitio oficial de Valve, y ellos simplemente nos dicen: 'Sí, este usuario está verificado'. Este mecanismo asegura que tu cuenta permanezca 100% segura bajo la protección de Valve."
+                                        }
+                                    </p>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h3 className="font-bold text-white uppercase text-lg border-b border-white/5 pb-2">
+                                        {lang === 'en' ? 'Service Dependency & Maintenance' : 'Dependencia del Servicio y Mantenimiento'}
+                                    </h3>
+                                    <p>
+                                        {lang === 'en'
+                                            ? "It is important to understand that L4D2 Ranked relies completely on the Steam API to function. Our verification, login, and profile data systems fetch information directly from Steam's servers."
+                                            : "Es importante entender que L4D2 Ranked depende completamente de la API de Steam para funcionar. Nuestros sistemas de verificación, inicio de sesión y datos de perfil obtienen información directamente de los servidores de Steam."
+                                        }
+                                    </p>
+
+                                    <ul className="grid gap-4 md:grid-cols-2">
+                                        <li className="bg-zinc-950 p-4 rounded-xl border border-white/5">
+                                            <strong className="block text-blue-400 uppercase mb-1 text-xs tracking-wider">
+                                                {lang === 'en' ? 'Routine Maintenance' : 'Mantenimiento de Rutina'}
+                                            </strong>
+                                            <p className="text-xs text-zinc-500">
+                                                {lang === 'en'
+                                                    ? "Every Tuesday (approx. 4:00 PM PST), Steam performs scheduled maintenance. During this window, our services may be suspended or unreachable. This is normal behavior."
+                                                    : "Cada martes (aprox. 4:00 PM PST), Steam realiza tareas de mantenimiento programadas. Durante esta ventana, es posible que nuestros servicios estén suspendidos o no disponibles. Esto es un comportamiento normal."
+                                                }
+                                            </p>
+                                        </li>
+                                        <li className="bg-zinc-950 p-4 rounded-xl border border-white/5">
+                                            <strong className="block text-red-400 uppercase mb-1 text-xs tracking-wider">
+                                                {lang === 'en' ? 'API Outages' : 'Caídas de la API'}
+                                            </strong>
+                                            <p className="text-xs text-zinc-500">
+                                                {lang === 'en'
+                                                    ? "If Steam goes down, our platform goes down. We do this to protect user integrity; without Steam verification, we cannot guarantee who is connecting to our servers."
+                                                    : "Si Steam se cae, nuestra plataforma se cae. Hacemos esto para proteger la integridad del usuario; sin la verificación de Steam, no podemos garantizar quién se está conectando a nuestros servidores."
+                                                }
+                                            </p>
+                                        </li>
+                                    </ul>
+
+                                    <div className="bg-blue-500/10 p-4 rounded-xl text-xs text-blue-200/80 italic text-center">
+                                        {lang === 'en'
+                                            ? "Note: We are actively exploring independent login systems for the future, but for now, the Steam API is the bedrock of our security architecture."
+                                            : "Nota: Estamos explorando activamente sistemas de inicio de sesión independientes para el futuro, pero por ahora, la API de Steam es la base de nuestra arquitectura de seguridad."
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 );
 
