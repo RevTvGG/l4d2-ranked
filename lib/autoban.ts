@@ -5,9 +5,11 @@ const BAN_DURATIONS = {
     AFK_ACCEPT: [15, 60, 180, 720, 1440],      // 15m, 1h, 3h, 12h, 1d
     NO_JOIN: [30, 120, 360, 1440, 4320],       // 30m, 2h, 6h, 1d, 3d
     CRASH: [60, 180, 720, 1440, 4320],         // 1h, 3h, 12h, 1d, 3d
+    RAGE_QUIT: [60, 360, 1440, 4320, 10080],   // 1h, 6h, 1d, 3d, 1 week
+    NO_REJOIN: [60, 180, 720, 1440, 4320],     // Same as CRASH (not intentional)
 };
 
-type AutoBanReason = 'AFK_ACCEPT' | 'NO_JOIN' | 'CRASH';
+type AutoBanReason = 'AFK_ACCEPT' | 'NO_JOIN' | 'CRASH' | 'RAGE_QUIT' | 'NO_REJOIN';
 
 /**
  * Get ban duration based on user's ban history
@@ -168,3 +170,115 @@ export async function handleNoJoin(userId: string, matchId: string): Promise<voi
 export async function handleCrashNoRejoin(userId: string, matchId: string): Promise<void> {
     await cancelMatchAndBanPlayer(matchId, userId, 'CRASH', 'Disconnected and did not rejoin');
 }
+
+/**
+ * Forfeit a match when a player leaves/disconnects and doesn't return
+ * - Winner team gets full ELO (as if they won normally)
+ * - Only the quitter loses ELO (as a normal loss)
+ * - Other teammates of the quitter are NOT penalized
+ * - Quitter gets banned
+ */
+export async function forfeitMatchAndBanPlayer(
+    matchId: string,
+    quitterUserId: string,
+    reason: AutoBanReason,
+    description?: string
+): Promise<{ success: boolean; error?: string }> {
+    try {
+        // Get match with all players
+        const match = await prisma.match.findUnique({
+            where: { id: matchId },
+            include: {
+                players: {
+                    include: {
+                        user: true
+                    }
+                }
+            }
+        });
+
+        if (!match) {
+            return { success: false, error: 'Match not found' };
+        }
+
+        // Find the quitter and their team
+        const quitter = match.players.find(p => p.userId === quitterUserId);
+        if (!quitter) {
+            return { success: false, error: 'Quitter not found in match' };
+        }
+
+        const quitterTeam = quitter.team;
+        const winnerTeam = quitterTeam === '1' || quitterTeam === 'TEAM_A' ? '2' : '1';
+
+        // Calculate ELO changes (standard K-factor of 32)
+        const K = 32;
+        const avgWinnerRating = match.players
+            .filter(p => p.team !== quitterTeam)
+            .reduce((sum, p) => sum + (p.user.rating || 1000), 0) / 4 || 1000;
+
+        const avgLoserRating = match.players
+            .filter(p => p.team === quitterTeam)
+            .reduce((sum, p) => sum + (p.user.rating || 1000), 0) / 4 || 1000;
+
+        // Expected scores
+        const expectedWinner = 1 / (1 + Math.pow(10, (avgLoserRating - avgWinnerRating) / 400));
+        const eloGain = Math.round(K * (1 - expectedWinner));
+        const eloLoss = Math.round(K * expectedWinner);
+
+        // Update winners (give ELO)
+        for (const player of match.players) {
+            if (player.team !== quitterTeam) {
+                await prisma.user.update({
+                    where: { id: player.userId },
+                    data: {
+                        rating: { increment: eloGain },
+                        wins: { increment: 1 }
+                    }
+                });
+                console.log(`[Forfeit] ${player.user.name} gained ${eloGain} ELO (winner)`);
+            }
+        }
+
+        // Only the quitter loses ELO (teammates are not penalized)
+        const quitterUser = quitter.user;
+        await prisma.user.update({
+            where: { id: quitterUserId },
+            data: {
+                rating: { decrement: eloLoss },
+                losses: { increment: 1 }
+            }
+        });
+        console.log(`[Forfeit] ${quitterUser.name} lost ${eloLoss} ELO (quitter)`);
+
+        // Update match as completed with winner
+        await prisma.match.update({
+            where: { id: matchId },
+            data: {
+                status: 'COMPLETED',
+                completedAt: new Date(),
+                winnerTeam: winnerTeam === '2' ? 'B' : 'A',
+                cancelReason: `Forfeit: ${reason} by ${quitterUser.name}`
+            }
+        });
+
+        // Remove queue entries
+        await prisma.queueEntry.deleteMany({
+            where: { matchId }
+        });
+
+        // Ban the quitter
+        const banResult = await createAutoBan(quitterUserId, reason, matchId, description);
+
+        if (!banResult.success) {
+            console.error('[Forfeit] Failed to ban quitter:', banResult.error);
+        }
+
+        console.log(`[Forfeit] Match ${matchId} forfeited. Winner: Team ${winnerTeam}, Quitter: ${quitterUser.name}`);
+
+        return { success: true };
+    } catch (error) {
+        console.error('[Forfeit] Error:', error);
+        return { success: false, error: 'Failed to process forfeit' };
+    }
+}
+

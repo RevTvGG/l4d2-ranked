@@ -311,6 +311,8 @@ enum BanReason {
   MANUAL
   TROLLING
   CHEATING
+  RAGE_QUIT
+  NO_REJOIN
 }
 
 

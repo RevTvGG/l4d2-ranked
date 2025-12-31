@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { createAutoBan, cancelMatchAndBanPlayer } from '@/lib/autoban';
+import { createAutoBan, cancelMatchAndBanPlayer, forfeitMatchAndBanPlayer } from '@/lib/autoban';
 
 // Events from the plugin:
 // - PLAYER_DISCONNECT: Player disconnected from server
@@ -52,24 +52,31 @@ export async function POST(request: NextRequest) {
         switch (event as ServerEvent) {
             case 'PLAYER_DISCONNECT':
             case 'PLAYER_CRASH':
-                // Start grace period (5 minutes for crash, 2 minutes for disconnect)
+                // Different grace periods based on disconnect type
+                // Rage quit (disconnect by user) = 2 minutes
+                // Crash (timed out) = 5 minutes
                 const graceMinutes = event === 'PLAYER_CRASH' ? 5 : 2;
+                const banReason = event === 'PLAYER_CRASH' ? 'NO_REJOIN' : 'RAGE_QUIT';
 
                 // Clear any existing timeout
                 if (pendingDisconnects.has(steamId)) {
                     clearTimeout(pendingDisconnects.get(steamId)!);
                 }
 
+                // Notify in-game about grace period
+                console.log(`[ServerEvent] ${steamId} disconnected (${event}). Grace: ${graceMinutes} min`);
+
                 // Set new timeout
                 const timeout = setTimeout(async () => {
-                    console.log(`[ServerEvent] Grace period expired for ${steamId}`);
+                    console.log(`[ServerEvent] Grace period expired for ${steamId} (${banReason})`);
 
                     if (matchId) {
-                        await cancelMatchAndBanPlayer(
+                        // Forfeit match: winner gets ELO, only quitter loses
+                        await forfeitMatchAndBanPlayer(
                             matchId,
                             user.id,
-                            event === 'PLAYER_CRASH' ? 'CRASH' : 'NO_JOIN',
-                            reason || `Player disconnected: ${event}`
+                            banReason as any,
+                            reason || `Player ${event === 'PLAYER_CRASH' ? 'crashed and did not rejoin' : 'rage quit'}`
                         );
                     } else {
                         await createAutoBan(
@@ -87,8 +94,9 @@ export async function POST(request: NextRequest) {
 
                 return NextResponse.json({
                     success: true,
-                    message: `Grace period started: ${graceMinutes} minutes`,
-                    graceMinutes
+                    message: `Grace period started: ${graceMinutes} minutes (${banReason})`,
+                    graceMinutes,
+                    banReason
                 });
 
             case 'PLAYER_CONNECT':
