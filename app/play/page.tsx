@@ -238,39 +238,41 @@ export default function PlayPage() {
                                                 <div className="grid grid-cols-4 gap-3">
                                                     {queueStatus.nextPlayers.map((entry: any) => (
                                                         <div key={entry.id} className="flex flex-col items-center gap-1.5">
-                                                            <div className="relative group">
-                                                                {entry.user.image ? (
-                                                                    <img
-                                                                        src={entry.user.image}
-                                                                        alt={entry.user.name || 'Player'}
-                                                                        className="w-14 h-14 rounded-full border-2 border-zinc-700 group-hover:border-brand-green transition-colors object-cover"
-                                                                        onError={(e) => {
-                                                                            const target = e.target as HTMLImageElement;
-                                                                            target.style.display = 'none';
-                                                                            const fallback = target.nextElementSibling as HTMLElement;
-                                                                            if (fallback) fallback.style.display = 'flex';
-                                                                        }}
-                                                                    />
-                                                                ) : null}
-                                                                <div
-                                                                    className="w-14 h-14 rounded-full border-2 border-zinc-700 group-hover:border-brand-green transition-colors bg-zinc-800 flex items-center justify-center"
-                                                                    style={{ display: entry.user.image ? 'none' : 'flex' }}
+                                                            <Link href={`/profile/${entry.user.steamId || entry.user.name}`} className="group flex flex-col items-center gap-1.5 w-full">
+                                                                <div className="relative group">
+                                                                    {entry.user.image ? (
+                                                                        <img
+                                                                            src={entry.user.image}
+                                                                            alt={entry.user.name || 'Player'}
+                                                                            className="w-14 h-14 rounded-full border-2 border-zinc-700 group-hover:border-brand-green transition-colors object-cover"
+                                                                            onError={(e) => {
+                                                                                const target = e.target as HTMLImageElement;
+                                                                                target.style.display = 'none';
+                                                                                const fallback = target.nextElementSibling as HTMLElement;
+                                                                                if (fallback) fallback.style.display = 'flex';
+                                                                            }}
+                                                                        />
+                                                                    ) : null}
+                                                                    <div
+                                                                        className="w-14 h-14 rounded-full border-2 border-zinc-700 group-hover:border-brand-green transition-colors bg-zinc-800 flex items-center justify-center"
+                                                                        style={{ display: entry.user.image ? 'none' : 'flex' }}
+                                                                    >
+                                                                        <span className="text-zinc-500 text-lg font-bold">
+                                                                            {(entry.user.name || 'P')[0].toUpperCase()}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="absolute -bottom-0.5 -right-0.5 bg-zinc-900 border border-zinc-700 rounded px-1 py-0.5 text-[9px] font-bold text-brand-green shadow-lg">
+                                                                        {entry.user.rating}
+                                                                    </div>
+                                                                </div>
+                                                                <span
+                                                                    className="text-[9px] text-zinc-400 group-hover:text-brand-green transition-colors text-center w-full block overflow-hidden text-ellipsis whitespace-nowrap px-0.5"
+                                                                    title={entry.user.name || 'Unknown'}
+                                                                    style={{ maxWidth: '60px' }}
                                                                 >
-                                                                    <span className="text-zinc-500 text-lg font-bold">
-                                                                        {(entry.user.name || 'P')[0].toUpperCase()}
-                                                                    </span>
-                                                                </div>
-                                                                <div className="absolute -bottom-0.5 -right-0.5 bg-zinc-900 border border-zinc-700 rounded px-1 py-0.5 text-[9px] font-bold text-brand-green shadow-lg">
-                                                                    {entry.user.rating}
-                                                                </div>
-                                                            </div>
-                                                            <span
-                                                                className="text-[9px] text-zinc-400 text-center w-full block overflow-hidden text-ellipsis whitespace-nowrap px-0.5"
-                                                                title={entry.user.name || 'Unknown'}
-                                                                style={{ maxWidth: '60px' }}
-                                                            >
-                                                                {entry.user.name || 'Unknown'}
-                                                            </span>
+                                                                    {entry.user.name || 'Unknown'}
+                                                                </span>
+                                                            </Link>
                                                         </div>
                                                     ))}
                                                     {/* Empty slots */}
@@ -367,8 +369,8 @@ export default function PlayPage() {
                                         {/* READY TO CONNECT / WAITING FOR PLAYERS / IN PROGRESS */}
                                         {(isMatchReady || isLive) && (
                                             <div className={`p-6 rounded-xl space-y-4 shadow-xl ${matchData?.status === 'IN_PROGRESS'
-                                                    ? 'bg-amber-500 text-black shadow-amber-500/20'
-                                                    : 'bg-brand-green text-black shadow-brand-green/20'
+                                                ? 'bg-amber-500 text-black shadow-amber-500/20'
+                                                : 'bg-brand-green text-black shadow-brand-green/20'
                                                 }`}>
                                                 <div className="text-center font-black text-2xl tracking-tighter">
                                                     {matchData?.status === 'IN_PROGRESS' ? '⚔️ MATCH IN PROGRESS' :
