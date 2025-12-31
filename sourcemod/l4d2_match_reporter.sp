@@ -591,24 +591,13 @@ public Action Timer_AutoEndMatch(Handle timer)
         return Plugin_Continue;
     }
     
-    // Try to get scores from native ConVars
-    int teamAScore = 0;
-    int teamBScore = 0;
+    // Get scores using native SourceMod function
+    // Team 2 = Survivors, Team 3 = Infected
+    // In versus mode, these represent the campaign scores
+    int teamAScore = GetTeamScore(TEAM_SURVIVOR);
+    int teamBScore = GetTeamScore(TEAM_INFECTED);
     
-    // Get scores from L4D2 native ConVars
-    ConVar cvTeamAScore = FindConVar("vs_tiebreak_bonus");  
-    ConVar cvScoreA = FindConVar("sm_tie_score_logic"); 
-    
-    // Fallback: Use a simple method - check current game state
-    // In L4D2, team scores are stored in game rules
-    // We'll use the versus campaign scores directly
-    Handle hCvarScoreA = FindConVar("versus_score1");
-    Handle hCvarScoreB = FindConVar("versus_score2");
-    
-    if (hCvarScoreA != INVALID_HANDLE)
-        teamAScore = GetConVarInt(hCvarScoreA);
-    if (hCvarScoreB != INVALID_HANDLE)
-        teamBScore = GetConVarInt(hCvarScoreB);
+    PrintToServer("[Match Reporter] Current scores: Survivors=%d, Infected=%d", teamAScore, teamBScore);
     
     // Determine winner
     char sWinner[16];
