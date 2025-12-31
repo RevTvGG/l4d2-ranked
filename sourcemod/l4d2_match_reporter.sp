@@ -6,6 +6,7 @@
 #undef REQUIRE_PLUGIN
 #include <l4d2_hybrid_scoremod>
 #include <l4d2_survivor_mvp>
+#include <l4d2direct>
 #define REQUIRE_PLUGIN
 
 #pragma semicolon 1
