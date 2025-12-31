@@ -23,6 +23,8 @@ interface Player {
     banCount: number;
     activeBanId: string | null;
     createdAt: string;
+    isPremium: boolean;
+    betaAccess: boolean;
 }
 
 export default function AdminPlayersPage() {
