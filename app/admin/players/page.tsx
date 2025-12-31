@@ -174,6 +174,36 @@ export default function AdminPlayersPage() {
         }
     };
 
+    const handleTogglePremium = async (player: Player) => {
+        if (userRole !== 'OWNER') {
+            alert('Only the owner can toggle premium status');
+            return;
+        }
+        setActionLoading(player.id);
+        try {
+            const res = await fetch(`/api/admin/players/${player.id}/premium`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    isPremium: !player.isPremium,
+                    expiresInDays: 0 // Permanent premium
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(data.message);
+                fetchPlayers();
+            } else {
+                alert(data.error || 'Failed to toggle premium');
+            }
+        } catch (error) {
+            console.error('Premium toggle failed:', error);
+            alert('Failed to toggle premium');
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
     if (status === 'loading' || !isAdmin) {
         return <div className="min-h-screen bg-black flex items-center justify-center text-white">Loading...</div>;
     }
@@ -321,6 +351,21 @@ export default function AdminPlayersPage() {
                                                 </button>
                                             )
                                         }
+
+                                        {/* Premium Toggle Button (OWNER only) */}
+                                        {userRole === 'OWNER' && (
+                                            <button
+                                                onClick={() => handleTogglePremium(player)}
+                                                disabled={actionLoading === player.id}
+                                                className={`px-3 py-2 rounded font-bold text-sm transition-colors flex items-center gap-1 ${player.isPremium
+                                                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 hover:bg-amber-500/30'
+                                                        : 'bg-zinc-800 text-zinc-400 border border-white/10 hover:bg-zinc-700'
+                                                    }`}
+                                                title={player.isPremium ? 'Remove Premium' : 'Give Premium'}
+                                            >
+                                                {actionLoading === player.id ? '...' : (player.isPremium ? '👑 Premium' : '⭐ Give Premium')}
+                                            </button>
+                                        )}
 
                                         {/* Award Medal Button */}
                                         {userRole === 'OWNER' && (
