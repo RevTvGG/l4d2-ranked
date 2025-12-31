@@ -426,7 +426,7 @@ export function PlayerProfile({
                                     );
                                 })
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center text-zinc-600 text-xs">
+                                <div className="w-full h-full flex items-center justify-center text-zinc-400 text-sm">
                                     No matches played yet
                                 </div>
                             )}
