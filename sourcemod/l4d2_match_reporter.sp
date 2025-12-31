@@ -11,7 +11,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION "2.0.1"
+#define PLUGIN_VERSION "2.1.1"
 
 // Constants
 #define TEAM_SURVIVOR 2
@@ -236,6 +236,9 @@ public Action Timer_KickUnauthorized(Handle timer, int userid)
 public void OnMapStart()
 {
     ResetPlayerStats();
+    
+    // Layer 3: Verify Match ID is set after map loads
+    CreateTimer(30.0, Timer_CheckMatchIdSet, _, TIMER_FLAG_NO_MAPCHANGE);
 }
 
 void ResetPlayerStats()
@@ -247,6 +250,38 @@ void ResetPlayerStats()
         g_iPlayerDamage[i] = 0;
         g_iPlayerHeadshots[i] = 0;
     }
+}
+
+// Layer 3: Verify Match ID is set after map loads
+public Action Timer_CheckMatchIdSet(Handle timer)
+{
+    // Only check if we're on a competitive map
+    char sCurrentMap[64];
+    GetCurrentMap(sCurrentMap, sizeof(sCurrentMap));
+    
+    if (!IsCompetitiveMap(sCurrentMap))
+        return Plugin_Continue; // Ignore lobby/non-competitive maps
+    
+    // If Match ID is not set, warn players and admins
+    if (g_sMatchId[0] == '\0')
+    {
+        PrintToServer("[Match Reporter] WARNING: Match ID not set after 30 seconds!");
+        PrintToChatAll("\x04[L4D2 Ranked]\x03 ⚠️ WARNING:\x01 Match ID not detected!");
+        PrintToChatAll("\x04[L4D2 Ranked]\x01 Admins: Run \x03!ranked_status\x01 to verify.");
+        PrintToChatAll("\x04[L4D2 Ranked]\x01 This match may not be scored correctly.");
+    }
+    
+    return Plugin_Continue;
+}
+
+// Helper: Check if current map is competitive (not lobby)
+bool IsCompetitiveMap(const char[] mapname)
+{
+    // Most lobby maps start with "l4d_" or contain "lobby" or "ready"
+    return !(
+        StrContains(mapname, "lobby", false) != -1 ||
+        StrContains(mapname, "ready", false) != -1
+    );
 }
 
 // ------------------------------------------------------------------------
@@ -456,7 +491,93 @@ public void OnPlayerHurt(Event event, const char[] name, bool dontBroadcast)
 
 public void OnRoundEnd(Event event, const char[] name, bool dontBroadcast)
 {
-    // Could send round stats here if needed
+    // Auto-detect competitive match completion
+    if (!g_bIsMatchLive || g_sMatchId[0] == '\0')
+        return;
+    
+    // Get current map
+    char sCurrentMap[64];
+    GetCurrentMap(sCurrentMap, sizeof(sCurrentMap));
+    
+    // Check if this is the last competitive map (penultimate map before finale)
+    if (IsCompetitiveFinalMap(sCurrentMap))
+    {
+        PrintToServer("[Match Reporter] Competitive campaign complete! Waiting 5 seconds to determine winner...");
+        PrintToChatAll("\x04[L4D2 Ranked]\x01 Campaign complete! Calculating results...");
+        CreateTimer(5.0, Timer_AutoEndMatch, _, TIMER_FLAG_NO_MAPCHANGE);
+    }
+}
+
+// ========================================
+// AUTO-DETECT COMPETITIVE MATCH COMPLETION
+// ========================================
+
+// Checks if current map is the last competitive map (penultimate, before finale)
+bool IsCompetitiveFinalMap(const char[] currentMap)
+{
+    return (
+        // ===== L4D2 Official Campaigns =====
+        StrEqual(currentMap, "c1m3_mall") ||        // Dead Center (4 maps, play 3)
+        StrEqual(currentMap, "c2m4_barns") ||       // Dark Carnival (5 maps, play 4)
+        StrEqual(currentMap, "c3m3_shantytown") ||  // Swamp Fever (4 maps, play 3)
+        StrEqual(currentMap, "c4m4_milltown_b") ||  // Hard Rain (5 maps, play 4)
+        StrEqual(currentMap, "c5m4_quarter") ||     // The Parish (5 maps, play 4)
+        StrEqual(currentMap, "c6m2_bedlam") ||      // The Passing (3 maps, play 2)
+        StrEqual(currentMap, "c7m2_barge") ||       // The Sacrifice (3 maps, play 2)
+        
+        // ===== L4D1 Campaigns (Ported to L4D2) =====
+        StrEqual(currentMap, "c8m4_interior") ||    // No Mercy (5 maps, play 4)
+        StrEqual(currentMap, "c9m1_alleys") ||      // Crash Course (2 maps, play 1)
+        StrEqual(currentMap, "c10m4_mainstreet") || // Death Toll (5 maps, play 4)
+        StrEqual(currentMap, "c11m4_terminal") ||   // Dead Air (5 maps, play 4)
+        StrEqual(currentMap, "c12m4_barn") ||       // Blood Harvest (5 maps, play 4)
+        StrEqual(currentMap, "c13m3_memorialbridge") || // Cold Stream (4 maps, play 3)
+        StrEqual(currentMap, "c14m1_junkyard")      // The Last Stand (2 maps, play 1)
+    );
+}
+
+// Timer callback to determine winner automatically after competitive campaign ends
+public Action Timer_AutoEndMatch(Handle timer)
+{
+    if (g_sMatchId[0] == '\0')
+    {
+        PrintToServer("[Match Reporter] Timer fired but no match ID set");
+        return Plugin_Continue;
+    }
+    
+    // Try to get scores from hybrid_scoremod if available
+    int teamAScore = 0;
+    int teamBScore = 0;
+    
+    if (g_bScoreModAvailable)
+    {
+        // Use L4D2Direct natives to get campaign scores
+        teamAScore = L4D2Direct_GetVSCampaignScore(0); // Team A (Survivors first round)
+        teamBScore = L4D2Direct_GetVSCampaignScore(1); // Team B (Infected first round)
+    }
+    
+    // Determine winner
+    char sWinner[16];
+    if (teamAScore > teamBScore)
+    {
+        strcopy(sWinner, sizeof(sWinner), "A");
+        PrintToServer("[Match Reporter] Auto-end: Team A wins! (Score: A=%d, B=%d)", teamAScore, teamBScore);
+    }
+    else if (teamBScore > teamAScore)
+    {
+        strcopy(sWinner, sizeof(sWinner), "B");
+        PrintToServer("[Match Reporter] Auto-end: Team B wins! (Score: A=%d, B=%d)", teamAScore, teamBScore);
+    }
+    else
+    {
+        strcopy(sWinner, sizeof(sWinner), "DRAW");
+        PrintToServer("[Match Reporter] Auto-end: Draw! (Score: A=%d, B=%d)", teamAScore, teamBScore);
+    }
+    
+    // Send match results
+    SendMatchComplete(sWinner);
+    
+    return Plugin_Continue;
 }
 
 public void OnMatchFinished(Event event, const char[] name, bool dontBroadcast)

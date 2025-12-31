@@ -106,13 +106,28 @@ export async function POST(request: NextRequest) {
                 console.log(`[RCON] Plugin API URL configured: ${apiUrl}/api`);
             }
 
-            // Set match ID
-            const matchIdResult = await rcon.execute(`sm_set_match_id ${matchId}`);
-            if (!matchIdResult.success) {
-                console.warn(`[RCON] Warning: Match ID may not be set: ${matchIdResult.error}`);
-                // Don't throw, match can continue without reporter
-            } else {
-                console.log(`[RCON] Match ID set: ${matchId}`);
+
+            // Set match ID with retry logic (Layer 1: Reliability)
+            console.log('[RCON] Setting Match ID with retry logic...');
+            let matchIdSet = false;
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                const matchIdResult = await rcon.execute(`sm_set_match_id ${matchId}`);
+                if (matchIdResult.success) {
+                    console.log(`[RCON] Match ID set successfully on attempt ${attempt}: ${matchId}`);
+                    matchIdSet = true;
+                    break;
+                } else {
+                    console.warn(`[RCON] Attempt ${attempt}/3 failed: ${matchIdResult.error}`);
+                    if (attempt < 3) {
+                        console.log('[RCON] Waiting 5 seconds before retry...');
+                        await new Promise((resolve) => setTimeout(resolve, 5000));
+                    }
+                }
+            }
+
+            if (!matchIdSet) {
+                console.error(`[RCON] CRITICAL: Failed to set Match ID after 3 attempts. Plugin will auto-query from API.`);
+                // Don't throw - plugin has auto-query fallback (Layer 2)
             }
 
 
