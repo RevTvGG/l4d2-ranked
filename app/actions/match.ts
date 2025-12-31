@@ -78,6 +78,18 @@ export async function voteMap(matchId: string, mapName: string) {
     if (!session?.user || !(session.user as any).id) return { error: "Not authenticated" };
 
     try {
+        // SECURITY CHECK: Verify user is a participant in this match
+        const participant = await prisma.matchPlayer.count({
+            where: {
+                matchId,
+                userId: session.user.id
+            }
+        });
+
+        if (participant === 0) {
+            return { error: "You are not a participant in this match" };
+        }
+
         // Upsert vote
         await prisma.mapVote.upsert({
             where: {
