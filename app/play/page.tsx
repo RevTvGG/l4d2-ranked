@@ -29,10 +29,14 @@ export default function PlayPage() {
     }, [status]);
 
     // Poll for queue status and online users
+    // Poll for queue status and online users
     useEffect(() => {
         if (status !== 'authenticated') return;
 
-        const pollInterval = setInterval(async () => {
+        const poll = async () => {
+            // Optimization: Don't poll if tab is in background
+            if (document.hidden) return;
+
             try {
                 // Get Queue Status
                 const status = await getQueueStatus();
@@ -55,7 +59,12 @@ export default function PlayPage() {
             } catch (error) {
                 console.error("Polling error:", error);
             }
-        }, 3000);
+        };
+
+        // Initial call
+        poll();
+
+        const pollInterval = setInterval(poll, 3000);
 
         return () => clearInterval(pollInterval);
     }, [status, session?.user?.id]);
