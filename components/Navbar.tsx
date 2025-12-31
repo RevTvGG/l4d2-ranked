@@ -12,7 +12,7 @@ export function Navbar() {
     // Calculate profile URL: if logged in, go to their profile with steamId. If not, go to demo.
     const profileUrl = session?.user
         // @ts-expect-error - steamId is active
-        ? `/profile/${session.user.name}?steamId=${session.user.steamId}`
+        ? `/profile/${session.user.steamId}`
         : "/profile/demo";
 
     // Check if user has admin role

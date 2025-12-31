@@ -21,7 +21,7 @@ export function AuthButton() {
                 </div>
 
                 {/* @ts-expect-error - steamId comes from our custom jwt callback */}
-                <Link href={`/profile/${session.user.name}?steamId=${session.user.steamId}`} className="relative h-10 w-10 cursor-pointer hover:opacity-80 transition-opacity">
+                <Link href={`/profile/${session.user.steamId}`} className="relative h-10 w-10 cursor-pointer hover:opacity-80 transition-opacity">
                     <Image
                         src={session.user.image || "/default_avatar.jpg"}
                         alt="User Avatar"
