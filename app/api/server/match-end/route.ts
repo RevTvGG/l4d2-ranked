@@ -177,7 +177,83 @@ export async function POST(request: NextRequest) {
             await tx.queueEntry.deleteMany({
                 where: { matchId: match.id }
             });
+
+            // E. Ensure ALL registered players get ELO changes (even if disconnected)
+            // Process players who were in the match but NOT in plugin's player list
+            for (const matchPlayer of match.players) {
+                const wasInPluginData = players.some(p => p.steam_id === matchPlayer.user.steamId);
+                if (!wasInPluginData) {
+                    // This player disconnected before match data was collected
+                    // Still apply ELO change based on their team's result
+                    const eloData = eloChanges?.all.find(e => e.steamId === matchPlayer.user.steamId);
+                    const newElo = eloData?.newElo || matchPlayer.user.rating;
+                    const eloChange = eloData?.change || 0;
+
+                    const isWinner = (winningTeam === 'TEAM_A' && matchPlayer.team === 'TEAM_A') ||
+                        (winningTeam === 'TEAM_B' && matchPlayer.team === 'TEAM_B');
+
+                    // Mark as abandoned
+                    await tx.matchPlayer.update({
+                        where: { id: matchPlayer.id },
+                        data: {
+                            eloChange: eloChange,
+                            disconnectReason: 'LEFT_BEFORE_END',
+                            disconnectedAt: new Date()
+                        }
+                    });
+
+                    // Still update user rating
+                    await tx.user.update({
+                        where: { id: matchPlayer.userId },
+                        data: {
+                            wins: { increment: isWinner ? 1 : 0 },
+                            losses: { increment: (isWinner || winningTeam === 'DRAW') ? 0 : 1 },
+                            rating: newElo,
+                            rank: getRankFromElo(newElo).name
+                        }
+                    });
+
+                    console.log(`[ELO] ${matchPlayer.user.name} (DISCONNECTED): ${matchPlayer.user.rating} → ${newElo} (${eloChange >= 0 ? '+' : ''}${eloChange})`);
+                }
+            }
         });
+
+        // F. POST-MATCH SERVER CLEANUP via RCON
+        // Runs AFTER transaction to ensure data is saved first
+        try {
+            const { createRconService } = await import('@/lib/rcon');
+            const RCON_PORT = 27015; // Standard Source RCON port
+
+            if (server.rconPassword) {
+                console.log('[match-end] Starting server cleanup via RCON...');
+                const rcon = createRconService(server.ipAddress, RCON_PORT, server.rconPassword);
+
+                await rcon.connect();
+
+                // 1. Announce match completion
+                await rcon.execute('say [L4D2 Ranked] Match complete! Thanks for playing. Resetting server...');
+
+                // 2. Wait a moment for message to display
+                await new Promise(resolve => setTimeout(resolve, 3000));
+
+                // 3. Kick all players with message
+                await rcon.execute('sm_kick_all "Match Complete - Thanks for playing!"');
+
+                // 4. Clear any ranked whitelist
+                await rcon.execute('sm_ranked_clear');
+
+                // 5. Reset to lobby map (Dead Center Chapter 1)
+                await rcon.changeMap('c1m1_hotel');
+
+                await rcon.disconnect();
+                console.log('[match-end] Server cleanup complete');
+            } else {
+                console.warn('[match-end] No RCON password - skipping server cleanup');
+            }
+        } catch (rconError) {
+            // Don't fail the whole request if RCON fails - data is already saved
+            console.error('[match-end] RCON cleanup failed (non-critical):', rconError);
+        }
 
         return successResponse({ message: 'Match completed successfully' });
 
