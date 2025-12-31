@@ -406,6 +406,53 @@ export default function PlayPage() {
                                                     </div>
                                                 </div>
 
+                                                {/* TEAM ROSTER */}
+                                                {matchData?.players && matchData.players.length > 0 && (
+                                                    <div className="bg-black/20 p-4 rounded-lg">
+                                                        <div className="text-center text-xs font-bold uppercase tracking-wider opacity-75 mb-3">
+                                                            👥 Team Assignments
+                                                        </div>
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            {/* Team A */}
+                                                            <div className="space-y-2">
+                                                                <div className="text-center text-xs font-bold text-blue-400 uppercase">
+                                                                    🔵 Team A (Survivors)
+                                                                </div>
+                                                                {matchData.players
+                                                                    .filter((p: any) => p.team === 'TEAM_A')
+                                                                    .map((p: any) => (
+                                                                        <div key={p.userId} className="flex items-center gap-2 bg-blue-500/20 rounded px-2 py-1 text-xs">
+                                                                            {p.user?.image && (
+                                                                                <img src={p.user.image} alt="" className="w-5 h-5 rounded-full" />
+                                                                            )}
+                                                                            <span className="truncate flex-1">{p.user?.name || 'Player'}</span>
+                                                                            <span className="text-blue-300 font-mono text-[10px]">{p.user?.rating || '?'}</span>
+                                                                        </div>
+                                                                    ))
+                                                                }
+                                                            </div>
+                                                            {/* Team B */}
+                                                            <div className="space-y-2">
+                                                                <div className="text-center text-xs font-bold text-red-400 uppercase">
+                                                                    🔴 Team B (Infected)
+                                                                </div>
+                                                                {matchData.players
+                                                                    .filter((p: any) => p.team === 'TEAM_B')
+                                                                    .map((p: any) => (
+                                                                        <div key={p.userId} className="flex items-center gap-2 bg-red-500/20 rounded px-2 py-1 text-xs">
+                                                                            {p.user?.image && (
+                                                                                <img src={p.user.image} alt="" className="w-5 h-5 rounded-full" />
+                                                                            )}
+                                                                            <span className="truncate flex-1">{p.user?.name || 'Player'}</span>
+                                                                            <span className="text-red-300 font-mono text-[10px]">{p.user?.rating || '?'}</span>
+                                                                        </div>
+                                                                    ))
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+
                                                 {/* Connection Instructions */}
                                                 <div className="bg-black/30 p-4 rounded-lg space-y-3">
                                                     <div className="font-bold text-sm uppercase tracking-wide opacity-75">📋 How to Connect:</div>
