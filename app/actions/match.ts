@@ -35,7 +35,7 @@ export async function getMatch(matchId: string) {
 
 export async function acceptMatch(matchId: string) {
     const session = await getServerSession(authOptions);
-    if (!session?.user) return { error: "Not authenticated" };
+    if (!session?.user || !(session.user as any).id) return { error: "Not authenticated" };
 
     try {
         const player = await prisma.matchPlayer.findFirst({
@@ -75,7 +75,7 @@ export async function acceptMatch(matchId: string) {
 
 export async function voteMap(matchId: string, mapName: string) {
     const session = await getServerSession(authOptions);
-    if (!session?.user) return { error: "Not authenticated" };
+    if (!session?.user || !(session.user as any).id) return { error: "Not authenticated" };
 
     try {
         // Upsert vote
@@ -194,7 +194,7 @@ export async function voteMap(matchId: string, mapName: string) {
 
 export async function leaveMatch(matchId: string) {
     const session = await getServerSession(authOptions);
-    if (!session?.user) return { error: "Not authenticated" };
+    if (!session?.user || !(session.user as any).id) return { error: "Not authenticated" };
 
     try {
         // Remove from MatchPlayer

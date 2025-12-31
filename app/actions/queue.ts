@@ -157,7 +157,7 @@ async function checkReadyTimeout(matchId: string) {
  */
 export async function readyUp(matchId: string) {
     const session = await getServerSession(authOptions);
-    if (!session?.user) throw new Error('Not authenticated');
+    if (!session?.user || !(session.user as any).id) return { error: 'Not authenticated' };
 
     await prisma.queueEntry.updateMany({
         where: {
@@ -215,7 +215,7 @@ async function proceedToMapVoting(matchId: string) {
  */
 export async function voteForMap(matchId: string, mapId: string) {
     const session = await getServerSession(authOptions);
-    if (!session?.user) throw new Error('Not authenticated');
+    if (!session?.user || !(session.user as any).id) return { error: 'Not authenticated' };
 
     await prisma.mapVote.upsert({
         where: {
@@ -276,7 +276,7 @@ async function finalizeMapVoting(matchId: string) {
  */
 export async function leaveQueue() {
     const session = await getServerSession(authOptions);
-    if (!session?.user) throw new Error('Not authenticated');
+    if (!session?.user || !(session.user as any).id) return { error: 'Not authenticated' };
 
     await prisma.queueEntry.deleteMany({
         where: {

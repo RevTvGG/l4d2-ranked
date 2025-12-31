@@ -45,7 +45,7 @@ export async function sendMessage(content: string) {
     try {
         const message = await prisma.message.create({
             data: {
-                content: content.trim().slice(0, 500), // Limit length
+                content: content.replace(/<[^>]*>?/gm, '').trim().slice(0, 500), // Sanitize HTML and limit length
                 userId: user.id
             },
             include: {
