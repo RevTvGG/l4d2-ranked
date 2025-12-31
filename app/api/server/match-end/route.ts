@@ -139,13 +139,29 @@ export async function POST(request: NextRequest) {
                 const isWinner = (winningTeam === 'TEAM_A' && matchPlayer.team === 'TEAM_A') ||
                     (winningTeam === 'TEAM_B' && matchPlayer.team === 'TEAM_B');
 
+                // Update Rating History
+                // Note: user.ratingHistory is typed as Json, cast to number[] safely
+                const currentHistory = Array.isArray(matchPlayer.user.ratingHistory)
+                    ? matchPlayer.user.ratingHistory as number[]
+                    : [];
+
+                // Add new rating to history
+                const newHistory = [...currentHistory, newElo];
+
                 await tx.user.update({
                     where: { id: matchPlayer.userId },
                     data: {
                         wins: { increment: isWinner ? 1 : 0 },
                         losses: { increment: (isWinner || winningTeam === 'DRAW') ? 0 : 1 },
                         rating: newElo,
-                        totalHours: { increment: 1 } // +1 hour per match (approx)
+                        // Update Aggregates
+                        totalKills: { increment: pStat.kills },
+                        totalDeaths: { increment: pStat.deaths },
+                        totalDamage: { increment: pStat.damage },
+                        totalHeadshots: { increment: pStat.headshots },
+                        totalMvps: { increment: pStat.mvp || 0 },
+                        totalHours: { increment: 1 }, // TODO: Use actual duration
+                        ratingHistory: newHistory
                     }
                 });
 

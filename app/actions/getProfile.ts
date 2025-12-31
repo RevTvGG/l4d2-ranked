@@ -64,6 +64,14 @@ export async function getProfile(username: string) {
             role: user.role,
             rating: user.rating,
             winRate: user.winRate,
+            // New Stats
+            totalKills: user.totalKills,
+            totalDeaths: user.totalDeaths,
+            totalDamage: user.totalDamage,
+            totalHeadshots: user.totalHeadshots,
+            totalMvps: user.totalMvps,
+            weaponStats: user.weaponStats,
+            ratingHistory: user.ratingHistory,
             team: user.team ? {
                 id: user.team.id,
                 name: user.team.name,

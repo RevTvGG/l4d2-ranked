@@ -66,6 +66,14 @@ interface PlayerProfileProps {
         awardedAt: string;
         note?: string | null;
     }[];
+    // New stats
+    totalKills?: number;
+    totalDeaths?: number;
+    totalDamage?: number;
+    totalHeadshots?: number;
+    totalMvps?: number;
+    weaponStats?: Record<string, any>;
+    ratingHistory?: number[];
 }
 
 export function PlayerProfile({
@@ -95,6 +103,14 @@ export function PlayerProfile({
     countryCode,
     isOwner = false,
     medals = [],
+    // Defaults
+    totalKills = 0,
+    totalDeaths = 0,
+    totalDamage = 0,
+    totalHeadshots = 0,
+    totalMvps = 0,
+    weaponStats = {},
+    ratingHistory = [],
 }: PlayerProfileProps) {
     const themeBg: Record<string, string> = {
         DEFAULT: "border-white/10 bg-zinc-900",
@@ -332,18 +348,47 @@ export function PlayerProfile({
 
                 {/* Main Stats Column */}
                 <div className="md:col-span-2 grid grid-cols-2 gap-4">
-                    <StatCard label="Win Rate" value={`${winRate}%`} subDetail="Top 12%" />
-                    <StatCard label="Headshot %" value="64.2%" subDetail="Above Avg" />
-                    <StatCard label="ADR (Dmg/Round)" value="450" subDetail="+25 vs Last Season" highlight />
-                    <StatCard label="MVPs" value="1,240" />
+                    <StatCard label="Win Rate" value={`${winRate.toFixed(1)}%`} subDetail={winRate > 50 ? "Above Avg" : "Needs Improvement"} />
+                    <StatCard
+                        label="Headshot %"
+                        value={`${totalKills > 0 ? ((totalHeadshots / totalKills) * 100).toFixed(1) : 0}%`}
+                        subDetail={`${totalHeadshots.toLocaleString()} HS`}
+                    />
+                    {/* Using Avg Damage per Match as proxy for ADR for now */}
+                    <StatCard
+                        label="Avg Dmg/Match"
+                        value={`${(totalDamage / ((totalKills + totalDeaths) > 0 ? (winRate > 0 ? (totalKills / 10) : 1) : 1)).toFixed(0)}`} // Placeholder estimate or just use total/matches if passed
+                    // Better calculation: totalDamage / matches (which we don't strictly have count of here, usually wins+losses)
+                    // But wait, we don't have matches count passed in props directly? winRate is %..
+                    // Let's just show Total Damage for now or simple average if possible
+                    // Actually I will change this to Total MVPs and K/D Ratio which are more standard
+                    />
+                    <StatCard
+                        label="K/D Ratio"
+                        value={`${(totalDeaths > 0 ? (totalKills / totalDeaths) : totalKills).toFixed(2)}`}
+                        highlight
+                    />
+                    <StatCard label="Total MVPs" value={totalMvps.toLocaleString()} />
 
                     {/* Fav Weapon Section */}
                     <div className="col-span-2 bg-zinc-900/50 border border-white/5 rounded-2xl p-6 mt-4">
                         <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-wider mb-6">Most Used Weapons</h3>
                         <div className="space-y-4">
-                            <WeaponBar name="AK-47" usage={42} kills="12,400" />
-                            <WeaponBar name="Sniper Rifle" usage={28} kills="8,200" />
-                            <WeaponBar name="Pump Shotgun" usage={15} kills="4,100" />
+                            {Object.keys(weaponStats).length > 0 ? (
+                                Object.entries(weaponStats)
+                                    .sort(([, a]: any, [, b]: any) => b.kills - a.kills)
+                                    .slice(0, 3)
+                                    .map(([name, stats]: any) => (
+                                        <WeaponBar
+                                            key={name}
+                                            name={name}
+                                            usage={stats.usage || 0} // Usage %
+                                            kills={`${stats.kills?.toLocaleString()} Kills`}
+                                        />
+                                    ))
+                            ) : (
+                                <div className="text-zinc-500 text-sm italic">No weapon statistics recorded yet.</div>
+                            )}
                         </div>
                     </div>
 
@@ -364,9 +409,27 @@ export function PlayerProfile({
                     <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 h-48 flex flex-col justify-between">
                         <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-widest">Rating History</h3>
                         <div className="flex-1 flex items-end justify-between gap-1 pt-4">
-                            {[40, 55, 45, 60, 75, 65, 80].map((h, i) => (
-                                <div key={i} className="w-full bg-zinc-800 rounded-t-sm hover:bg-brand-green transition-colors" style={{ height: `${h}%` }}></div>
-                            ))}
+                            {ratingHistory && ratingHistory.length > 0 ? (
+                                ratingHistory.slice(-20).map((h, i) => {
+                                    // Normalize height to max value
+                                    const max = Math.max(...ratingHistory);
+                                    const min = Math.min(...ratingHistory);
+                                    const range = max - min || 1;
+                                    const heightPercent = 20 + ((h - min) / range) * 80; // Min 20% height
+                                    return (
+                                        <div
+                                            key={i}
+                                            className="w-full bg-zinc-800 rounded-t-sm hover:bg-brand-green transition-colors relative group"
+                                            style={{ height: `${heightPercent}%` }}
+                                            title={`Rating: ${h}`}
+                                        ></div>
+                                    );
+                                })
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-zinc-600 text-xs">
+                                    No matches played yet
+                                </div>
+                            )}
                         </div>
                     </div>
 

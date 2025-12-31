@@ -102,6 +102,15 @@ model User {
   betaAccess       Boolean       @default(false) // Default false: Private Beta (Invite Only)
   inviteUsed       InviteCode?   @relation("InviteUsedBy")
   invitesCreated   InviteCode[]  @relation("InviteCreator")
+
+  // Aggregate Stats (For Profile)
+  totalKills      Int    @default(0)
+  totalDeaths     Int    @default(0)
+  totalDamage     Int    @default(0) // Using Int which goes up to 2.1B, should be enough for now
+  totalHeadshots  Int    @default(0)
+  totalMvps       Int    @default(0)
+  weaponStats     Json?  @default("{}") // { "AK-47": { kills: 12400, usagePercent: 42 }, ... }
+  ratingHistory   Json?  @default("[]") // [1000, 1025, 1010, ...]
 }
 
 
