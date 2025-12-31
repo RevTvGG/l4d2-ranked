@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { sendMessage, getMessages } from '@/app/actions/chat'
 import Image from 'next/image'
+import { toast } from 'sonner'
 
 import { PremiumBadge } from './PremiumBadge'
 import { ShinyText } from './ShinyText'
@@ -63,7 +64,21 @@ export default function GlobalChat({ currentUser }: { currentUser: any }) {
                 chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
             }, 100);
         } else {
-            alert("Failed to send message: " + result.error);
+            // SECURITY: Don't expose raw server errors to user. 
+            // Only show known friendly messages.
+            const errorMsg = result.error as string;
+            const friendlyErrors = [
+                "Please wait 3 seconds before sending another message.",
+                "Empty message",
+                "Not authenticated"
+            ];
+
+            if (friendlyErrors.includes(errorMsg)) {
+                toast.error(errorMsg);
+            } else {
+                console.error("Chat Server Error:", errorMsg);
+                toast.error("Could not send message. Please try again.");
+            }
             setInput(tempContent);
         }
     }
