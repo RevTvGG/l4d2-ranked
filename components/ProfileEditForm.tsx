@@ -19,6 +19,8 @@ export function ProfileEditForm({ user }: { user: any }) {
         if (res.success) {
             // Optional: redirect or just stay
             window.location.href = `/profile/${user?.name || ''}`;
+        } else {
+            setMsg(res.message);
         }
     }
 
@@ -166,10 +168,11 @@ export function ProfileEditForm({ user }: { user: any }) {
                             <div className="flex flex-wrap gap-3">
                                 {COLOR_PRESETS.map((color) => (
                                     <div
-                                        key={color}
-                                        onClick={() => setProfileColor(color)}
-                                        className={`w-8 h-8 rounded-full cursor-pointer hover:scale-110 transition-transform ${profileColor === color ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-900" : ""}`}
-                                        style={{ backgroundColor: color }}
+                                        key={color.hex}
+                                        onClick={() => setProfileColor(color.hex)}
+                                        className={`w-8 h-8 rounded-full cursor-pointer hover:scale-110 transition-transform ${profileColor === color.hex ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-900" : ""}`}
+                                        style={{ backgroundColor: color.hex }}
+                                        title={color.name}
                                     />
                                 ))}
                                 <div className="flex items-center gap-2 relative">
