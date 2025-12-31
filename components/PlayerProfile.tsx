@@ -408,9 +408,9 @@ export function PlayerProfile({
                     {/* Rank History Graph Placeholder */}
                     <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 h-48 flex flex-col justify-between">
                         <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-widest">Rating History</h3>
-                        <div className="flex-1 flex items-end justify-between gap-1 pt-4">
-                            {ratingHistory && ratingHistory.length > 0 ? (
-                                ratingHistory.slice(-20).map((h, i) => {
+                        {ratingHistory && ratingHistory.length > 0 ? (
+                            <div className="flex-1 flex items-end justify-between gap-1 pt-4">
+                                {ratingHistory.slice(-20).map((h, i) => {
                                     // Normalize height to max value
                                     const max = Math.max(...ratingHistory);
                                     const min = Math.min(...ratingHistory);
@@ -424,13 +424,15 @@ export function PlayerProfile({
                                             title={`Rating: ${h}`}
                                         ></div>
                                     );
-                                })
-                            ) : (
-                                <div className="w-full h-full flex items-center justify-center text-zinc-400 text-sm">
+                                })}
+                            </div>
+                        ) : (
+                            <div className="flex-1 flex items-center justify-center pt-4">
+                                <div className="text-zinc-400 text-sm">
                                     No matches played yet
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Team Section - Only visible if has team */}
