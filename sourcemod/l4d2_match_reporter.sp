@@ -6,7 +6,6 @@
 #undef REQUIRE_PLUGIN
 #include <l4d2_hybrid_scoremod>
 #include <l4d2_survivor_mvp>
-#include <l4d2direct>
 #define REQUIRE_PLUGIN
 
 #pragma semicolon 1
@@ -592,16 +591,24 @@ public Action Timer_AutoEndMatch(Handle timer)
         return Plugin_Continue;
     }
     
-    // Try to get scores from hybrid_scoremod if available
+    // Try to get scores from native ConVars
     int teamAScore = 0;
     int teamBScore = 0;
     
-    if (g_bScoreModAvailable)
-    {
-        // Use L4D2Direct natives to get campaign scores
-        teamAScore = L4D2Direct_GetVSCampaignScore(0); // Team A (Survivors first round)
-        teamBScore = L4D2Direct_GetVSCampaignScore(1); // Team B (Infected first round)
-    }
+    // Get scores from L4D2 native ConVars
+    ConVar cvTeamAScore = FindConVar("vs_tiebreak_bonus");  
+    ConVar cvScoreA = FindConVar("sm_tie_score_logic"); 
+    
+    // Fallback: Use a simple method - check current game state
+    // In L4D2, team scores are stored in game rules
+    // We'll use the versus campaign scores directly
+    Handle hCvarScoreA = FindConVar("versus_score1");
+    Handle hCvarScoreB = FindConVar("versus_score2");
+    
+    if (hCvarScoreA != INVALID_HANDLE)
+        teamAScore = GetConVarInt(hCvarScoreA);
+    if (hCvarScoreB != INVALID_HANDLE)
+        teamBScore = GetConVarInt(hCvarScoreB);
     
     // Determine winner
     char sWinner[16];
