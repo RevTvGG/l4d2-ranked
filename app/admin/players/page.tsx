@@ -234,6 +234,21 @@ export default function AdminPlayersPage() {
                                                 }`}>
                                                 {player.role}
                                             </span>
+                                            {/* Beta Verification Badge */}
+                                            {/* @ts-expect-error - betaAccess added in api */}
+                                            {player.betaAccess && (
+                                                <div className="group relative">
+                                                    <span className="bg-brand-green/10 text-brand-green border border-brand-green/20 p-1 rounded-md" title="Beta Verified">
+                                                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                    </span>
+                                                    {/* Tooltip */}
+                                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black border border-white/10 rounded text-[10px] text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                                        Beta Verified
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="text-sm text-zinc-500 space-x-4">
                                             <span>SteamID: {player.steamId}</span>
