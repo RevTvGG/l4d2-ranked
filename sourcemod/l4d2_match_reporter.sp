@@ -6,6 +6,7 @@
 #undef REQUIRE_PLUGIN
 #include <l4d2_hybrid_scoremod>
 #include <l4d2_survivor_mvp>
+#include <left4dhooks>
 #define REQUIRE_PLUGIN
 
 #pragma semicolon 1
@@ -591,13 +592,11 @@ public Action Timer_AutoEndMatch(Handle timer)
         return Plugin_Continue;
     }
     
-    // Get scores using native SourceMod function
-    // Team 2 = Survivors, Team 3 = Infected
-    // In versus mode, these represent the campaign scores
-    int teamAScore = GetTeamScore(TEAM_SURVIVOR);
-    int teamBScore = GetTeamScore(TEAM_INFECTED);
+    // Get campaign scores using Left4DHooks
+    int teamAScore = L4D2_GetVersusCampaignScores(0); // Team index 0
+    int teamBScore = L4D2_GetVersusCampaignScores(1); // Team index 1
     
-    PrintToServer("[Match Reporter] Current scores: Survivors=%d, Infected=%d", teamAScore, teamBScore);
+    PrintToServer("[Match Reporter] Campaign scores: Team A=%d, Team B=%d", teamAScore, teamBScore);
     
     // Determine winner
     char sWinner[16];
