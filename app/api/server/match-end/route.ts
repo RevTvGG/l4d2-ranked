@@ -125,14 +125,17 @@ export async function POST(request: NextRequest) {
                 const eloChange = eloData?.change || 0;
 
                 // Update MatchPlayer stats
+                // CRITICAL CHANGE: We DO NOT update kills/deaths/etc here anymore.
+                // We rely on the incremental /round-stats endpoint.
+                // The plugin sends partial/zero stats at match end due to the Delta strategy.
+                // We ONLY update the ELO change here.
                 await tx.matchPlayer.update({
                     where: { id: matchPlayer.id },
                     data: {
-                        kills: pStat.kills,
-                        deaths: pStat.deaths,
-                        headshots: pStat.headshots,
-                        damage: pStat.damage,
                         eloChange: eloChange
+                        // kills: pStat.kills,    <-- REMOVED
+                        // deaths: pStat.deaths,  <-- REMOVED
+                        // ...
                     }
                 });
 

@@ -6,7 +6,9 @@
 #undef REQUIRE_PLUGIN
 #include <l4d2_hybrid_scoremod>
 #include <l4d2_survivor_mvp>
-#include <left4dhooks>
+// #include <left4dhooks> // DISABLED: external dependency causes compilation errors if sub-includes are missing
+// We manually declare the native we need to avoid dependency hell for the user
+native bool L4D2_GetVersusCampaignScores(int &teamA, int &teamB);
 #define REQUIRE_PLUGIN
 
 #pragma semicolon 1
@@ -242,7 +244,8 @@ public Action Timer_KickUnauthorized(Handle timer, int userid)
 
 public void OnMapStart()
 {
-    ResetPlayerStats();
+    // ResetPlayerStats(); <-- REMOVED: in Delta Strategy, we reset manually after sending stats at Round End.
+    // Making it explicit prevents accidental resets on map change.
     
     // Layer 3: Verify Match ID is set after map loads
     CreateTimer(30.0, Timer_CheckMatchIdSet, _, TIMER_FLAG_NO_MAPCHANGE);
@@ -547,12 +550,16 @@ public void OnRoundEnd(Event event, const char[] name, bool dontBroadcast)
     GetCurrentMap(sCurrentMap, sizeof(sCurrentMap));
     
     // Check if this is the last competitive map (penultimate map before finale)
-    if (IsCompetitiveFinalMap(sCurrentMap))
     {
         PrintToServer("[Match Reporter] Competitive campaign complete! Waiting 5 seconds to determine winner...");
         PrintToChatAll("\x04[L4D2 Ranked]\x01 Campaign complete! Calculating results...");
         CreateTimer(5.0, Timer_AutoEndMatch, _, TIMER_FLAG_NO_MAPCHANGE);
     }
+    
+    // Always send round stats at the end of every round/map
+    // This ensures that even if the match isn't over, we save the progress
+    SendRoundStats();
+    ResetPlayerStats(); // RESET STATS NOW (Delta Strategy)
 }
 
 // ========================================
@@ -584,6 +591,94 @@ bool IsCompetitiveFinalMap(const char[] currentMap)
 }
 
 // Timer callback to determine winner automatically after competitive campaign ends
+
+
+// ------------------------------------------------------------------------
+// Incremental Stats Reporting
+// ------------------------------------------------------------------------
+
+void SendRoundStats()
+{
+    if (g_sMatchId[0] == '\0') return;
+
+    char sJson[MAX_JSON_SIZE];
+    
+    // Start JSON building
+    Format(sJson, sizeof(sJson), "{");
+    Format(sJson, sizeof(sJson), "%s\"match_id\":\"%s\",", sJson, g_sMatchId);
+    Format(sJson, sizeof(sJson), "%s\"server_key\":\"%s\",", sJson, g_cvServerKey);
+    
+    // Get map name
+    char sMap[64];
+    GetCurrentMap(sMap, sizeof(sMap));
+    Format(sJson, sizeof(sJson), "%s\"map_name\":\"%s\",", sJson, sMap);
+    
+    // Get Round Number (simple approximation or from gamerules if possible, for now just report stats)
+    // We'll let the API handle round counting or just logging
+    
+    // Players Array
+    Format(sJson, sizeof(sJson), "%s\"players\":[", sJson);
+    
+    bool first = true;
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (IsClientInGame(i) && !IsFakeClient(i))
+        {
+            char sAuth[32];
+            if (!GetClientAuthId(i, AuthId_Steam2, sAuth, sizeof(sAuth))) continue;
+            
+            if (!first) Format(sJson, sizeof(sJson), "%s,", sJson);
+            first = false;
+            
+            Format(sJson, sizeof(sJson), "%s{", sJson);
+            Format(sJson, sizeof(sJson), "%s\"steam_id\":\"%s\",", sJson, sAuth);
+            Format(sJson, sizeof(sJson), "%s\"kills\":%d,", sJson, g_iPlayerKills[i]);
+            Format(sJson, sizeof(sJson), "%s\"deaths\":%d,", sJson, g_iPlayerDeaths[i]);
+            Format(sJson, sizeof(sJson), "%s\"headshots\":%d,", sJson, g_iPlayerHeadshots[i]);
+            Format(sJson, sizeof(sJson), "%s\"damage\":%d", sJson, g_iPlayerDamage[i]); // Remove trailing comma
+            Format(sJson, sizeof(sJson), "%s}", sJson);
+        }
+    }
+    
+    Format(sJson, sizeof(sJson), "%s]", sJson); // End players
+    Format(sJson, sizeof(sJson), "%s}", sJson); // End root
+    
+    // PrintToServer("[Match Reporter] Sending round stats: %s", sJson); // Debug (spammy)
+
+    // Send Request
+    char sApiUrl[256];
+    g_cvApiUrl.GetString(sApiUrl, sizeof(sApiUrl));
+    
+    char sRequestUrl[512];
+    Format(sRequestUrl, sizeof(sRequestUrl), "%s/server/round-stats", sApiUrl);
+    
+    Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodPOST, sRequestUrl);
+    if (hRequest == INVALID_HANDLE) return;
+    
+    SteamWorks_SetHTTPRequestHeaderValue(hRequest, "Content-Type", "application/json");
+    // SteamWorks_SetHTTPRequestBody(hRequest, sJson); // New API, might be missing
+    SteamWorks_SetHTTPRequestRawPostBody(hRequest, "application/json", sJson, strlen(sJson)); // Old API, more compatible
+    
+    SteamWorks_SetHTTPCallbacks(hRequest, OnRoundStatsResponse);
+    SteamWorks_SendHTTPRequest(hRequest);
+}
+
+public void OnRoundStatsResponse(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, int data)
+{
+    if (bFailure || !bRequestSuccessful || view_as<int>(eStatusCode) != 200)
+    {
+        PrintToServer("[Match Reporter] Failed to save round stats. Status: %d", eStatusCode);
+    }
+    else
+    {
+        PrintToServer("[Match Reporter] Round stats saved successfully.");
+    }
+    delete hRequest;
+}
+
+    
+
+// Timer callback to determine winner automatically after competitive campaign ends
 public Action Timer_AutoEndMatch(Handle timer)
 {
     if (g_sMatchId[0] == '\0')
@@ -596,13 +691,11 @@ public Action Timer_AutoEndMatch(Handle timer)
     int teamAScore = 0;
     int teamBScore = 0;
     
+    // Use the native we declared manually
     if (!L4D2_GetVersusCampaignScores(teamAScore, teamBScore))
     {
-        PrintToServer("[Match Reporter] Failed to retrieve campaign scores!");
-        return Plugin_Continue;
+        PrintToServer("[Match Reporter] Failed to get campaign scores from Left4DHooks");
     }
-    
-    PrintToServer("[Match Reporter] Campaign scores: Team A=%d, Team B=%d", teamAScore, teamBScore);
     
     // Determine winner
     char sWinner[16];
@@ -625,7 +718,7 @@ public Action Timer_AutoEndMatch(Handle timer)
     // Send match results
     SendMatchComplete(sWinner);
     
-    return Plugin_Continue;
+    return Plugin_Stop;
 }
 
 public void OnMatchFinished(Event event, const char[] name, bool dontBroadcast)

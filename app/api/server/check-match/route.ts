@@ -18,9 +18,6 @@ const requestSchema = z.object({
  */
 export async function POST(request: NextRequest) {
     try {
-        console.log('DEBUG: DATABASE_URL exists?', !!process.env.DATABASE_URL);
-        console.log('DEBUG: DATABASE_URL length:', process.env.DATABASE_URL?.length);
-
         // 1. Validate Content-Type
         if (!request.headers.get('content-type')?.includes('application/json')) {
             return errorResponse('Content-Type must be application/json', 'INVALID_CONTENT_TYPE', 400);
