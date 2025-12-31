@@ -7,21 +7,22 @@ import { authOptions } from "@/lib/auth";
 export async function sendMessage(content: string) {
     const session = await getServerSession(authOptions);
     const { prisma } = await import("@/lib/prisma");
-    if (!(session as any)?.user?.email) {
-        // Fallback: try to find user by SteamID if email is missing (common with Steam)
-        // Actually, our session callback puts steamId in user object.
-        // Let's rely on finding the user by the session logic.
-        if (!(session as any)?.user?.steamId) return { error: "Not authenticated" };
-    }
 
+    // STRICT SECURITY CHECK:
+    // Ensure user is authenticated specifically with our Steam provider.
+    // We do NOT rely on client-side checks.
     const steamId = (session as any)?.user?.steamId;
 
-    // Find User ID from Steam ID
+    if (!steamId) {
+        return { error: "Not authenticated" };
+    }
+
+    // Find User ID from Steam ID to ensure they are a valid registered user
     const user = await prisma.user.findUnique({
         where: { steamId: steamId }
     });
 
-    if (!user) return { error: "User not found" };
+    if (!user) return { error: "User checking failed" };
 
 
 
