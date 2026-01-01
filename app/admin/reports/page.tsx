@@ -53,8 +53,7 @@ export default function AdminReportsPage() {
     const [filter, setFilter] = useState('OPEN');
     const [tab, setTab] = useState<'general' | 'player'>('general');
 
-    // @ts-expect-error - role is custom field
-    const userRole = session?.user?.role;
+    const userRole = (session?.user as any)?.role;
     const isAdmin = userRole && ADMIN_ROLES.includes(userRole);
 
     useEffect(() => {

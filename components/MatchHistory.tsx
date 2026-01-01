@@ -50,15 +50,12 @@ export function MatchHistory({ matches, isPremium, isOwner }: MatchHistoryProps)
         });
     };
 
-    // Non-premium view with blur
+    // 1. Non-Premium Profile: Show Upgrade CTA (Advertisement)
     if (!isPremium) {
         return (
             <div className="mt-8">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                     🔒 Match History
-                    <span className="text-xs bg-gradient-to-r from-amber-500 to-yellow-500 text-black px-2 py-0.5 rounded-full font-bold">
-                        PREMIUM
-                    </span>
                 </h3>
                 <div className="relative">
                     {/* Blurred preview */}
@@ -81,20 +78,43 @@ export function MatchHistory({ matches, isPremium, isOwner }: MatchHistoryProps)
 
                     {/* Overlay with upgrade CTA */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 rounded-xl">
-                        <div className="text-center p-6">
+                        <div className="text-center p-6 bg-zinc-900/90 border border-white/10 rounded-xl shadow-2xl backdrop-blur-md">
                             <div className="text-4xl mb-3">⭐</div>
                             <h4 className="text-xl font-bold text-white mb-2">Premium Feature</h4>
                             <p className="text-zinc-400 text-sm mb-4 max-w-[250px]">
-                                View your complete match history and request demos for your matches
+                                This user hasn't unlocked their match history yet.
                             </p>
-                            <Link
-                                href="/premium"
-                                className="inline-block px-6 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-bold rounded-lg hover:from-amber-400 hover:to-yellow-400 transition-all"
-                            >
-                                Upgrade to Premium
-                            </Link>
+                            {isOwner && (
+                                <Link
+                                    href="/premium"
+                                    className="inline-block px-6 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 text-black font-bold rounded-lg hover:from-amber-400 hover:to-yellow-400 transition-all"
+                                >
+                                    Upgrade to Premium
+                                </Link>
+                            )}
                         </div>
                     </div>
+                </div>
+            </div>
+        );
+    }
+
+    // 2. Premium Profile BUT Visitor (Not Owner): Show Private Stats (Privacy)
+    if (isPremium && !isOwner) {
+        return (
+            <div className="mt-8">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    🛡️ Match History
+                    <span className="text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold">
+                        PRIVATE
+                    </span>
+                </h3>
+                <div className="bg-zinc-900/30 border border-white/5 rounded-xl p-12 text-center">
+                    <div className="text-5xl mb-4">🔒</div>
+                    <h4 className="text-xl font-bold text-white mb-2">Private Match History</h4>
+                    <p className="text-zinc-400 text-sm max-w-md mx-auto">
+                        This user has enabled <b>Premium Privacy</b>. Their detailed match history and stats are only visible to them.
+                    </p>
                 </div>
             </div>
         );

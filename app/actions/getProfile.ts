@@ -92,7 +92,7 @@ export async function getProfile(username: string) {
             nameGradient: user.nameGradient,
             profileFrame: user.profileFrame,
             customTitle: user.customTitle,
-            customFont: user.customFont,
+            customFont: (user as any).customFont,
             steamAvatarUrl: user.image || "/default_avatar.jpg",
             countryCode: user.countryCode || "MX", // Default to MX as requested by user if missing
             totalHours: user.totalHours,
