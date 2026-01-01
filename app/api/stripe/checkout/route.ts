@@ -10,7 +10,13 @@ export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions);
 
-        if (!session?.user || !session.user.email) {
+        // Check for authenticated user (Steam ID or Internal ID)
+        // @ts-expect-error - Custom session fields
+        const userId = session?.user?.id;
+        // @ts-expect-error - Custom session fields
+        const userEmail = session?.user?.email; // Likely null for Steam
+
+        if (!userId) {
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
@@ -21,7 +27,7 @@ export async function POST(req: Request) {
         // Get or create customer
         // We might want to save the customer ID if it already exists
         const user = await prisma.user.findUnique({
-            where: { email: session.user.email }
+            where: { id: userId }
         });
 
         if (!user) {
@@ -32,10 +38,11 @@ export async function POST(req: Request) {
 
         if (!stripeCustomerId) {
             const customer = await stripe.customers.create({
-                email: user.email,
+                email: user.email || undefined, // Send if exists, otherwise undefined
                 name: user.name || "Ranked Player",
                 metadata: {
                     userId: user.id,
+                    steamId: user.steamId || ""
                 }
             });
             stripeCustomerId = customer.id;
