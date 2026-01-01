@@ -22,9 +22,11 @@ import {
     Sword,
     Crown,
     Gavel,
-    Construction
+    Construction,
+    Medal
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { RANKS } from "@/lib/ranks";
 
 interface FAQViewProps {
     staff: any[];
@@ -41,6 +43,7 @@ export function FAQView({ staff }: FAQViewProps) {
         { id: "requirements", label: t.nav.requirements, icon: ShieldAlert },
         { id: "howToPlay", label: t.nav.howToPlay, icon: Gamepad2 },
         { id: "mmr", label: t.nav.mmr, icon: Trophy },
+        { id: "ranks", label: lang === 'en' ? "Ranks & Medals" : "Rangos y Medallas", icon: Medal },
         { id: "profiles", label: t.nav.profiles, icon: Users },
         { id: "teamRules", label: t.nav.teamRules, icon: Scale },
         { id: "bans", label: t.nav.bans, icon: Gavel },
@@ -275,6 +278,57 @@ export function FAQView({ staff }: FAQViewProps) {
                     </div>
                 );
 
+            case "ranks":
+                return (
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                        <div className="bg-zinc-900 border border-white/5 rounded-3xl p-8">
+                            <h2 className="text-3xl font-black uppercase text-white mb-6 flex items-center gap-3">
+                                <Medal className="w-8 h-8 text-yellow-400" />
+                                {lang === 'en' ? 'Rank Hierarchy' : 'Jerarquía de Rangos'}
+                            </h2>
+
+                            <p className="text-zinc-400 mb-8 max-w-2xl">
+                                {lang === 'en'
+                                    ? "Climb the ladder from Bronze to Global Elite. Each rank represents a milestone in your competitive journey."
+                                    : "Sube la escalera desde Bronze hasta Global Elite. Cada rango representa un hito en tu viaje competitivo."}
+                            </p>
+
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {[...RANKS].reverse().map((rank) => (
+                                    <div key={rank.name} className="bg-zinc-950/50 border border-white/5 rounded-2xl p-6 flex flex-col items-center text-center group hover:bg-zinc-900/80 transition-all hover:scale-[1.02] hover:border-white/10 relative overflow-hidden">
+
+                                        {/* Rank Glow */}
+                                        <div
+                                            className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300"
+                                            style={{ backgroundColor: rank.color }}
+                                        />
+
+                                        <div className="relative w-24 h-24 mb-4 drop-shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                            <Image
+                                                src={rank.imagePath}
+                                                alt={rank.name}
+                                                fill
+                                                className="object-contain"
+                                            />
+                                        </div>
+
+                                        <h3
+                                            className="font-black uppercase text-lg mb-1 tracking-wide"
+                                            style={{ color: rank.color }}
+                                        >
+                                            {rank.name}
+                                        </h3>
+
+                                        <div className="text-xs font-mono font-bold text-zinc-500 bg-zinc-900 px-3 py-1 rounded-full border border-white/5 group-hover:border-white/20 transition-colors">
+                                            {rank.minElo}+ ELO
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+
             case "beta":
                 return (
                     <div className="space-y-6 animate-in fade-in duration-300">
@@ -454,6 +508,64 @@ export function FAQView({ staff }: FAQViewProps) {
                                             : "Nuestros sistemas de anti-cheat y comportamiento operan automáticamente. Los baneos emitidos por el sistema se consideran generalmente correctos e irrevocables. Sin embargo, los moderadores tienen la discreción de revisar casos específicos si se proporciona evidencia clara de un falso positivo."
                                         }
                                     </p>
+                                </div>
+
+                                {/* Leaver & Disconnect Policy */}
+                                <div className="bg-gradient-to-br from-orange-950/30 to-black border border-orange-500/30 rounded-2xl p-6 relative overflow-hidden">
+                                    <h3 className="text-xl font-bold text-orange-400 uppercase mb-4 flex items-center gap-2">
+                                        <AlertTriangle className="w-6 h-6" />
+                                        {lang === 'en' ? 'Leaver & Disconnect Policy' : 'Política de Abandonos y Desconexiones'}
+                                    </h3>
+
+                                    <div className="space-y-4 relative z-10">
+                                        <div className="bg-black/30 p-4 rounded-xl border border-orange-500/10">
+                                            <h4 className="font-bold text-white uppercase text-sm mb-2">
+                                                {lang === 'en' ? 'Rage Quits & Abandonment' : 'Rage Quits y Abandono'}
+                                            </h4>
+                                            <p className="text-sm text-zinc-400 mb-2">
+                                                {lang === 'en'
+                                                    ? "Leaving a match prematurely ruins the game for 7 other players. We have a strict ZERO TOLERANCE policy for leaving."
+                                                    : "Abandonar una partida prematuramente arruina el juego para otros 7 jugadores. Tenemos una estricta política de TOLERANCIA CERO para los abandonos."}
+                                            </p>
+                                            <ul className="text-sm space-y-2">
+                                                <li className="flex gap-2 text-red-300">
+                                                    <span className="font-bold text-red-500">❌</span>
+                                                    <span>{lang === 'en' ? "You receive an IMMEDIATE Ban (starting at 1 hour)." : "Recibes un Baneo INMEDIATO (empezando en 1 hora)."}</span>
+                                                </li>
+                                                <li className="flex gap-2 text-red-300">
+                                                    <span className="font-bold text-red-500">📉</span>
+                                                    <span>{lang === 'en' ? "You lose ELO equivalent to a full loss." : "Pierdes ELO equivalente a una derrota completa."}</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+
+                                        <div className="bg-black/30 p-4 rounded-xl border border-blue-500/10">
+                                            <h4 className="font-bold text-white uppercase text-sm mb-2">
+                                                {lang === 'en' ? 'Disconnections (Crash)' : 'Desconexiones (Crash)'}
+                                            </h4>
+                                            <p className="text-sm text-zinc-400 mb-2">
+                                                {lang === 'en'
+                                                    ? "If your game crashes or internet fails, you have a grace period (approx 3-5 mins) to reconnect."
+                                                    : "Si tu juego se cierra o falla el internet, tienes un periodo de gracia (aprox 3-5 mins) para reconectarte."}
+                                            </p>
+                                            <p className="text-sm text-blue-300/80 italic">
+                                                {lang === 'en'
+                                                    ? "If you do not return, it is treated as an Abandon."
+                                                    : "Si no regresas, se trata como un Abandono."}
+                                            </p>
+                                        </div>
+
+                                        <div className="bg-brand-green/10 p-4 rounded-xl border border-brand-green/20">
+                                            <h4 className="font-bold text-brand-green uppercase text-sm mb-2">
+                                                {lang === 'en' ? 'Fair Play for Teammates' : 'Juego Justo para Compañeros'}
+                                            </h4>
+                                            <p className="text-sm text-zinc-300">
+                                                {lang === 'en'
+                                                    ? "Good news: If a teammate abandons your match, YOU ARE NOT PENALIZED. Only the leaver loses ELO. The match is cancelled and innocent players are safe."
+                                                    : "Buenas noticias: Si un compañero abandona tu partida, TÚ NO ERES PENALIZADO. Solo quien abandona pierde ELO. La partida se cancela y los jugadores inocentes están a salvo."}
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {/* Cheating */}
