@@ -69,6 +69,9 @@ export async function getProfile(username: string) {
             winRate: user.winRate,
             totalWins: user.wins,
             totalLosses: user.losses,
+            rankingPosition: (await prisma.user.count({
+                where: { rating: { gt: user.rating } }
+            })) + 1,
             // New Stats
             totalKills: user.totalKills,
             totalDeaths: user.totalDeaths,

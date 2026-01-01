@@ -1,7 +1,5 @@
 'use server'
 
-
-
 export async function getLeaderboard() {
     try {
         const { prisma } = await import("@/lib/prisma");
@@ -36,7 +34,7 @@ export async function getLeaderboard() {
             steamAvatarUrl: player.image || "/default_avatar.jpg",
             team: player.team,
             rating: player.rating,
-            winRate: player.winRate.toFixed(1),
+            winRate: ((player.wins + player.losses) > 0 ? (player.wins / (player.wins + player.losses) * 100) : 0).toFixed(1),
             matches: player.wins + player.losses,
             region: player.countryCode || "VN",
             isPremium: player.isPremium,

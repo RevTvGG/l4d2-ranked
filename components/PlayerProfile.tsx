@@ -76,6 +76,7 @@ interface PlayerProfileProps {
     ratingHistory?: number[]; // Added ratingHistory back
     totalWins?: number;
     totalLosses?: number;
+    rankingPosition?: number;
 }
 
 export function PlayerProfile({
@@ -115,6 +116,7 @@ export function PlayerProfile({
     ratingHistory = [],
     totalWins = 0,
     totalLosses = 0,
+    rankingPosition,
 }: PlayerProfileProps) {
     const themeBg: Record<string, string> = {
         DEFAULT: "border-white/10 bg-zinc-900",
@@ -287,6 +289,22 @@ export function PlayerProfile({
                         </div>
 
                         <div className="flex flex-col">
+                            {/* TOP 3 RANK BADGE */}
+                            {rankingPosition && rankingPosition <= 3 && (
+                                <div className="mb-2 self-start animate-fade-in-up">
+                                    <span className={`px-3 py-1 rounded-lg border-2 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 shadow-xl backdrop-blur-md
+                                        ${rankingPosition === 1 ? 'bg-gradient-to-r from-yellow-600/20 to-amber-500/20 text-yellow-300 border-yellow-500 shadow-yellow-500/20' :
+                                            rankingPosition === 2 ? 'bg-gradient-to-r from-slate-500/20 to-zinc-400/20 text-zinc-300 border-slate-400 shadow-slate-400/20' :
+                                                'bg-gradient-to-r from-orange-700/20 to-orange-600/20 text-orange-400 border-orange-600 shadow-orange-600/20'}
+                                    `}>
+                                        <span className="text-base leading-none filter drop-shadow-md">
+                                            {rankingPosition === 1 ? '👑' : rankingPosition === 2 ? '🥈' : '🥉'}
+                                        </span>
+                                        {rankingPosition === 1 ? 'SEASON #1' : rankingPosition === 2 ? 'SEASON #2' : 'SEASON #3'}
+                                    </span>
+                                </div>
+                            )}
+
                             {customTitle && (
                                 <span className={`text-sm font-bold uppercase tracking-widest mb-1 ${profileTheme === 'FIRE' ? 'text-orange-500' :
                                     profileTheme === 'ICE' ? 'text-cyan-400' :
