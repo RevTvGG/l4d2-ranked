@@ -8,9 +8,10 @@ interface PremiumUsernameProps {
     profileTheme?: string;
     nameGradient?: string | null;
     customFont?: string | null;
-    size?: 'sm' | 'md' | 'lg' | 'xl';
+    size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl';
     showBadge?: boolean;
     showGlow?: boolean;
+    className?: string;
 }
 
 // Premium fonts available for selection
@@ -45,15 +46,18 @@ export function PremiumUsername({
     size = 'md',
     showBadge = true,
     showGlow = true,
+    className = '',
 }: PremiumUsernameProps) {
     const themeColors = getThemeColors(profileTheme);
 
-    // Size classes
-    const sizeClasses = {
+    // Size classes - using any cast to allow flexible indexing if needed, but safe here
+    const sizeClasses: Record<string, string> = {
         sm: 'text-sm',
         md: 'text-base',
         lg: 'text-xl',
         xl: 'text-3xl',
+        '2xl': 'text-4xl',
+        '4xl': 'text-4xl md:text-5xl lg:text-6xl', // Hero size
     };
 
     // Font class from customFont
@@ -62,18 +66,17 @@ export function PremiumUsername({
     // If not premium, just render normal username
     if (!isPremium) {
         return (
-            <span className={`${sizeClasses[size]} font-bold text-white`}>
+            <span className={`${sizeClasses[size] || ''} font-bold text-white ${className}`}>
                 {username}
             </span>
         );
     }
 
     // Find gradient preset
-    const gradientPreset = GRADIENT_PRESETS.find(g => g.class === nameGradient);
     const hasGradient = !!nameGradient;
 
     return (
-        <span className="inline-flex items-center gap-1.5 group relative">
+        <span className={`inline-flex items-center gap-1.5 group relative ${className}`}>
             {/* Glow effect behind name */}
             {showGlow && (
                 <span
@@ -99,7 +102,7 @@ export function PremiumUsername({
             {/* Username with effects */}
             <span
                 className={`
-                    relative ${sizeClasses[size]} font-black ${fontClass} tracking-wide
+                    relative ${sizeClasses[size] || sizeClasses['md']} font-black ${fontClass} tracking-wide
                     ${hasGradient
                         ? `bg-gradient-to-r ${nameGradient} bg-clip-text text-transparent animate-gradient-x bg-[length:200%_auto]`
                         : ''
@@ -118,5 +121,4 @@ export function PremiumUsername({
     );
 }
 
-// Default export for easier imports
 export default PremiumUsername;

@@ -9,6 +9,7 @@ import { getThemeColors } from "@/lib/themes";
 import { PremiumBadge } from "./PremiumBadge";
 import { ShinyText } from "./ShinyText";
 import { RefreshAvatarButton } from "./RefreshAvatarButton";
+import { PremiumUsername } from "./PremiumUsername";
 
 interface Team {
     name: string;
@@ -57,6 +58,7 @@ interface PlayerProfileProps {
     nameGradient?: string | null;
     profileFrame?: string | null;
     customTitle?: string | null;
+    customFont?: string | null;
     team?: Team; // Optional: Player might not have a team
     isOwner?: boolean; // True if viewing own profile
     medals?: {
@@ -105,6 +107,7 @@ export function PlayerProfile({
     nameGradient,
     profileFrame,
     customTitle,
+    customFont,
     team,
     countryCode,
     isOwner = false,
@@ -237,9 +240,14 @@ export function PlayerProfile({
                                                                 profileFrame === 'PLASMA' ? 'border-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.6)] animate-pulse' :
                                                                     profileFrame === 'VOID' ? 'border-purple-900 shadow-[0_0_25px_rgba(88,28,135,0.8)]' :
                                                                         profileFrame === 'LEGENDARY' ? 'border-yellow-300 animate-pulse shadow-[0_0_25px_rgba(253,224,71,0.7)]' :
-                                                                            isPremium ? 'border-amber-300 shadow-amber-500/50' : 'border-white/10 bg-zinc-800'
+                                                                            profileFrame === 'LEGENDARY' ? 'border-yellow-300 animate-pulse shadow-[0_0_25px_rgba(253,224,71,0.7)]' :
+                                                                                isPremium ? 'shadow-lg border-opacity-80' : 'border-white/10 bg-zinc-800'
                                 }
                             `}
+                            style={isPremium && !['GOLD', 'DIAMOND', 'FIRE', 'ICE', 'ELECTRIC', 'RAINBOW', 'EMERALD', 'RUBY', 'PLASMA', 'VOID', 'LEGENDARY'].includes(profileFrame || '') ? {
+                                borderColor: themeColors.primary,
+                                boxShadow: `0 0 20px ${themeColors.glow}`
+                            } : undefined}
                         >
                             {/* Wrapper for rainbow frame needing internal consistency */}
                             <div className={`w-full h-full rounded-xl overflow-hidden ${profileFrame === 'RAINBOW' ? 'bg-zinc-900 border-2 border-zinc-900' : ''}`}>
@@ -359,21 +367,18 @@ export function PlayerProfile({
                                     {customTitle}
                                 </span>
                             )}
-                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase italic leading-none break-all max-w-full">
-                                {isPremium ? (
-                                    <span className="flex flex-wrap items-center gap-2">
-                                        {nameGradient ? (
-                                            <span className={`bg-gradient-to-r ${nameGradient} bg-clip-text text-transparent animate-gradient-x`}>
-                                                {username}
-                                            </span>
-                                        ) : (
-                                            <ShinyText text={username} theme={profileTheme} />
-                                        )}
-                                        <PremiumBadge theme={profileTheme} />
-                                    </span>
-                                ) : (
-                                    username
-                                )}
+                            <h1 className="leading-none break-all max-w-full">
+                                <PremiumUsername
+                                    username={username}
+                                    isPremium={isPremium}
+                                    profileTheme={profileTheme}
+                                    nameGradient={nameGradient}
+                                    customFont={customFont}
+                                    size="4xl"
+                                    showBadge={isPremium}
+                                    showGlow={profileGlow}
+                                    className="uppercase italic"
+                                />
                             </h1>
                         </div>
 
