@@ -122,7 +122,8 @@ export function PlayerProfile({
     rankingPosition,
 }: PlayerProfileProps) {
     // Get theme colors based on user's selected theme
-    const themeColors = getThemeColors(profileTheme);
+    // Handle legacy "DEFAULT" theme by converting to "emerald"
+    const themeColors = getThemeColors(profileTheme === "DEFAULT" ? "emerald" : profileTheme);
 
     return (
         <div className="w-full max-w-6xl mx-auto space-y-6">
