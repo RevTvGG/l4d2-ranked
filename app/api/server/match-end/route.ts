@@ -258,6 +258,16 @@ export async function POST(request: NextRequest) {
             console.error('[match-end] RCON cleanup failed (non-critical):', rconError);
         }
 
+        // G. TRIGGER QUEUE CHECK
+        // Now that server is AVAILABLE, check if we can start a new match immediately
+        try {
+            const { checkQueueAndCreateMatch } = await import('@/app/actions/queue');
+            // Run in background, don't await response
+            checkQueueAndCreateMatch().catch(err => console.error('[match-end] Failed to trigger queue:', err));
+        } catch (queueError) {
+            console.error('[match-end] Failed to import queue action:', queueError);
+        }
+
         return successResponse({ message: 'Match completed successfully' });
 
     } catch (error) {

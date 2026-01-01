@@ -31,6 +31,11 @@ export async function forceReleaseServer(serverId: string) {
             }
         });
 
+        // Trigger queue check to immediately maximize server usage
+        const { checkQueueAndCreateMatch } = await import('./queue');
+        // Run in background
+        checkQueueAndCreateMatch().catch(err => console.error('Failed to trigger queue from admin:', err));
+
         revalidatePath('/admin/servers');
         return { success: true };
     } catch (error) {
