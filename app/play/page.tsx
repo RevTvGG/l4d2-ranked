@@ -196,12 +196,19 @@ export default function PlayPage() {
                     <div className="w-full max-w-6xl space-y-8">
                         {/* Title Section */}
                         <div className="text-center space-y-4 mb-12">
-                            <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter uppercase text-white">
-                                Matchmaking <span className="text-brand-green">Lobby</span>
+                            <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter uppercase text-white drop-shadow-[0_0_30px_rgba(74,222,128,0.3)]">
+                                Matchmaking <span className="text-brand-green drop-shadow-[0_0_20px_rgba(74,222,128,0.5)]">Lobby</span>
                             </h1>
                             <p className="text-zinc-400 max-w-2xl mx-auto text-lg">
                                 Join the fight. Queue up and prove your worth.
                             </p>
+                            <div className="flex items-center justify-center gap-4 text-sm">
+                                <div className="flex items-center gap-2 bg-zinc-900/60 px-4 py-2 rounded-full border border-white/10">
+                                    <span className="w-2 h-2 bg-brand-green rounded-full animate-pulse"></span>
+                                    <span className="text-zinc-400">Online:</span>
+                                    <span className="text-brand-green font-bold font-mono">{onlineCount}</span>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -216,9 +223,9 @@ export default function PlayPage() {
                                 <OnlineUsersList />
 
                                 {/* QUEUE STATUS CARD */}
-                                <div className="bg-zinc-900/50 border border-white/5 p-6 rounded-2xl backdrop-blur-sm">
-                                    <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-                                        <span className="text-2xl">🔥</span> Queue Status
+                                <div className="bg-zinc-900/70 border border-brand-green/20 p-6 rounded-2xl backdrop-blur-md shadow-[0_0_40px_-15px_rgba(74,222,128,0.3)] hover:border-brand-green/40 transition-all duration-300">
+                                    <h3 className="font-black text-white mb-4 flex items-center gap-2 uppercase tracking-wide text-sm">
+                                        <span className="text-2xl">⚔️</span> Queue Status
                                     </h3>
 
                                     <div className="space-y-4">
@@ -308,12 +315,12 @@ export default function PlayPage() {
                                             <>
                                                 <button
                                                     onClick={inQueue ? handleLeaveQueue : handleJoinQueue}
-                                                    className={`w-full py-4 font-black uppercase tracking-widest rounded-xl transition-all shadow-lg transform hover:-translate-y-1 ${inQueue
-                                                        ? 'bg-red-500 hover:bg-red-400 text-white shadow-red-500/20'
-                                                        : 'bg-brand-green hover:bg-lime-400 text-black shadow-brand-green/20'
+                                                    className={`w-full py-4 font-black uppercase tracking-widest rounded-xl transition-all transform hover:-translate-y-1 hover:scale-[1.02] active:scale-[0.98] ${inQueue
+                                                        ? 'bg-red-500 hover:bg-red-400 text-white shadow-[0_0_30px_-5px_rgba(239,68,68,0.5)] border border-red-400/30'
+                                                        : 'bg-brand-green hover:bg-lime-400 text-black shadow-[0_0_40px_-5px_rgba(74,222,128,0.6)] border border-lime-300/30 animate-pulse'
                                                         }`}
                                                 >
-                                                    {inQueue ? 'Leave Queue' : 'Buscar Partida'}
+                                                    {inQueue ? '❌ Leave Queue' : '🎮 FIND MATCH'}
                                                 </button>
 
 
@@ -324,64 +331,72 @@ export default function PlayPage() {
 
                                         {/* MATCH FOUND / ACCEPT - Shows during READY_CHECK phase */}
                                         {(isReadyCheck || (matchId && matchData?.status === 'READY_CHECK')) && !isVeto && !isLive && (
-                                            <div className="animate-pulse bg-brand-green/20 border border-brand-green/50 p-4 rounded-xl text-center space-y-3">
-                                                <div className="text-brand-green font-bold text-xl">MATCH FOUND!</div>
+                                            <div className="bg-gradient-to-br from-brand-green/30 to-emerald-900/20 border-2 border-brand-green/60 p-6 rounded-2xl text-center space-y-4 shadow-[0_0_50px_-10px_rgba(74,222,128,0.5)] animate-pulse">
+                                                <div className="text-brand-green font-black text-2xl uppercase tracking-wider drop-shadow-[0_0_10px_rgba(74,222,128,0.8)]">
+                                                    🎮 MATCH FOUND!
+                                                </div>
                                                 <div className="text-sm text-zinc-300">Accept to join the lobby</div>
                                                 <button
                                                     onClick={handleAcceptMatch}
                                                     disabled={isAccepted}
-                                                    className={`w-full py-3 font-bold rounded-lg uppercase ${isAccepted
-                                                        ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
-                                                        : 'bg-brand-green text-black hover:scale-105 transition-transform'
+                                                    className={`w-full py-4 font-black rounded-xl uppercase text-lg transition-all ${isAccepted
+                                                        ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed border border-zinc-600'
+                                                        : 'bg-brand-green text-black hover:scale-105 shadow-[0_0_30px_rgba(74,222,128,0.4)] border border-lime-300/50'
                                                         }`}
                                                 >
-                                                    {isAccepted ? 'Waiting for others...' : 'ACCEPT MATCH'}
+                                                    {isAccepted ? '⏳ Waiting for others...' : '✅ ACCEPT MATCH'}
                                                 </button>
-                                                <div className="flex justify-center gap-1 mt-2">
+                                                <div className="flex justify-center gap-2 mt-3">
                                                     {matchData?.players?.map((p: any) => (
                                                         <div
                                                             key={p.userId}
-                                                            className={`w-3 h-3 rounded-full transition-colors ${p.accepted ? 'bg-brand-green' : 'bg-zinc-700'
+                                                            className={`w-4 h-4 rounded-full transition-all duration-300 ${p.accepted
+                                                                ? 'bg-brand-green shadow-[0_0_10px_rgba(74,222,128,0.8)]'
+                                                                : 'bg-zinc-700 border border-zinc-600'
                                                                 }`}
                                                         />
                                                     ))}
+                                                </div>
+                                                <div className="text-xs text-zinc-500">
+                                                    {matchData?.players?.filter((p: any) => p.accepted).length || 0}/8 players ready
                                                 </div>
                                             </div>
                                         )}
 
                                         {/* VETO PHASE */}
                                         {isVeto && (
-                                            <div className="bg-blue-500/10 border border-blue-500/30 p-4 rounded-xl space-y-3">
-                                                <div className="text-blue-400 font-bold text-center">MAP VETO</div>
-                                                <div className="grid grid-cols-2 gap-2">
+                                            <div className="bg-gradient-to-br from-blue-500/20 to-indigo-900/20 border-2 border-blue-500/40 p-6 rounded-2xl space-y-4 shadow-[0_0_40px_-10px_rgba(59,130,246,0.4)]">
+                                                <div className="text-blue-400 font-black text-xl text-center uppercase tracking-wider">
+                                                    🗺️ MAP SELECTION
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-3">
                                                     {['Dark Carnival', 'Dead Center', 'No Mercy', 'The Parish'].map(map => (
                                                         <button
                                                             key={map}
                                                             onClick={() => handleVoteMap(map)}
                                                             disabled={isVetoing}
-                                                            className={`p-2 text-xs border rounded transition-colors ${isVetoing
+                                                            className={`p-3 text-sm font-bold border-2 rounded-xl transition-all ${isVetoing
                                                                 ? 'bg-zinc-800 text-zinc-600 border-zinc-700 cursor-wait'
-                                                                : 'bg-zinc-800 hover:bg-blue-500/20 border-white/5 hover:border-blue-500/50 text-white'
+                                                                : 'bg-zinc-800/80 hover:bg-blue-500/30 border-zinc-700 hover:border-blue-500/60 text-white hover:scale-[1.02] hover:shadow-[0_0_20px_-5px_rgba(59,130,246,0.5)]'
                                                                 }`}
                                                         >
-                                                            {isVetoing ? 'Voting...' : map}
+                                                            {isVetoing ? '⏳ Voting...' : map}
                                                         </button>
                                                     ))}
                                                 </div>
-                                                <div className="text-xs text-center text-zinc-400">
-                                                    Votes: {matchData?.mapVotes?.length || 0}/8
+                                                <div className="text-sm text-center text-zinc-400 bg-zinc-900/50 py-2 rounded-lg">
+                                                    Votes: <span className="text-blue-400 font-bold">{matchData?.mapVotes?.length || 0}</span>/8
                                                 </div>
-
                                             </div>
                                         )}
 
                                         {/* READY TO CONNECT / WAITING FOR PLAYERS / IN PROGRESS */}
                                         {(isMatchReady || isLive) && (
-                                            <div className={`p-6 rounded-xl space-y-4 shadow-xl ${matchData?.status === 'IN_PROGRESS'
-                                                ? 'bg-amber-500 text-black shadow-amber-500/20'
-                                                : 'bg-brand-green text-black shadow-brand-green/20'
+                                            <div className={`p-6 rounded-2xl space-y-4 border-2 ${matchData?.status === 'IN_PROGRESS'
+                                                ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-black shadow-[0_0_50px_-10px_rgba(245,158,11,0.6)] border-amber-400/50'
+                                                : 'bg-gradient-to-br from-brand-green to-emerald-600 text-black shadow-[0_0_50px_-10px_rgba(74,222,128,0.6)] border-lime-400/50'
                                                 }`}>
-                                                <div className="text-center font-black text-2xl tracking-tighter">
+                                                <div className="text-center font-black text-2xl tracking-tighter uppercase">
                                                     {matchData?.status === 'IN_PROGRESS' ? '⚔️ MATCH IN PROGRESS' :
                                                         matchData?.status === 'WAITING_FOR_PLAYERS' ? '⏳ WAITING FOR PLAYERS' :
                                                             '🎮 MATCH READY'}
