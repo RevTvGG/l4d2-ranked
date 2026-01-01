@@ -63,7 +63,7 @@ model User {
   premiumExpiresAt DateTime?
   
   // Premium Customization
-  profileTheme   String        @default("DEFAULT")  // DEFAULT, DARK, NEON, GOLD, FIRE, ICE, CUSTOM
+  profileTheme   String        @default("emerald")  // emerald, sapphire, amethyst, ruby, gold, cyan
   profileColor   String?       // Hex color for custom theme
   profileGlow    Boolean       @default(false)     // Glow effect on avatar
   profileBanner  String?       // Custom banner URL
