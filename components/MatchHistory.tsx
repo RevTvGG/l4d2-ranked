@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { getMapImage } from '@/lib/constants/mapImages';
 
 interface MatchPlayer {
     id: string;
@@ -141,186 +142,205 @@ export function MatchHistory({ matches, isPremium, isOwner }: MatchHistoryProps)
                     {displayedMatches.map((match) => (
                         <div
                             key={match.matchId}
-                            className="bg-zinc-900/50 border border-white/5 rounded-xl p-4 hover:border-white/10 transition-colors"
+                            className="relative overflow-hidden border border-white/5 rounded-xl p-4 hover:border-white/10 transition-colors group"
                         >
-                            {/* Header Row */}
-                            <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-3">
-                                    {/* Result Badge */}
-                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl font-bold ${match.result === 'WIN'
-                                        ? 'bg-green-500/20 text-green-400'
-                                        : match.result === 'LOSS'
-                                            ? 'bg-red-500/20 text-red-400'
-                                            : 'bg-zinc-500/20 text-zinc-400'
-                                        }`}>
-                                        {match.result === 'WIN' ? '✓' : match.result === 'LOSS' ? '✗' : '—'}
-                                    </div>
-
-                                    <div>
-                                        <div className="font-medium text-white flex items-center gap-2">
-                                            {match.result}
-                                            <span className={`text-sm ${match.eloChange > 0
-                                                ? 'text-green-400'
-                                                : match.eloChange < 0
-                                                    ? 'text-red-400'
-                                                    : 'text-zinc-500'
-                                                }`}>
-                                                {match.eloChange > 0 ? '+' : ''}{match.eloChange} ELO
-                                            </span>
-                                        </div>
-                                        <div className="text-xs text-zinc-500">
-                                            {match.mapName} • {formatDate(match.date)}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Match ID */}
-                                <button
-                                    onClick={() => copyMatchId(match.matchId)}
-                                    className="text-xs bg-zinc-800 px-3 py-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors flex items-center gap-2"
-                                >
-                                    <span className="font-mono truncate max-w-[100px]">
-                                        {match.matchId.slice(0, 8)}...
-                                    </span>
-                                    {copiedId === match.matchId ? (
-                                        <span className="text-green-400">✓</span>
-                                    ) : (
-                                        <span>📋</span>
-                                    )}
-                                </button>
+                            {/* Background Image Layer */}
+                            <div className="absolute inset-0 z-0 select-none pointer-events-none">
+                                <Image
+                                    src={getMapImage(match.mapName)}
+                                    alt={match.mapName}
+                                    fill
+                                    className="object-cover opacity-30 blur-[1px] scale-110 group-hover:scale-100 transition-transform duration-700 ease-out"
+                                />
+                                {/* Gradient Overlay for better text readability */}
+                                <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/90 to-transparent" />
+                                <div className="absolute inset-0 bg-black/20" />
                             </div>
 
-                            {/* Teams Row */}
-                            <div className="flex items-center gap-4 text-sm">
-                                {/* Teammates */}
-                                <div className="flex-1">
-                                    <div className="text-xs text-zinc-500 mb-2">Your Team</div>
-                                    <div className="flex items-center gap-1 flex-wrap">
-                                        {match.teammates.slice(0, 3).map((player) => (
-                                            <Link
-                                                key={player.id}
-                                                href={`/profile/${encodeURIComponent(player.name)}`}
-                                                className="flex items-center gap-1.5 bg-zinc-800/50 rounded-lg px-2 py-1 hover:bg-zinc-700/50 transition-colors"
-                                            >
-                                                <Image
-                                                    src={player.image || '/default_avatar.jpg'}
-                                                    alt={player.name}
-                                                    width={20}
-                                                    height={20}
-                                                    className="rounded-full"
-                                                />
-                                                <span className="text-zinc-300 text-xs truncate max-w-[60px]">
-                                                    {player.name}
+                            {/* Content Layer */}
+                            <div className="relative z-10">
+                                {/* Header Row */}
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-3">
+                                        {/* Result Badge */}
+                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl font-bold ${match.result === 'WIN'
+                                            ? 'bg-green-500/20 text-green-400'
+                                            : match.result === 'LOSS'
+                                                ? 'bg-red-500/20 text-red-400'
+                                                : 'bg-zinc-500/20 text-zinc-400'
+                                            }`}>
+                                            {match.result === 'WIN' ? '✓' : match.result === 'LOSS' ? '✗' : '—'}
+                                        </div>
+
+                                        <div>
+                                            <div className="font-medium text-white flex items-center gap-2 shadow-sm">
+                                                {match.result}
+                                                <span className={`text-sm ${match.eloChange > 0
+                                                    ? 'text-green-400'
+                                                    : match.eloChange < 0
+                                                        ? 'text-red-400'
+                                                        : 'text-zinc-500'
+                                                    }`}>
+                                                    {match.eloChange > 0 ? '+' : ''}{match.eloChange} ELO
                                                 </span>
-                                            </Link>
-                                        ))}
-                                        {match.teammates.length > 3 && (
-                                            <span className="text-zinc-500 text-xs">
-                                                +{match.teammates.length - 3}
-                                            </span>
-                                        )}
+                                            </div>
+                                            <div className="text-xs text-zinc-400">
+                                                {match.mapName} • {formatDate(match.date)}
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div className="text-zinc-600 font-bold">VS</div>
-
-                                {/* Opponents */}
-                                <div className="flex-1">
-                                    <div className="text-xs text-zinc-500 mb-2 text-right">Opponents</div>
-                                    <div className="flex items-center gap-1 flex-wrap justify-end">
-                                        {match.opponents.slice(0, 3).map((player) => (
-                                            <Link
-                                                key={player.id}
-                                                href={`/profile/${encodeURIComponent(player.name)}`}
-                                                className="flex items-center gap-1.5 bg-zinc-800/50 rounded-lg px-2 py-1 hover:bg-zinc-700/50 transition-colors"
-                                            >
-                                                <Image
-                                                    src={player.image || '/default_avatar.jpg'}
-                                                    alt={player.name}
-                                                    width={20}
-                                                    height={20}
-                                                    className="rounded-full"
-                                                />
-                                                <span className="text-zinc-300 text-xs truncate max-w-[60px]">
-                                                    {player.name}
-                                                </span>
-                                            </Link>
-                                        ))}
-                                        {match.opponents.length > 3 && (
-                                            <span className="text-zinc-500 text-xs">
-                                                +{match.opponents.length - 3}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Actions Row */}
-                            {isOwner && (
-                                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/5">
+                                    {/* Match ID */}
                                     <button
-                                        onClick={() => {
-                                            copyMatchId(match.matchId);
-                                            alert(`Match ID copied! Send this ID to an admin to request the demo file:\n\n${match.matchId}`);
-                                        }}
-                                        className="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1.5 rounded-lg hover:bg-blue-500/20 transition-colors flex items-center gap-1.5"
+                                        onClick={() => copyMatchId(match.matchId)}
+                                        className="text-xs bg-black/40 border border-white/5 backdrop-blur px-3 py-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-black/60 transition-colors flex items-center gap-2"
                                     >
-                                        📹 Request Demo
+                                        <span className="font-mono truncate max-w-[100px]">
+                                            {match.matchId.slice(0, 8)}...
+                                        </span>
+                                        {copiedId === match.matchId ? (
+                                            <span className="text-green-400">✓</span>
+                                        ) : (
+                                            <span>📋</span>
+                                        )}
                                     </button>
+                                </div>
 
-                                    {/* Report Dropdown */}
-                                    <div className="relative">
+                                {/* Teams Row */}
+                                <div className="flex items-center gap-4 text-sm mt-4">
+                                    {/* Teammates */}
+                                    <div className="flex-1">
+                                        <div className="text-xs text-zinc-500 mb-2 uppercase tracking-wider font-bold">Your Team</div>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            {match.teammates.slice(0, 3).map((player) => (
+                                                <Link
+                                                    key={player.id}
+                                                    href={`/profile/${encodeURIComponent(player.name)}`}
+                                                    className="flex items-center gap-2 bg-black/40 border border-white/5 backdrop-blur rounded-full pl-1 pr-3 py-1 hover:bg-black/60 transition-colors"
+                                                >
+                                                    <Image
+                                                        src={player.image || '/default_avatar.jpg'}
+                                                        alt={player.name}
+                                                        width={20}
+                                                        height={20}
+                                                        className="rounded-full"
+                                                    />
+                                                    <span className="text-zinc-300 text-xs font-medium truncate max-w-[80px]">
+                                                        {player.name}
+                                                    </span>
+                                                </Link>
+                                            ))}
+                                            {match.teammates.length > 3 && (
+                                                <span className="text-zinc-500 text-xs font-medium px-2">
+                                                    +{match.teammates.length - 3}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* VS Divider */}
+                                    <div className="text-zinc-700 font-black text-xs italic opacity-50 px-2">VS</div>
+
+                                    {/* Opponents */}
+                                    <div className="flex-1">
+                                        <div className="text-xs text-zinc-500 mb-2 text-right uppercase tracking-wider font-bold">Opponents</div>
+                                        <div className="flex items-center gap-2 flex-wrap justify-end">
+                                            {match.opponents.slice(0, 3).map((player) => (
+                                                <Link
+                                                    key={player.id}
+                                                    href={`/profile/${encodeURIComponent(player.name)}`}
+                                                    className="flex items-center gap-2 bg-black/40 border border-white/5 backdrop-blur rounded-full pl-1 pr-3 py-1 hover:bg-black/60 transition-colors"
+                                                >
+                                                    <Image
+                                                        src={player.image || '/default_avatar.jpg'}
+                                                        alt={player.name}
+                                                        width={20}
+                                                        height={20}
+                                                        className="rounded-full"
+                                                    />
+                                                    <span className="text-zinc-300 text-xs font-medium truncate max-w-[80px]">
+                                                        {player.name}
+                                                    </span>
+                                                </Link>
+                                            ))}
+                                            {match.opponents.length > 3 && (
+                                                <span className="text-zinc-500 text-xs font-medium px-2">
+                                                    +{match.opponents.length - 3}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Actions Row */}
+                                {isOwner && (
+                                    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/5">
                                         <button
-                                            onClick={() => setReportingMatch(reportingMatch === match.matchId ? null : match.matchId)}
-                                            className="text-xs bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-lg hover:bg-red-500/20 transition-colors flex items-center gap-1.5"
+                                            onClick={() => {
+                                                copyMatchId(match.matchId);
+                                                alert(`Match ID copied! Send this ID to an admin to request the demo file:\n\n${match.matchId}`);
+                                            }}
+                                            className="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1.5 rounded-lg hover:bg-blue-500/20 transition-colors flex items-center gap-1.5 font-medium"
                                         >
-                                            🚩 Report Player
+                                            📹 Request Demo
                                         </button>
 
-                                        {reportingMatch === match.matchId && (
-                                            <div className="absolute top-full left-0 mt-1 bg-zinc-900 border border-white/10 rounded-lg shadow-xl z-10 min-w-[180px] py-1">
-                                                <div className="px-3 py-2 text-xs text-zinc-500 border-b border-white/5">
-                                                    Select player to report:
+                                        {/* Report Dropdown */}
+                                        <div className="relative">
+                                            <button
+                                                onClick={() => setReportingMatch(reportingMatch === match.matchId ? null : match.matchId)}
+                                                className="text-xs bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-lg hover:bg-red-500/20 transition-colors flex items-center gap-1.5 font-medium"
+                                            >
+                                                🚩 Report Player
+                                            </button>
+
+                                            {reportingMatch === match.matchId && (
+                                                <div className="absolute top-full left-0 mt-2 bg-zinc-900 border border-white/10 rounded-lg shadow-2xl z-20 min-w-[200px] py-1 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                                    <div className="px-3 py-2 text-[10px] text-zinc-500 bg-zinc-950/50 border-b border-white/5 uppercase font-bold tracking-wider">
+                                                        Select player to report
+                                                    </div>
+                                                    <div className="max-h-[200px] overflow-y-auto">
+                                                        {match.opponents.map((player) => (
+                                                            <Link
+                                                                key={player.id}
+                                                                href={`/profile/${encodeURIComponent(player.name)}?report=true&matchId=${match.matchId}`}
+                                                                className="flex items-center gap-3 px-4 py-2 hover:bg-zinc-800 transition-colors group/item"
+                                                                onClick={() => setReportingMatch(null)}
+                                                            >
+                                                                <Image
+                                                                    src={player.image || '/default_avatar.jpg'}
+                                                                    alt={player.name}
+                                                                    width={24}
+                                                                    height={24}
+                                                                    className="rounded-full ring-1 ring-white/10 group-hover/item:ring-white/30"
+                                                                />
+                                                                <span className="text-zinc-300 group-hover/item:text-white text-sm transition-colors">{player.name}</span>
+                                                            </Link>
+                                                        ))}
+                                                        {match.teammates.map((player) => (
+                                                            <Link
+                                                                key={player.id}
+                                                                href={`/profile/${encodeURIComponent(player.name)}?report=true&matchId=${match.matchId}`}
+                                                                className="flex items-center gap-3 px-4 py-2 hover:bg-zinc-800 transition-colors group/item"
+                                                                onClick={() => setReportingMatch(null)}
+                                                            >
+                                                                <Image
+                                                                    src={player.image || '/default_avatar.jpg'}
+                                                                    alt={player.name}
+                                                                    width={24}
+                                                                    height={24}
+                                                                    className="rounded-full ring-1 ring-white/10 group-hover/item:ring-white/30"
+                                                                />
+                                                                <span className="text-zinc-300 group-hover/item:text-white text-sm transition-colors">{player.name}</span>
+                                                            </Link>
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                                {match.opponents.map((player) => (
-                                                    <Link
-                                                        key={player.id}
-                                                        href={`/profile/${encodeURIComponent(player.name)}?report=true&matchId=${match.matchId}`}
-                                                        className="flex items-center gap-2 px-3 py-2 hover:bg-zinc-800 transition-colors"
-                                                        onClick={() => setReportingMatch(null)}
-                                                    >
-                                                        <Image
-                                                            src={player.image || '/default_avatar.jpg'}
-                                                            alt={player.name}
-                                                            width={24}
-                                                            height={24}
-                                                            className="rounded-full"
-                                                        />
-                                                        <span className="text-white text-sm">{player.name}</span>
-                                                    </Link>
-                                                ))}
-                                                {match.teammates.map((player) => (
-                                                    <Link
-                                                        key={player.id}
-                                                        href={`/profile/${encodeURIComponent(player.name)}?report=true&matchId=${match.matchId}`}
-                                                        className="flex items-center gap-2 px-3 py-2 hover:bg-zinc-800 transition-colors"
-                                                        onClick={() => setReportingMatch(null)}
-                                                    >
-                                                        <Image
-                                                            src={player.image || '/default_avatar.jpg'}
-                                                            alt={player.name}
-                                                            width={24}
-                                                            height={24}
-                                                            className="rounded-full"
-                                                        />
-                                                        <span className="text-white text-sm">{player.name}</span>
-                                                    </Link>
-                                                ))}
-                                            </div>
-                                        )}
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
                     ))}
 
