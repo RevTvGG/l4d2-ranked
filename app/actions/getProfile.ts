@@ -67,6 +67,8 @@ export async function getProfile(username: string) {
             role: user.role,
             rating: user.rating,
             winRate: user.winRate,
+            totalWins: user.wins,
+            totalLosses: user.losses,
             // New Stats
             totalKills: user.totalKills,
             totalDeaths: user.totalDeaths,

@@ -73,7 +73,9 @@ interface PlayerProfileProps {
     totalHeadshots?: number;
     totalMvps?: number;
     weaponStats?: Record<string, any>;
-    ratingHistory?: number[];
+    ratingHistory?: number[]; // Added ratingHistory back
+    totalWins?: number;
+    totalLosses?: number;
 }
 
 export function PlayerProfile({
@@ -111,6 +113,8 @@ export function PlayerProfile({
     totalMvps = 0,
     weaponStats = {},
     ratingHistory = [],
+    totalWins = 0,
+    totalLosses = 0,
 }: PlayerProfileProps) {
     const themeBg: Record<string, string> = {
         DEFAULT: "border-white/10 bg-zinc-900",
@@ -292,7 +296,7 @@ export function PlayerProfile({
                                     {customTitle}
                                 </span>
                             )}
-                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase italic leading-none break-words max-w-full">
+                            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tighter uppercase italic leading-none break-all max-w-full">
                                 {isPremium ? (
                                     <span className="flex flex-wrap items-center gap-2">
                                         {nameGradient ? (
@@ -348,11 +352,15 @@ export function PlayerProfile({
 
                 {/* Main Stats Column */}
                 <div className="md:col-span-2 grid grid-cols-3 gap-4">
-                    <StatCard label="Win Rate" value={`${winRate.toFixed(1)}%`} subDetail={winRate > 50 ? "Above Avg" : "Needs Improvement"} />
+                    <StatCard
+                        label="Win Rate"
+                        value={`${winRate.toFixed(1)}%`}
+                        subDetail={`${totalWins} W - ${totalLosses} L`}
+                        highlight={winRate >= 50}
+                    />
                     <StatCard
                         label="K/D Ratio"
                         value={`${(totalDeaths > 0 ? (totalKills / totalDeaths) : totalKills).toFixed(2)}`}
-                        highlight
                     />
                     <StatCard label="Total MVPs" value={totalMvps.toLocaleString()} />
 

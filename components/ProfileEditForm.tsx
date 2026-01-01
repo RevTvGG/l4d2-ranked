@@ -229,6 +229,9 @@ export function ProfileEditForm({ user }: { user: any }) {
                                     placeholder="https://imgur.com/..."
                                     className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-amber-500 focus:outline-none"
                                 />
+                                <p className="text-[10px] text-zinc-500 mt-1 pl-1">
+                                    Must be a direct image link (ending in .jpg, .png). Imgur Gallery links will not work.
+                                </p>
                             </div>
 
                             <div className="flex items-center gap-3 pt-2">
