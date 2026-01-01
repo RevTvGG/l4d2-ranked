@@ -28,8 +28,8 @@ export function Navbar() {
                         <Image
                             src="/site-logo.png"
                             alt="L4D2 Ranked Logo"
-                            width={36}
-                            height={36}
+                            width={50}
+                            height={50}
                             className="object-contain hover:scale-110 transition-transform"
                         />
                         <span>L4D2<span className="text-brand-green">RANKED</span></span>
