@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { updatePreferences } from "@/app/actions/user"
 import { useRouter } from "next/navigation"
+import ThemeSelector from "@/components/ThemeSelector"
 
 export function ProfileEditForm({ user }: { user: any }) {
     const router = useRouter();
@@ -75,6 +76,12 @@ export function ProfileEditForm({ user }: { user: any }) {
 
     return (
         <div className="max-w-xl mx-auto space-y-8">
+
+            {/* THEME SELECTOR - PREMIUM */}
+            <ThemeSelector
+                currentTheme={user?.profileTheme || 'emerald'}
+                isPremium={isPremium}
+            />
 
             <form action={handleSubmit} className="space-y-8 bg-zinc-900 border border-white/10 p-8 rounded-3xl shadow-xl">
 
