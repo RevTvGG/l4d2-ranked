@@ -55,7 +55,10 @@ export async function sendMessage(content: string) {
                         image: true,
                         rank: true,
                         isPremium: true,
-                        profileTheme: true
+                        profileTheme: true,
+                        nameGradient: true,
+                        customFont: true,
+                        profileGlow: true
                     }
                 }
             }
@@ -82,7 +85,10 @@ export async function getMessages() {
                         image: true,
                         rank: true,
                         isPremium: true,
-                        profileTheme: true // Add theme for extra flair if needed
+                        profileTheme: true,
+                        nameGradient: true,
+                        customFont: true,
+                        profileGlow: true
                     }
                 }
             }

@@ -70,6 +70,7 @@ model User {
   nameGradient   String?       // Tailwind gradient classes
   profileFrame   String?       // Avatar frame: NONE, GOLD, FIRE, ICE, ELECTRIC, RAINBOW, PREMIUM
   customTitle    String?       // Custom title under name (max 30 chars)
+  customFont     String?       // Premium typography: default, gaming, elegant, modern, futuristic, pixel
   
   rating         Int           @default(1000)
   rank           String        @default("Unranked")

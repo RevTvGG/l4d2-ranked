@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 
 import { PremiumBadge } from './PremiumBadge'
 import { ShinyText } from './ShinyText'
+import PremiumUsername from './PremiumUsername'
 
 // Types
 type Message = {
@@ -19,6 +20,9 @@ type Message = {
         rank: string
         isPremium: boolean
         profileTheme?: string
+        nameGradient?: string | null
+        customFont?: string | null
+        profileGlow?: boolean
     }
 }
 
@@ -154,7 +158,16 @@ export default function GlobalChat({ currentUser }: { currentUser: any }) {
                                     <div className="flex items-baseline gap-2 mb-1">
                                         <span className="text-sm font-bold truncate flex items-center gap-1.5">
                                             {msg.user.isPremium ? (
-                                                <ShinyText text={msg.user.name || 'Unknown'} theme={msg.user.profileTheme} />
+                                                <PremiumUsername
+                                                    username={msg.user.name || 'Unknown'}
+                                                    isPremium={true}
+                                                    profileTheme={msg.user.profileTheme}
+                                                    nameGradient={msg.user.nameGradient}
+                                                    customFont={msg.user.customFont}
+                                                    size="sm"
+                                                    showBadge={false}
+                                                    showGlow={msg.user.profileGlow}
+                                                />
                                             ) : (
                                                 <span className="text-white">{msg.user.name}</span>
                                             )}
