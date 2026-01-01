@@ -82,14 +82,15 @@ export default function PremiumCustomization({ user }: PremiumCustomizationProps
                         {PREMIUM_FONTS.map((font) => (
                             <button
                                 key={font.id}
+                                type="button"
                                 onClick={() => {
                                     setCustomFont(font.id);
                                     saveField('customFont', font.id);
                                 }}
                                 disabled={saving === 'customFont'}
                                 className={`p-4 rounded-xl border-2 transition-all ${customFont === font.id
-                                        ? 'border-amber-400 bg-amber-500/10'
-                                        : 'border-white/10 hover:border-white/30 bg-black/20'
+                                    ? 'border-amber-400 bg-amber-500/10'
+                                    : 'border-white/10 hover:border-white/30 bg-black/20'
                                     } ${saving === 'customFont' ? 'opacity-50' : ''}`}
                             >
                                 <span className={`${font.class} text-lg text-white block mb-1`}>
@@ -112,14 +113,15 @@ export default function PremiumCustomization({ user }: PremiumCustomizationProps
                         {AVATAR_FRAMES.map((frame) => (
                             <button
                                 key={frame.id}
+                                type="button"
                                 onClick={() => {
                                     setProfileFrame(frame.id);
                                     saveField('profileFrame', frame.id);
                                 }}
                                 disabled={saving === 'profileFrame'}
                                 className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center ${profileFrame === frame.id
-                                        ? 'border-amber-400 bg-amber-500/10'
-                                        : 'border-white/10 hover:border-white/30 bg-black/20'
+                                    ? 'border-amber-400 bg-amber-500/10'
+                                    : 'border-white/10 hover:border-white/30 bg-black/20'
                                     } ${saving === 'profileFrame' ? 'opacity-50' : ''}`}
                             >
                                 {/* Preview circle with frame */}
@@ -150,6 +152,7 @@ export default function PremiumCustomization({ user }: PremiumCustomizationProps
                             className="flex-1 bg-black/40 border-2 border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-zinc-600 focus:border-amber-500/50 focus:outline-none"
                         />
                         <button
+                            type="button"
                             onClick={() => saveField('customTitle', customTitle)}
                             disabled={saving === 'customTitle'}
                             className="px-4 py-3 bg-amber-500/20 border-2 border-amber-500/50 rounded-xl text-amber-500 font-bold hover:bg-amber-500/30 transition-all disabled:opacity-50"
@@ -168,13 +171,14 @@ export default function PremiumCustomization({ user }: PremiumCustomizationProps
                     <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
                         {/* None option */}
                         <button
+                            type="button"
                             onClick={() => {
                                 setNameGradient('');
                                 saveField('nameGradient', '');
                             }}
                             className={`p-3 rounded-xl border-2 transition-all ${!nameGradient
-                                    ? 'border-amber-400 bg-amber-500/10'
-                                    : 'border-white/10 hover:border-white/30 bg-black/20'
+                                ? 'border-amber-400 bg-amber-500/10'
+                                : 'border-white/10 hover:border-white/30 bg-black/20'
                                 }`}
                         >
                             <span className="text-sm text-white font-bold">None</span>
@@ -182,14 +186,15 @@ export default function PremiumCustomization({ user }: PremiumCustomizationProps
                         {GRADIENT_PRESETS.map((gradient) => (
                             <button
                                 key={gradient.id}
+                                type="button"
                                 onClick={() => {
                                     setNameGradient(gradient.class);
                                     saveField('nameGradient', gradient.class);
                                 }}
                                 disabled={saving === 'nameGradient'}
                                 className={`p-3 rounded-xl border-2 transition-all ${nameGradient === gradient.class
-                                        ? 'border-amber-400 bg-amber-500/10'
-                                        : 'border-white/10 hover:border-white/30 bg-black/20'
+                                    ? 'border-amber-400 bg-amber-500/10'
+                                    : 'border-white/10 hover:border-white/30 bg-black/20'
                                     }`}
                             >
                                 <span className={`text-sm font-bold bg-gradient-to-r ${gradient.class} bg-clip-text text-transparent`}>
@@ -207,6 +212,7 @@ export default function PremiumCustomization({ user }: PremiumCustomizationProps
                         <p className="text-xs text-zinc-400">Pulsing glow around your avatar</p>
                     </div>
                     <button
+                        type="button"
                         onClick={() => {
                             const newValue = !profileGlow;
                             setProfileGlow(newValue);
@@ -214,8 +220,8 @@ export default function PremiumCustomization({ user }: PremiumCustomizationProps
                         }}
                         disabled={saving === 'profileGlow'}
                         className={`w-14 h-8 rounded-full transition-all ${profileGlow
-                                ? 'bg-amber-500'
-                                : 'bg-zinc-700'
+                            ? 'bg-amber-500'
+                            : 'bg-zinc-700'
                             } ${saving === 'profileGlow' ? 'opacity-50' : ''}`}
                     >
                         <div className={`w-6 h-6 bg-white rounded-full shadow-lg transition-transform ${profileGlow ? 'translate-x-7' : 'translate-x-1'
