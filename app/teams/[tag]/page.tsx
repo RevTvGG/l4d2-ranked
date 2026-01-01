@@ -9,6 +9,8 @@ import { TeamManagementPanel } from "@/components/TeamManagementPanel";
 import { JoinTeamButton } from "@/components/JoinTeamButton";
 import { PremiumBadge } from "@/components/PremiumBadge";
 import { ShinyText } from "@/components/ShinyText";
+import { PremiumUsername } from "@/components/PremiumUsername";
+import { getThemeColors } from "@/lib/themes";
 
 
 // Helper for flags
@@ -131,19 +133,52 @@ export default async function TeamProfilePage({ params, searchParams }: Props) {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {team.members.map((member) => (
-                        <div key={member.name} className={`p-4 rounded-xl border ${member.isPremium ? 'bg-zinc-900 border-amber-500/30' : member.steamId === team.ownerId ? 'bg-zinc-900 border-brand-green/30' : 'bg-zinc-900/50 border-white/5'} flex items-center gap-4`}>
-                            <div className={`h-12 w-12 bg-zinc-800 rounded-lg relative overflow-hidden ${member.isPremium ? 'border border-amber-400' : ''}`}>
-                                {member.image && <Image src={member.image} alt={member.name || "??"} fill className="object-cover" />}
+                        <div key={member.name} className={`p-4 rounded-xl border ${member.isPremium ? 'bg-zinc-900 border-opacity-40' : member.steamId === team.ownerId ? 'bg-zinc-900 border-brand-green/30' : 'bg-zinc-900/50 border-white/5'} flex items-center gap-4`} style={member.isPremium ? { borderColor: `${getThemeColors(member.profileTheme).primary}60` } : {}}>
+                            <div className="relative shrink-0 h-12 w-12">
+                                <div
+                                    className={`absolute inset-0 rounded-lg transition-all duration-300
+                                        ${member.profileFrame === 'GOLD' ? 'border-2 border-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)]' :
+                                            member.profileFrame === 'DIAMOND' ? 'border-2 border-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.5)]' :
+                                                member.profileFrame === 'FIRE' ? 'border-2 border-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.6)] animate-pulse-slow' :
+                                                    member.profileFrame === 'ICE' ? 'border-2 border-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.6)]' :
+                                                        member.profileFrame === 'ELECTRIC' ? 'border-2 border-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.6)]' :
+                                                            member.profileFrame === 'RAINBOW' ? 'bg-gradient-to-r from-red-500 via-green-500 to-blue-500 p-[2px]' :
+                                                                member.profileFrame === 'EMERALD' ? 'border-2 border-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.6)]' :
+                                                                    member.profileFrame === 'RUBY' ? 'border-2 border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.6)]' :
+                                                                        member.profileFrame === 'PLASMA' ? 'border-2 border-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.6)] animate-pulse' :
+                                                                            member.profileFrame === 'VOID' ? 'border-2 border-purple-900 shadow-[0_0_15px_rgba(88,28,135,0.8)]' :
+                                                                                member.profileFrame === 'LEGENDARY' ? 'border-2 border-yellow-300 animate-pulse shadow-[0_0_15px_rgba(253,224,71,0.7)]' :
+                                                                                    member.isPremium ? 'border-2 border-opacity-80 shadow-md' :
+                                                                                        'border border-zinc-700'
+                                        }
+                                    `}
+                                    style={member.isPremium && !['GOLD', 'DIAMOND', 'FIRE', 'ICE', 'ELECTRIC', 'RAINBOW', 'EMERALD', 'RUBY', 'PLASMA', 'VOID', 'LEGENDARY'].includes(member.profileFrame || '') ? {
+                                        borderColor: getThemeColors(member.profileTheme).primary,
+                                        boxShadow: `0 0 10px ${getThemeColors(member.profileTheme).glow}`
+                                    } : undefined}
+                                ></div>
+                                <div className={`relative w-full h-full rounded-lg overflow-hidden ${member.profileFrame === 'RAINBOW' ? 'bg-zinc-900 m-[2px]' : ''}`}>
+                                    {member.image && <Image src={member.image} alt={member.name || "??"} fill className="object-cover" />}
+                                </div>
                             </div>
                             <div>
                                 <div className="flex items-center gap-2">
                                     <span className="font-bold text-white text-lg flex items-center gap-2">
                                         {member.isPremium ? (
-                                            <ShinyText text={member.name || "Unknown"} theme={member.profileTheme} />
+                                            <PremiumUsername
+                                                username={member.name || "Unknown"}
+                                                isPremium={true}
+                                                profileTheme={member.profileTheme}
+                                                nameGradient={member.nameGradient}
+                                                customFont={member.customFont}
+                                                size="lg"
+                                                showBadge={false}
+                                                showGlow={false}
+                                            />
                                         ) : (
                                             member.name
                                         )}
-                                        {member.isPremium && <PremiumBadge theme={member.profileTheme} />}
+                                        {member.isPremium && <div className="text-xs">👑</div>}
                                     </span>
                                     {member.steamId === team.ownerId && <span className="text-[10px] bg-brand-green text-black px-1.5 py-0.5 rounded font-black uppercase">CPT</span>}
                                 </div>

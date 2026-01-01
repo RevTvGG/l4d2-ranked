@@ -19,7 +19,12 @@ export async function getTeamByTag(tag: string) {
                         countryCode: true,
                         steamId: true,
                         isPremium: true,
-                        profileTheme: true
+                        profileTheme: true,
+                        customFont: true,
+                        customTitle: true,
+                        nameGradient: true,
+                        profileGlow: true,
+                        profileFrame: true
                     }
                 }
             }

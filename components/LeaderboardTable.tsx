@@ -4,6 +4,8 @@ import Image from "next/image";
 
 import { PremiumBadge } from "./PremiumBadge";
 import { ShinyText } from "./ShinyText";
+import { PremiumUsername } from "./PremiumUsername";
+import { getThemeColors } from "@/lib/themes";
 
 import { getLeaderboard } from "@/app/actions/getLeaderboard";
 import { getRankForElo } from "@/lib/ranks";
@@ -84,26 +86,58 @@ function LeaderboardRow({ player }: { player: any }) {
 
             {/* 2. Player Info */}
             <div className="col-span-5 md:col-span-4 flex items-center gap-4">
-                <div className="relative h-10 w-10">
-                    <Image
-                        src={player.steamAvatarUrl.startsWith("http") ? player.steamAvatarUrl : "https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg"}
-                        alt={player.username}
-                        fill
-                        className={`rounded-full object-cover border-2 ${player.isPremium ? 'border-indigo-400 shadow-[0_0_10px_rgba(129,140,248,0.5)]' : isTop1 ? 'border-yellow-500' : 'border-zinc-800'}`}
-                    />
-                    <div className="absolute -bottom-1 -right-1 text-[10px] bg-zinc-900 px-1 rounded border border-white/10 text-white">
-                        {player.region}
+                <div className="relative h-10 w-10 shrink-0">
+                    <div
+                        className={`absolute inset-0 rounded-lg transition-all duration-300
+                            ${player.profileFrame === 'GOLD' ? 'border-2 border-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)]' :
+                                player.profileFrame === 'DIAMOND' ? 'border-2 border-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.5)]' :
+                                    player.profileFrame === 'FIRE' ? 'border-2 border-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.6)] animate-pulse-slow' :
+                                        player.profileFrame === 'ICE' ? 'border-2 border-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.6)]' :
+                                            player.profileFrame === 'ELECTRIC' ? 'border-2 border-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.6)]' :
+                                                player.profileFrame === 'RAINBOW' ? 'bg-gradient-to-r from-red-500 via-green-500 to-blue-500 p-[2px]' :
+                                                    player.profileFrame === 'EMERALD' ? 'border-2 border-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.6)]' :
+                                                        player.profileFrame === 'RUBY' ? 'border-2 border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.6)]' :
+                                                            player.profileFrame === 'PLASMA' ? 'border-2 border-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.6)] animate-pulse' :
+                                                                player.profileFrame === 'VOID' ? 'border-2 border-purple-900 shadow-[0_0_15px_rgba(88,28,135,0.8)]' :
+                                                                    player.profileFrame === 'LEGENDARY' ? 'border-2 border-yellow-300 animate-pulse shadow-[0_0_15px_rgba(253,224,71,0.7)]' :
+                                                                        player.isPremium ? 'border-2 border-opacity-80 shadow-md' :
+                                                                            isTop1 ? 'border-2 border-yellow-500' : 'border-2 border-zinc-800'
+                            }
+                        `}
+                        style={player.isPremium && !['GOLD', 'DIAMOND', 'FIRE', 'ICE', 'ELECTRIC', 'RAINBOW', 'EMERALD', 'RUBY', 'PLASMA', 'VOID', 'LEGENDARY'].includes(player.profileFrame || '') ? {
+                            borderColor: getThemeColors(player.profileTheme).primary,
+                            boxShadow: `0 0 10px ${getThemeColors(player.profileTheme).glow}`
+                        } : undefined}
+                    ></div>
+                    <div className={`relative w-full h-full rounded-lg overflow-hidden ${player.profileFrame === 'RAINBOW' ? 'bg-zinc-900 m-[2px]' : ''}`}>
+                        <Image
+                            src={player.steamAvatarUrl.startsWith("http") ? player.steamAvatarUrl : "https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg"}
+                            alt={player.username}
+                            fill
+                            className="object-cover"
+                        />
                     </div>
                 </div>
-                <div className="flex flex-col">
-                    <span className={`font-bold text-sm ${isTop1 ? 'text-yellow-100' : 'text-zinc-200'} group-hover:text-white flex items-center gap-1.5`}>
+                <div className="flex flex-col min-w-0">
+                    <div className="flex items-center gap-1.5 truncate">
                         {player.isPremium ? (
-                            <ShinyText text={player.username} theme={player.profileTheme} />
+                            <PremiumUsername
+                                username={player.username}
+                                isPremium={true}
+                                profileTheme={player.profileTheme}
+                                nameGradient={player.nameGradient}
+                                customFont={player.customFont}
+                                size="sm"
+                                showBadge={false}
+                                showGlow={false}
+                            />
                         ) : (
-                            player.username
+                            <span className={`font-bold text-sm ${isTop1 ? 'text-yellow-100' : 'text-zinc-200'} group-hover:text-white`}>
+                                {player.username}
+                            </span>
                         )}
-                        {player.isPremium && <PremiumBadge theme={player.profileTheme} />}
-                    </span>
+                        {player.isPremium && <div className="text-[10px]">👑</div>}
+                    </div>
                     {player.team && (
                         <span className="text-xs text-zinc-500 group-hover:text-brand-green transition-colors">
                             [{player.team.tag}] {player.team.name}

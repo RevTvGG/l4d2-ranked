@@ -19,6 +19,11 @@ export async function getLeaderboard() {
                 countryCode: true,
                 isPremium: true,
                 profileTheme: true,
+                customFont: true,
+                profileFrame: true,
+                customTitle: true,
+                nameGradient: true,
+                profileGlow: true,
                 team: {
                     select: {
                         name: true,
@@ -39,6 +44,11 @@ export async function getLeaderboard() {
             region: player.countryCode || "VN",
             isPremium: player.isPremium,
             profileTheme: player.profileTheme,
+            customFont: player.customFont,
+            profileFrame: player.profileFrame,
+            customTitle: player.customTitle,
+            nameGradient: player.nameGradient,
+            profileGlow: player.profileGlow,
         }))
     } catch (error) {
         console.error("Error fetching leaderboard:", error)
