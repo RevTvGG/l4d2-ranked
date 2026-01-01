@@ -29,6 +29,10 @@ ConVar g_cvServerKey;
 char g_sMatchId[64];
 bool g_bIsMatchLive = false;
 
+// SourceTV Demo Recording
+bool g_bDemoRecording = false;
+char g_sDemoFilename[128];
+
 // Player Stats Storage
 int g_iPlayerKills[MAXPLAYERS + 1];
 int g_iPlayerDeaths[MAXPLAYERS + 1];
@@ -622,6 +626,22 @@ public void OnRoundIsLive()
         g_bIsMatchLive = true;
         PrintToServer("[Match Reporter] Match is LIVE! ID: %s", g_sMatchId);
         
+        // === START SOURCETV DEMO RECORDING ===
+        if (!g_bDemoRecording)
+        {
+            // Format demo filename with match ID
+            Format(g_sDemoFilename, sizeof(g_sDemoFilename), "match-%s.dem", g_sMatchId);
+            
+            // Start recording (without .dem extension, engine adds it)
+            char demoName[128];
+            Format(demoName, sizeof(demoName), "match-%s", g_sMatchId);
+            ServerCommand("tv_record \"%s\"", demoName);
+            
+            g_bDemoRecording = true;
+            PrintToServer("[Match Reporter] Started SourceTV recording: %s", g_sDemoFilename);
+            PrintToChatAll("\x04[L4D2 Ranked]\x01 📹 Demo recording started!");
+        }
+        
         // === PROMINENT LIVE MATCH ANNOUNCEMENT ===
         PrintToChatAll("");
         PrintToChatAll("\x04╔══════════════════════════════════════╗");
@@ -1012,11 +1032,20 @@ void SendMatchComplete(const char[] winner)
         StrCat(sPlayersJson, sizeof(sPlayersJson), sPlayerJson);
     }
     
-    // Build complete JSON body
+    // Build complete JSON body (with demo_filename if recording)
     char sJsonBody[MAX_JSON_SIZE];
-    Format(sJsonBody, sizeof(sJsonBody),
-        "{\"server_key\":\"%s\",\"match_id\":\"%s\",\"winner\":\"%s\",\"players\":[%s]}",
-        sServerKey, g_sMatchId, winner, sPlayersJson);
+    if (g_bDemoRecording && g_sDemoFilename[0] != '\0')
+    {
+        Format(sJsonBody, sizeof(sJsonBody),
+            "{\"server_key\":\"%s\",\"match_id\":\"%s\",\"winner\":\"%s\",\"demo_filename\":\"%s\",\"players\":[%s]}",
+            sServerKey, g_sMatchId, winner, g_sDemoFilename, sPlayersJson);
+    }
+    else
+    {
+        Format(sJsonBody, sizeof(sJsonBody),
+            "{\"server_key\":\"%s\",\"match_id\":\"%s\",\"winner\":\"%s\",\"players\":[%s]}",
+            sServerKey, g_sMatchId, winner, sPlayersJson);
+    }
 
     Handle hRequest = SteamWorks_CreateHTTPRequest(k_EHTTPMethodPOST, sRequestUrl);
     if (hRequest == INVALID_HANDLE)
@@ -1037,6 +1066,15 @@ void SendMatchComplete(const char[] winner)
     
     PrintToServer("[Match Reporter] Sent match-end to API. Winner: %s", winner);
     PrintToServer("[Match Reporter] Payload: %s", sJsonBody);
+    
+    // Stop SourceTV recording if active
+    if (g_bDemoRecording)
+    {
+        ServerCommand("tv_stoprecord");
+        PrintToServer("[Match Reporter] Stopped SourceTV recording: %s", g_sDemoFilename);
+        g_bDemoRecording = false;
+        g_sDemoFilename[0] = '\0';
+    }
     
     // Clear match state
     g_sMatchId[0] = '\0';

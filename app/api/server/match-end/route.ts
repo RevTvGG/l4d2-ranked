@@ -22,6 +22,7 @@ const requestSchema = z.object({
     match_id: z.string().min(1),
     winner: z.enum(['A', 'B', 'DRAW']),
     duration_seconds: z.number().optional(),
+    demo_filename: z.string().optional(), // SourceTV demo filename (e.g., "match-abc123.dem")
     players: z.array(playerStatSchema)
 });
 
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
             return validationError(parseResult.error);
         }
 
-        const { server_key, match_id, winner, players } = parseResult.data;
+        const { server_key, match_id, winner, players, demo_filename } = parseResult.data;
 
         // 1. Verify Server
         const server = await verifyServerKey(server_key);
@@ -55,6 +56,11 @@ export async function POST(request: NextRequest) {
         // 3. Process Results
         const winningTeam = winner === 'A' ? 'TEAM_A' : winner === 'B' ? 'TEAM_B' : 'DRAW';
 
+        // Construct demo URL if filename provided
+        const demoUrl = demo_filename
+            ? `http://${server.ipAddress}:${server.port}/demos/${demo_filename}`
+            : null;
+
         // Transaction to ensure data integrity
         await prisma.$transaction(async (tx) => {
             // A. Update Match Status
@@ -64,6 +70,7 @@ export async function POST(request: NextRequest) {
                     status: 'COMPLETED',
                     completedAt: new Date(),
                     winnerTeam: winningTeam,
+                    demoUrl: demoUrl, // Save SourceTV demo URL
                     server: {
                         disconnect: true // Disconnect server relation to free it? Or just update status?
                         // Better to keep relation for history but update server status separate

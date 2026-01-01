@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Copy, RefreshCw, Trophy, Shield, PlayCircle } from 'lucide-react';
+import { Copy, RefreshCw, Trophy, Shield, PlayCircle, Download } from 'lucide-react';
 import MatchChat from './match-chat';
 import { toast } from 'sonner';
 import { PremiumBadge } from '../PremiumBadge';
@@ -33,6 +33,7 @@ interface Match {
     teamBScore: number;
     players: Player[];
     winnerTeam: string | null;
+    demoUrl?: string | null;  // SourceTV demo download URL
 }
 
 interface MatchViewProps {
@@ -142,6 +143,37 @@ export default function MatchView({ initialMatch }: MatchViewProps) {
                                 <li>Once connected, type <code className="bg-white/10 px-1 py-0.5 rounded text-white">!match</code> in chat</li>
                                 <li>Select <span className="font-medium text-white">ZoneMod 2.9</span> from the menu</li>
                                 <li>Type <code className="bg-white/10 px-1 py-0.5 rounded text-white">!ready</code> when you are ready to play</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* SourceTV Demo Download */}
+            {match.status === 'COMPLETED' && match.demoUrl && (
+                <div className="border border-purple-500/20 bg-purple-500/5 rounded-lg overflow-hidden">
+                    <div className="p-6 pb-4">
+                        <h3 className="text-xl font-semibold flex items-center gap-2 text-purple-400">
+                            <Download className="w-5 h-5" />
+                            SourceTV Demo
+                        </h3>
+                        <p className="text-sm text-gray-400 mt-1">Download the full match replay</p>
+                    </div>
+                    <div className="p-6 pt-0">
+                        <a
+                            href={match.demoUrl}
+                            download
+                            className="flex items-center justify-center gap-2 h-12 text-lg font-bold bg-purple-600 hover:bg-purple-700 text-white rounded-md transition-colors w-full"
+                        >
+                            <Download className="w-5 h-5" />
+                            Download Demo (.dem)
+                        </a>
+                        <div className="mt-3 bg-black/40 p-3 rounded-md text-xs text-gray-400 border border-white/5">
+                            <p className="font-semibold text-gray-300 mb-1">How to watch:</p>
+                            <ol className="list-decimal list-inside space-y-0.5 ml-1">
+                                <li>Download the .dem file</li>
+                                <li>Place it in <code className="bg-white/10 px-1 rounded">left4dead2/</code></li>
+                                <li>In L4D2 console: <code className="bg-white/10 px-1 rounded">playdemo filename</code></li>
                             </ol>
                         </div>
                     </div>

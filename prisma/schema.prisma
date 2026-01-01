@@ -164,6 +164,7 @@ model Match {
   winnerTeam     String?
   teamAScore     Int           @default(0)
   teamBScore     Int           @default(0)
+  demoUrl        String?       // SourceTV demo download URL
   mapVotes       MapVote[]
   server         GameServer?   @relation(fields: [serverId], references: [id])
   players        MatchPlayer[]
