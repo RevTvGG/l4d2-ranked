@@ -83,7 +83,7 @@ export function MatchHistory({ matches, isPremium, isOwner }: MatchHistoryProps)
                             <div className="text-4xl mb-3">⭐</div>
                             <h4 className="text-xl font-bold text-white mb-2">Premium Feature</h4>
                             <p className="text-zinc-400 text-sm mb-4 max-w-[250px]">
-                                This user hasn't unlocked their match history yet.
+                                This user hasn&apos;t unlocked their match history yet.
                             </p>
                             {isOwner && (
                                 <Link
