@@ -40,6 +40,11 @@ char g_sWhitelistedSteamIDs[8][32];  // Max 8 players per match
 int g_iWhitelistCount = 0;
 bool g_bWhitelistActive = false;
 
+// Join Timeout System (5 minutes to connect after match found)
+#define JOIN_TIMEOUT_SECONDS 300.0  // 5 minutes
+bool g_bPlayerConnected[8];  // Track which whitelisted players have connected
+Handle g_hJoinTimeoutTimer = null;
+
 // Optional Plugins
 bool g_bScoreModAvailable = false;
 bool g_bMvpAvailable = false;
@@ -445,10 +450,100 @@ public Action Cmd_SetWhitelist(int client, int args)
     g_bWhitelistActive = true;
     ServerCommand("sv_visiblemaxplayers 8"); // Limit to 8 visible slots
     
+    // Reset connected tracking
+    for (int j = 0; j < 8; j++)
+    {
+        g_bPlayerConnected[j] = false;
+    }
+    
+    // Start the 5-minute join timeout timer
+    if (g_hJoinTimeoutTimer != null)
+    {
+        KillTimer(g_hJoinTimeoutTimer);
+    }
+    g_hJoinTimeoutTimer = CreateTimer(JOIN_TIMEOUT_SECONDS, Timer_JoinTimeout, _, TIMER_FLAG_NO_MAPCHANGE);
+    
     ReplyToCommand(client, "[Match Reporter] Whitelist set with %d SteamIDs.", g_iWhitelistCount);
     ReplyToCommand(client, "[Match Reporter] Server slots limited to 8 players.");
+    ReplyToCommand(client, "[Match Reporter] Players have 5 minutes to connect.");
     
     return Plugin_Handled;
+}
+
+// Timer: Join Timeout - Check if all players connected
+public Action Timer_JoinTimeout(Handle timer)
+{
+    g_hJoinTimeoutTimer = null;
+    
+    if (!g_bWhitelistActive || g_sMatchId[0] == '\0')
+        return Plugin_Stop;
+    
+    // Find players who didn't connect
+    for (int i = 0; i < g_iWhitelistCount; i++)
+    {
+        if (!g_bPlayerConnected[i])
+        {
+            PrintToServer("[Match Reporter] Player %s did not connect in time!", g_sWhitelistedSteamIDs[i]);
+            PrintToChatAll("\x04[L4D2 Ranked]\x03 A player did not connect in time. Match cancelled.");
+            
+            // Report to API for ban
+            ReportPlayerEvent(g_sWhitelistedSteamIDs[i], "NO_JOIN_TIMEOUT", "Did not connect to server in time");
+        }
+    }
+    
+    return Plugin_Stop;
+}
+
+// Track when whitelisted players connect
+public void OnClientPutInServer(int client)
+{
+    if (!g_bWhitelistActive || IsFakeClient(client))
+        return;
+    
+    char sSteamId[32];
+    GetClientAuthId(client, AuthId_Steam2, sSteamId, sizeof(sSteamId));
+    
+    // Check if this player is on the whitelist
+    for (int i = 0; i < g_iWhitelistCount; i++)
+    {
+        if (StrEqual(sSteamId, g_sWhitelistedSteamIDs[i]))
+        {
+            // Mark as connected
+            g_bPlayerConnected[i] = true;
+            
+            PrintToServer("[Match Reporter] Whitelisted player connected: %s", sSteamId);
+            PrintToChatAll("\x04[L4D2 Ranked]\x01 Player \x03%N\x01 connected (%d/%d)", client, CountConnectedPlayers(), g_iWhitelistCount);
+            
+            // Report to API
+            ReportPlayerEvent(sSteamId, "PLAYER_CONNECT", "Player connected to server");
+            
+            // Check if all players have connected
+            if (CountConnectedPlayers() >= g_iWhitelistCount)
+            {
+                PrintToChatAll("\x04[L4D2 Ranked]\x05 All players connected!");
+                
+                // Cancel the timeout timer since everyone is here
+                if (g_hJoinTimeoutTimer != null)
+                {
+                    KillTimer(g_hJoinTimeoutTimer);
+                    g_hJoinTimeoutTimer = null;
+                }
+            }
+            return;
+        }
+    }
+}
+
+// Helper: Count how many whitelisted players have connected
+int CountConnectedPlayers()
+{
+    int count = 0;
+    for (int i = 0; i < g_iWhitelistCount; i++)
+    {
+        if (g_bPlayerConnected[i])
+            count++;
+    }
+    return count;
 }
 
 // ------------------------------------------------------------------------
