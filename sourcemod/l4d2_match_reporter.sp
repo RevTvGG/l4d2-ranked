@@ -605,6 +605,16 @@ public void OnRoundIsLive()
     {
         g_bIsMatchLive = true;
         PrintToServer("[Match Reporter] Match is LIVE! ID: %s", g_sMatchId);
+        
+        // === PROMINENT LIVE MATCH ANNOUNCEMENT ===
+        PrintToChatAll("");
+        PrintToChatAll("\x04╔══════════════════════════════════════╗");
+        PrintToChatAll("\x04║  \x05L4D2 RANKING ONLINE - LIVE MATCH\x04   ║");
+        PrintToChatAll("\x04╚══════════════════════════════════════╝");
+        PrintToChatAll("\x04[L4D2 Ranked]\x01 Match ID: \x03%s", g_sMatchId);
+        PrintToChatAll("\x04[L4D2 Ranked]\x01 Para reportar problemas, anota el ID del match.");
+        PrintToChatAll("");
+        
         SendMatchLive();
     }
 }

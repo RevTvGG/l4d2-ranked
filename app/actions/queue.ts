@@ -190,21 +190,27 @@ export async function readyUp(matchId: string) {
 async function proceedToMapVoting(matchId: string) {
     const match = await prisma.match.findUnique({
         where: { id: matchId },
-        include: { matchPlayers: { include: { user: true } } }, // Use matchPlayers
+        include: { players: { include: { user: true } } },
     });
 
     if (!match) return;
 
-    // Teams are already balanced and assigned in checkQueueAndCreateMatch
-    // Just update match status to map voting
+    // Calculate team stats for logging
+    const teamA = match.players.filter((p: any) => p.team === 'TEAM_A');
+    const teamB = match.players.filter((p: any) => p.team === 'TEAM_B');
+    const avgEloA = teamA.length > 0 ? Math.round(teamA.reduce((sum: number, p: any) => sum + (p.user.rating || 1000), 0) / teamA.length) : 0;
+    const avgEloB = teamB.length > 0 ? Math.round(teamB.reduce((sum: number, p: any) => sum + (p.user.rating || 1000), 0) / teamB.length) : 0;
+    const eloDifference = Math.abs(avgEloA - avgEloB);
+
+    // Update match status to map voting
     await prisma.match.update({
         where: { id: matchId },
         data: { status: 'VETO' },
     });
 
     console.log(`[Queue] Match ${matchId} - Teams balanced (ELO diff: ${eloDifference})`);
-    console.log(`  Team A (${avgEloA}): ${teamA.map((p) => p.name).join(', ')}`);
-    console.log(`  Team B (${avgEloB}): ${teamB.map((p) => p.name).join(', ')}`);
+    console.log(`  Team A (${avgEloA}): ${teamA.map((p: any) => p.user.name).join(', ')}`);
+    console.log(`  Team B (${avgEloB}): ${teamB.map((p: any) => p.user.name).join(', ')}`);
 
     // Start map voting timer (30 seconds)
     setTimeout(() => finalizeMapVoting(matchId), 30000);
