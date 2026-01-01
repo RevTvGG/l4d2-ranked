@@ -401,10 +401,31 @@ export function PlayerProfile({
                 {/* Sidebar Info */}
                 <div className="space-y-4">
                     {/* Rank Card */}
-                    <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center relative overflow-hidden group hover:border-brand-green/30 transition-colors">
-                        <div className="absolute inset-0 bg-gradient-to-b from-brand-green/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div
+                        className="rounded-2xl p-6 flex flex-col items-center justify-center relative overflow-hidden group transition-all duration-500 hover:scale-[1.02]"
+                        style={{
+                            backgroundColor: 'rgba(24, 24, 27, 0.6)', // zinc-900/60
+                            borderColor: `${getRankForElo(rating).color}40`, // Low opacity border
+                            borderWidth: '1px',
+                            boxShadow: `0 0 40px -10px ${getRankForElo(rating).color}20` // Subtle outer glow
+                        }}
+                    >
+                        {/* Dynamic Background Glow */}
+                        <div
+                            className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity duration-700"
+                            style={{
+                                background: `radial-gradient(circle at center, ${getRankForElo(rating).color}, transparent 70%)`
+                            }}
+                        />
+
                         <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-widest mb-4 z-10">Current Rank</h3>
-                        <div className="relative w-40 h-40 drop-shadow-[0_0_35px_rgba(74,222,128,0.2)] animate-pulse z-10 transform group-hover:scale-105 transition-transform duration-500">
+
+                        <div
+                            className="relative w-40 h-40 animate-pulse z-10 transform group-hover:scale-105 transition-transform duration-500"
+                            style={{
+                                filter: `drop-shadow(0 0 25px ${getRankForElo(rating).color}60)` // Dynamic colored shadow/glow
+                            }}
+                        >
                             <Image
                                 src={getRankForElo(rating).imagePath}
                                 alt={getRankForElo(rating).name}
@@ -412,13 +433,16 @@ export function PlayerProfile({
                                 className="object-contain"
                             />
                         </div>
+
                         <div className="mt-4 z-10 text-center">
-                            <div className="text-3xl font-black text-white tracking-tight" style={{ color: getRankForElo(rating).color }}>
+                            <div className="text-3xl font-black text-white tracking-tight drop-shadow-md" style={{ color: getRankForElo(rating).color }}>
                                 {getRankForElo(rating).name}
+                            </div>
+                            <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest mt-1">
+                                {rating} ELO
                             </div>
                         </div>
                     </div>
-
                     {/* Rank History Graph */}
                     <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 h-48 flex flex-col justify-between">
                         <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-widest">Rating History</h3>
