@@ -39,6 +39,9 @@ export default function PlayPage() {
             if (document.hidden) return;
 
             try {
+                // Send heartbeat to update user's online status
+                fetch('/api/heartbeat', { method: 'POST' }).catch(() => { });
+
                 // Get Queue Status
                 const status = await getQueueStatus();
                 setQueueStatus(status);
