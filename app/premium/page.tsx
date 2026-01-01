@@ -24,7 +24,6 @@ export default function PremiumPage() {
         if (res.success) {
             router.refresh();
             // Redirect to profile after success
-            // @ts-expect-error
             if (session.user?.name) router.push(`/profile/${session.user.name}?steamId=${session.user.steamId}`);
         }
         setLoading(false);
@@ -52,13 +51,16 @@ export default function PremiumPage() {
 
                     <div className="space-y-3 text-left bg-black/20 p-6 rounded-xl border border-white/5">
                         <Feature icon="✨" text="Shiny Name & Badge" />
+                        <Feature icon="📜" text="Full Match History Access" />
+                        <Feature icon="🛡️" text="Private Stats Visibility" />
+                        <Feature icon="⚡" text="Priority Report Handling" />
                         <Feature icon="🎨" text="Exclusive Profile Themes" />
-                        <Feature icon="🔒" text="Create Private Matches" />
+                        <Feature icon="👾" text="Discord Verified Badge" />
                         <Feature icon="📈" text="Support the Platform" />
                     </div>
 
                     <div className="text-3xl font-black text-white">
-                        $2.00 <span className="text-sm font-bold text-zinc-500 normal-case">/ lifetime</span>
+                        $4.00 <span className="text-sm font-bold text-zinc-500 normal-case">/ month</span>
                     </div>
 
                     {/* DISABLED NOTICE */}
