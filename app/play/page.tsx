@@ -195,18 +195,40 @@ export default function PlayPage() {
                 <div className="relative z-10 pt-32 pb-12 flex-1 flex flex-col items-center px-6">
                     <div className="w-full max-w-6xl space-y-8">
                         {/* Title Section */}
-                        <div className="text-center space-y-4 mb-12">
-                            <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter uppercase text-white drop-shadow-[0_0_30px_rgba(74,222,128,0.3)]">
-                                Matchmaking <span className="text-brand-green drop-shadow-[0_0_20px_rgba(74,222,128,0.5)]">Lobby</span>
-                            </h1>
-                            <p className="text-zinc-400 max-w-2xl mx-auto text-lg">
-                                Join the fight. Queue up and prove your worth.
-                            </p>
-                            <div className="flex items-center justify-center gap-4 text-sm">
-                                <div className="flex items-center gap-2 bg-zinc-900/60 px-4 py-2 rounded-full border border-white/10">
-                                    <span className="w-2 h-2 bg-brand-green rounded-full animate-pulse"></span>
-                                    <span className="text-zinc-400">Online:</span>
-                                    <span className="text-brand-green font-bold font-mono">{onlineCount}</span>
+                        <div className="text-center space-y-6 mb-12 animate-fade-in-up">
+                            {/* Animated Gamer Title */}
+                            <div className="relative inline-block">
+                                <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter uppercase">
+                                    <span className="text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]">MATCH</span>
+                                    <span className="animate-text-shimmer">MAKING</span>
+                                </h1>
+                                <div className="absolute -inset-4 bg-gradient-to-r from-transparent via-brand-green/10 to-transparent blur-xl -z-10 animate-pulse"></div>
+                            </div>
+
+                            {/* Subtitle with animated underline */}
+                            <div className="relative">
+                                <p className="text-xl md:text-2xl text-zinc-300 font-medium tracking-wide">
+                                    Enter the <span className="text-brand-green font-bold">Arena</span>. Prove your <span className="text-brand-green font-bold">Worth</span>.
+                                </p>
+                                <div className="mt-2 h-0.5 w-32 mx-auto bg-gradient-to-r from-transparent via-brand-green to-transparent"></div>
+                            </div>
+
+                            {/* Live Status Badges */}
+                            <div className="flex items-center justify-center gap-4 text-sm flex-wrap">
+                                <div className="flex items-center gap-2 bg-zinc-900/80 backdrop-blur-sm px-5 py-2.5 rounded-full border border-brand-green/30 animate-border-glow">
+                                    <span className="relative flex h-3 w-3">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-green opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-brand-green"></span>
+                                    </span>
+                                    <span className="text-zinc-400">LIVE</span>
+                                    <span className="text-brand-green font-bold font-mono text-lg">{onlineCount}</span>
+                                    <span className="text-zinc-500">players</span>
+                                </div>
+                                <div className="flex items-center gap-2 bg-zinc-900/80 backdrop-blur-sm px-5 py-2.5 rounded-full border border-white/10">
+                                    <span className="text-2xl">⚔️</span>
+                                    <span className="text-zinc-400">Active:</span>
+                                    <span className="text-amber-400 font-bold font-mono">{queueStatus?.activeMatches || 0}</span>
+                                    <span className="text-zinc-500">matches</span>
                                 </div>
                             </div>
                         </div>
@@ -223,9 +245,21 @@ export default function PlayPage() {
                                 <OnlineUsersList />
 
                                 {/* QUEUE STATUS CARD */}
-                                <div className="bg-zinc-900/70 border border-brand-green/20 p-6 rounded-2xl backdrop-blur-md shadow-[0_0_40px_-15px_rgba(74,222,128,0.3)] hover:border-brand-green/40 transition-all duration-300">
-                                    <h3 className="font-black text-white mb-4 flex items-center gap-2 uppercase tracking-wide text-sm">
-                                        <span className="text-2xl">⚔️</span> Queue Status
+                                <div className="relative bg-zinc-900/80 border-2 border-brand-green/30 p-6 rounded-2xl backdrop-blur-md shadow-[0_0_60px_-20px_rgba(74,222,128,0.4)] hover:border-brand-green/60 hover:shadow-[0_0_80px_-20px_rgba(74,222,128,0.6)] transition-all duration-500 overflow-hidden group">
+                                    {/* Animated scan line effect */}
+                                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                                        <div className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-brand-green/50 to-transparent animate-scan-line"></div>
+                                    </div>
+
+                                    {/* Corner accents */}
+                                    <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-brand-green/50"></div>
+                                    <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-brand-green/50"></div>
+                                    <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-brand-green/50"></div>
+                                    <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-brand-green/50"></div>
+
+                                    <h3 className="font-black text-white mb-4 flex items-center gap-2 uppercase tracking-wide text-sm relative z-10">
+                                        <span className="text-2xl animate-float">⚔️</span>
+                                        <span className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">Battle Queue</span>
                                     </h3>
 
                                     <div className="space-y-4">
@@ -315,12 +349,27 @@ export default function PlayPage() {
                                             <>
                                                 <button
                                                     onClick={inQueue ? handleLeaveQueue : handleJoinQueue}
-                                                    className={`w-full py-4 font-black uppercase tracking-widest rounded-xl transition-all transform hover:-translate-y-1 hover:scale-[1.02] active:scale-[0.98] ${inQueue
-                                                        ? 'bg-red-500 hover:bg-red-400 text-white shadow-[0_0_30px_-5px_rgba(239,68,68,0.5)] border border-red-400/30'
-                                                        : 'bg-brand-green hover:bg-lime-400 text-black shadow-[0_0_40px_-5px_rgba(74,222,128,0.6)] border border-lime-300/30 animate-pulse'
+                                                    className={`relative w-full py-5 font-black uppercase tracking-widest rounded-xl transition-all transform hover:-translate-y-2 hover:scale-[1.03] active:scale-[0.98] overflow-hidden group ${inQueue
+                                                        ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white shadow-[0_0_50px_-10px_rgba(239,68,68,0.7)] border-2 border-red-400/50'
+                                                        : 'bg-gradient-to-r from-brand-green to-emerald-500 hover:from-lime-400 hover:to-emerald-400 text-black shadow-[0_0_60px_-10px_rgba(74,222,128,0.8)] border-2 border-lime-300/50 animate-glow-pulse'
                                                         }`}
                                                 >
-                                                    {inQueue ? '❌ Leave Queue' : '🎮 FIND MATCH'}
+                                                    {/* Button shine effect */}
+                                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+
+                                                    <span className="relative z-10 flex items-center justify-center gap-2 text-lg">
+                                                        {inQueue ? (
+                                                            <>
+                                                                <span className="text-2xl">❌</span>
+                                                                Leave Queue
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <span className="text-2xl animate-bounce">🎮</span>
+                                                                FIND MATCH
+                                                            </>
+                                                        )}
+                                                    </span>
                                                 </button>
 
 
