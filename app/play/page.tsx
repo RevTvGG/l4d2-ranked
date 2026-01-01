@@ -186,10 +186,9 @@ export default function PlayPage() {
 
             {/* Hero Background Section */}
             <div className="relative min-h-screen flex flex-col">
-                {/* Background Image with Overlay */}
+                {/* Background with Overlay - NO IMAGE */}
                 <div className="absolute inset-0 z-0">
-                    <div className="absolute inset-0 bg-[url('/l4d2_play_bg.jpg')] bg-cover bg-center" />
-                    <div className="absolute inset-0 bg-gradient-to-br from-black via-zinc-900/80 to-black" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-black via-zinc-950 to-black" />
                     {/* Animated gradient overlays */}
                     <div className="absolute inset-0 bg-gradient-to-tr from-brand-green/5 via-transparent to-emerald-500/5 animate-gradient-shift" />
                     <ParticleBackground />
