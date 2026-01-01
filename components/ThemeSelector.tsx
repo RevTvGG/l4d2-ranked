@@ -13,6 +13,10 @@ export default function ThemeSelector({ currentTheme, isPremium }: ThemeSelector
     const [selectedTheme, setSelectedTheme] = useState<string>(currentTheme || 'emerald');
     const [loading, setLoading] = useState(false);
 
+    // Debug logging
+    console.log('ThemeSelector - isPremium:', isPremium);
+    console.log('ThemeSelector - currentTheme:', currentTheme);
+
     if (!isPremium) {
         return (
             <div className="bg-zinc-900/50 border border-white/10 rounded-xl p-6 text-center">

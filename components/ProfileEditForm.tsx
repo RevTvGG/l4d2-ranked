@@ -14,6 +14,10 @@ export function ProfileEditForm({ user }: { user: any }) {
     const [skill, setSkill] = useState(user?.skillLevel || "");
     const [bio, setBio] = useState(user?.bio || "");
 
+    // Debug logging
+    console.log('ProfileEditForm - user:', user);
+    console.log('ProfileEditForm - isPremium:', user?.isPremium);
+
     async function handleSubmit(formData: FormData) {
         setMsg("Saving...");
         const res = await updatePreferences(formData);
