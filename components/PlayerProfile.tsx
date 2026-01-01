@@ -227,11 +227,18 @@ export function PlayerProfile({
                             rel="noopener noreferrer"
                             className={`block h-32 w-32 md:h-40 md:w-40 rounded-2xl rotate-3 border-4 overflow-hidden shadow-2xl relative z-20 transition-all hover:rotate-0 hover:scale-105 duration-300
                                 ${profileFrame === 'GOLD' ? 'border-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.5)]' :
-                                    profileFrame === 'FIRE' ? 'border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.6)] animate-pulse-slow' :
-                                        profileFrame === 'ICE' ? 'border-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.6)]' :
-                                            profileFrame === 'ELECTRIC' ? 'border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)]' :
-                                                profileFrame === 'RAINBOW' ? 'border-transparent bg-gradient-to-r from-red-500 via-green-500 to-blue-500 p-[3px]' :
-                                                    isPremium ? 'border-amber-300 shadow-amber-500/50' : 'border-white/10 bg-zinc-800'}
+                                    profileFrame === 'DIAMOND' ? 'border-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.5)]' :
+                                        profileFrame === 'FIRE' ? 'border-orange-500 shadow-[0_0_20px_rgba(249,115,22,0.6)] animate-pulse-slow' :
+                                            profileFrame === 'ICE' ? 'border-blue-400 shadow-[0_0_20px_rgba(96,165,250,0.6)]' :
+                                                profileFrame === 'ELECTRIC' ? 'border-violet-500 shadow-[0_0_20px_rgba(139,92,246,0.6)]' :
+                                                    profileFrame === 'RAINBOW' ? 'border-transparent bg-gradient-to-r from-red-500 via-green-500 to-blue-500 p-[3px]' :
+                                                        profileFrame === 'EMERALD' ? 'border-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.6)]' :
+                                                            profileFrame === 'RUBY' ? 'border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.6)]' :
+                                                                profileFrame === 'PLASMA' ? 'border-pink-500 shadow-[0_0_20px_rgba(236,72,153,0.6)] animate-pulse' :
+                                                                    profileFrame === 'VOID' ? 'border-purple-900 shadow-[0_0_25px_rgba(88,28,135,0.8)]' :
+                                                                        profileFrame === 'LEGENDARY' ? 'border-yellow-300 animate-pulse shadow-[0_0_25px_rgba(253,224,71,0.7)]' :
+                                                                            isPremium ? 'border-amber-300 shadow-amber-500/50' : 'border-white/10 bg-zinc-800'
+                                }
                             `}
                         >
                             {/* Wrapper for rainbow frame needing internal consistency */}

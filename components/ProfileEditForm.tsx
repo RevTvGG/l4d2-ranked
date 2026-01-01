@@ -4,6 +4,7 @@ import { useState } from "react"
 import { updatePreferences } from "@/app/actions/user"
 import { useRouter } from "next/navigation"
 import ThemeSelector from "@/components/ThemeSelector"
+import PremiumCustomization from "@/components/PremiumCustomization"
 
 export function ProfileEditForm({ user }: { user: any }) {
     const router = useRouter();
@@ -89,135 +90,9 @@ export function ProfileEditForm({ user }: { user: any }) {
 
             <form action={handleSubmit} className="space-y-8 bg-zinc-900 border border-white/10 p-8 rounded-3xl shadow-xl">
 
-                {/* PREMIUM CUSTOMIZATION (Extended) */}
+                {/* PREMIUM CUSTOMIZATION - NEW COMPONENT */}
                 {isPremium && (
-                    <div className="bg-black/20 border border-amber-500/20 p-6 rounded-2xl space-y-8 mb-8">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-xl font-black text-amber-500 italic uppercase flex items-center gap-2">
-                                👑 Premium Customization
-                            </h3>
-                        </div>
-
-
-                        {/* Profile Style section removed - now using ThemeSelector component above */}
-
-                        {/* 2. Profile Frame */}
-                        <div className="space-y-4">
-                            <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Avatar Frame</label>
-                            <input type="hidden" name="profileFrame" value={profileFrame} />
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                {["NONE", "GOLD", "FIRE", "ICE", "ELECTRIC", "RAINBOW"].map((frame) => (
-                                    <div
-                                        key={frame}
-                                        onClick={() => setProfileFrame(frame)}
-                                        className={`p-3 rounded-xl border-2 cursor-pointer transition-all ${profileFrame === frame ? 'bg-amber-500/10 border-amber-500 text-amber-500' : 'bg-black/20 border-white/10 text-zinc-500 hover:border-white/30'}`}
-                                    >
-                                        <div className="font-bold text-xs uppercase text-center">{frame}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* 2. Custom Title & Name Gradient */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Custom Title</label>
-                                <input
-                                    type="text"
-                                    name="customTitle"
-                                    value={customTitle}
-                                    onChange={(e) => setCustomTitle(e.target.value)}
-                                    maxLength={30}
-                                    placeholder="e.g. The King"
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-amber-500 focus:outline-none"
-                                />
-                                <p className="text-[10px] text-zinc-600">Displayed below your name</p>
-                            </div>
-                        </div>
-                        <div className="space-y-4">
-                            <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Profile Color</label>
-                            <div className="flex flex-wrap gap-3">
-                                {COLOR_PRESETS.map((color) => (
-                                    <div
-                                        key={color.hex}
-                                        onClick={() => setProfileColor(color.hex)}
-                                        className={`w-8 h-8 rounded-full cursor-pointer hover:scale-110 transition-transform ${profileColor === color.hex ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-900" : ""}`}
-                                        style={{ backgroundColor: color.hex }}
-                                        title={color.name}
-                                    />
-                                ))}
-                                <div className="flex items-center gap-2 relative">
-                                    <input
-                                        type="color"
-                                        value={profileColor || "#ffffff"}
-                                        onChange={(e) => setProfileColor(e.target.value)}
-                                        className="w-8 h-8 rounded-full cursor-pointer opacity-0 absolute inset-0"
-                                    />
-                                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-white to-black border border-white/20 flex items-center justify-center text-[10px] text-black font-bold">+</div>
-                                </div>
-                            </div>
-                            <input type="hidden" name="profileColor" value={profileColor} />
-                        </div>
-
-                        {/* 3. Name Gradient (Visual Selectset) */}
-                        <div className="space-y-4">
-                            <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Name Gradient Style</label>
-                            <input type="hidden" name="nameGradient" value={nameGradient} />
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {GRADIENT_PRESETS.map((preset) => (
-                                    <div
-                                        key={preset.name}
-                                        onClick={() => setNameGradient(preset.class)}
-                                        className={`p-4 rounded-xl cursor-pointer border-2 transition-all hover:scale-[1.02] ${nameGradient === preset.class ? "border-white bg-zinc-800" : "border-white/5 bg-black/20 hover:border-white/20"}`}
-                                    >
-                                        <span className={`text-lg font-black bg-gradient-to-r ${preset.class} bg-clip-text text-transparent`}>
-                                            {user.name || "PLAYER NAME"}
-                                        </span>
-                                        <div className="text-[10px] text-zinc-500 uppercase font-bold mt-1">{preset.name}</div>
-                                    </div>
-                                ))}
-                                <div
-                                    onClick={() => setNameGradient("")}
-                                    className={`p-4 rounded-xl cursor-pointer border-2 transition-all hover:scale-[1.02] ${nameGradient === "" ? "border-white bg-zinc-800" : "border-white/5 bg-black/20 hover:border-white/20"}`}
-                                >
-                                    <span className="text-lg font-black text-white">
-                                        {user.name || "PLAYER NAME"}
-                                    </span>
-                                    <div className="text-[10px] text-zinc-500 uppercase font-bold mt-1">None</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 4. Banner & Glow */}
-                        <div className="space-y-4">
-                            <div className="space-y-2">
-                                <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Custom Banner URL</label>
-                                <input
-                                    type="url"
-                                    name="profileBanner"
-                                    value={profileBanner}
-                                    onChange={(e) => setProfileBanner(e.target.value)}
-                                    placeholder="https://imgur.com/..."
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white focus:border-amber-500 focus:outline-none"
-                                />
-                                <p className="text-[10px] text-zinc-500 mt-1 pl-1">
-                                    Must be a direct image link (ending in .jpg, .png). Imgur Gallery links will not work.
-                                </p>
-                            </div>
-
-                            <div className="flex items-center gap-3 pt-2">
-                                <input
-                                    type="checkbox"
-                                    name="profileGlow"
-                                    id="glow"
-                                    checked={profileGlow}
-                                    onChange={(e) => setProfileGlow(e.target.checked)}
-                                    className="w-5 h-5 rounded bg-black/40 border-white/10 text-brand-green focus:ring-brand-green"
-                                />
-                                <label htmlFor="glow" className="text-sm font-bold text-white uppercase cursor-pointer select-none">Enable Avatar Glow Effect</label>
-                            </div>
-                        </div>
-                    </div>
+                    <PremiumCustomization user={user} />
                 )
                 }
 

@@ -121,7 +121,12 @@ export async function getOnlineUsers() {
             select: {
                 name: true,
                 image: true,
-                isPremium: true
+                isPremium: true,
+                profileTheme: true,
+                nameGradient: true,
+                customFont: true,
+                profileGlow: true,
+                profileFrame: true
             }
         });
         return users;
