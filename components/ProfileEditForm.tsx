@@ -98,48 +98,8 @@ export function ProfileEditForm({ user }: { user: any }) {
                             </h3>
                         </div>
 
-                        {/* 1. Profile Style (Unified) */}
-                        <div className="space-y-4">
-                            <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider">Profile Style</label>
-                            <input type="hidden" name="profileTheme" value={currentTheme} />
-                            <input type="hidden" name="profileColor" value={profileColor} />
 
-                            {/* Themes */}
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                {STYLE_PRESETS.map((style) => (
-                                    <div
-                                        key={style.id}
-                                        onClick={() => handleStyleChange(style.theme, null)}
-                                        className={`p-3 rounded-xl border-2 cursor-pointer transition-all flex items-center gap-3 ${currentTheme === style.theme && !profileColor ? 'bg-zinc-800 border-white ring-1 ring-white' : 'bg-black/20 border-white/10 hover:border-white/30'}`}
-                                    >
-                                        <div className="w-4 h-4 rounded-full shadow-lg" style={{ backgroundColor: style.color }}></div>
-                                        <div className={`font-bold text-xs uppercase ${currentTheme === style.theme && !profileColor ? 'text-white' : 'text-zinc-500'}`}>{style.name}</div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Custom Colors */}
-                            <div className="flex flex-wrap gap-3 pt-2">
-                                {COLOR_PRESETS.map((preset) => (
-                                    <div
-                                        key={preset.hex}
-                                        onClick={() => handleStyleChange("DEFAULT", preset.hex)}
-                                        className={`w-8 h-8 rounded-full cursor-pointer hover:scale-110 transition-transform ${profileColor === preset.hex ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-900" : ""}`}
-                                        style={{ backgroundColor: preset.hex }}
-                                        title={preset.name}
-                                    />
-                                ))}
-                                <div className="flex items-center gap-2 relative group">
-                                    <input
-                                        type="color"
-                                        value={profileColor || "#ffffff"}
-                                        onChange={(e) => handleStyleChange("DEFAULT", e.target.value)}
-                                        className="w-8 h-8 rounded-full cursor-pointer opacity-0 absolute inset-0 z-10"
-                                    />
-                                    <div className={`w-8 h-8 rounded-full bg-gradient-to-tr from-white to-black border border-white/20 flex items-center justify-center text-[10px] text-black font-bold ${profileColor && !COLOR_PRESETS.find(p => p.hex === profileColor) ? "ring-2 ring-white ring-offset-2 ring-offset-zinc-900" : ""}`}>+</div>
-                                </div>
-                            </div>
-                        </div>
+                        {/* Profile Style section removed - now using ThemeSelector component above */}
 
                         {/* 2. Profile Frame */}
                         <div className="space-y-4">
