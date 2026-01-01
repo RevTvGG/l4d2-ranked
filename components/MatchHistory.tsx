@@ -85,7 +85,7 @@ export function MatchHistory({ matches, isPremium, isOwner }: MatchHistoryProps)
                             <div className="text-4xl mb-3">⭐</div>
                             <h4 className="text-xl font-bold text-white mb-2">Premium Feature</h4>
                             <p className="text-zinc-400 text-sm mb-4 max-w-[250px]">
-                                View your complete match history, request demos, and report players
+                                View your complete match history and request demos for your matches
                             </p>
                             <Link
                                 href="/premium"
@@ -128,10 +128,10 @@ export function MatchHistory({ matches, isPremium, isOwner }: MatchHistoryProps)
                                 <div className="flex items-center gap-3">
                                     {/* Result Badge */}
                                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl font-bold ${match.result === 'WIN'
-                                            ? 'bg-green-500/20 text-green-400'
-                                            : match.result === 'LOSS'
-                                                ? 'bg-red-500/20 text-red-400'
-                                                : 'bg-zinc-500/20 text-zinc-400'
+                                        ? 'bg-green-500/20 text-green-400'
+                                        : match.result === 'LOSS'
+                                            ? 'bg-red-500/20 text-red-400'
+                                            : 'bg-zinc-500/20 text-zinc-400'
                                         }`}>
                                         {match.result === 'WIN' ? '✓' : match.result === 'LOSS' ? '✗' : '—'}
                                     </div>
@@ -140,10 +140,10 @@ export function MatchHistory({ matches, isPremium, isOwner }: MatchHistoryProps)
                                         <div className="font-medium text-white flex items-center gap-2">
                                             {match.result}
                                             <span className={`text-sm ${match.eloChange > 0
-                                                    ? 'text-green-400'
-                                                    : match.eloChange < 0
-                                                        ? 'text-red-400'
-                                                        : 'text-zinc-500'
+                                                ? 'text-green-400'
+                                                : match.eloChange < 0
+                                                    ? 'text-red-400'
+                                                    : 'text-zinc-500'
                                                 }`}>
                                                 {match.eloChange > 0 ? '+' : ''}{match.eloChange} ELO
                                             </span>

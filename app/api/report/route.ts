@@ -10,6 +10,8 @@ const reportSchema = z.object({
     content: z.string().min(1).max(1000),
     evidence: z.string().url().optional().or(z.literal('')),
     target: z.string().optional(), // SteamID or Player Name
+    subType: z.string().optional(), // For BUG: IN_MATCH, WEBSITE, QUEUE, OTHER
+    matchId: z.string().optional(), // For in-match bugs
 });
 
 const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1454980306607280362/XBmbylFD3io2BMsNYvKhahfoXgFgTBkotKNigUwa6luZhKUAicDbyW8DMDxsdoTyBe8l';
@@ -28,24 +30,37 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Invalid input', details: result.error }, { status: 400 });
         }
 
-        const { type, title, content, evidence, target } = result.data;
+        const { type, title, content, evidence, target, subType, matchId } = result.data;
 
-        // 1. Save to Database
+        // Get user with premium status
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { id: true, name: true, steamId: true, isPremium: true }
+        });
+
+        if (!user) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+
+        // 1. Save to Database with premium status
         const report = await prisma.report.create({
             data: {
-                userId: session.user.id,
+                userId: user.id,
                 type,
                 title,
                 content,
                 evidence: evidence || null,
                 target: target || null,
+                subType: type === 'BUG' ? (subType || 'OTHER') : null,
+                matchId: matchId || null,
+                isPremium: user.isPremium,
             },
             include: { user: true }
         });
 
-        // 2. Send to Discord
+        // 2. Send to Discord with premium indicator
         try {
-            await sendToDiscord(report, session.user);
+            await sendToDiscord(report, user);
         } catch (discordError) {
             console.error('Failed to send to Discord:', discordError);
             // Don't fail the request if Discord fails, just log it
@@ -73,14 +88,18 @@ async function sendToDiscord(report: any, user: any) {
         typeEmoji = '🚨';
     }
 
+    // Premium indicator
+    const premiumBadge = user.isPremium ? ' ⭐' : '';
+    const premiumTag = user.isPremium ? ' (Premium)' : '';
+
     const embed = {
-        title: `${typeEmoji} New ${report.type} Report`,
+        title: `${typeEmoji} New ${report.type} Report${report.subType ? ` [${report.subType}]` : ''}`,
         description: `**Subject:** ${report.title}\n\n**Description:**\n${report.content}`,
         color: color,
         fields: [
             {
-                name: '👤 Reporter',
-                value: `${user.name} (${user.steamId})\n[Profile](https://www.l4d2ranked.online/profile/${encodeURIComponent(user.name || '')})`,
+                name: `👤 Reporter${premiumBadge}`,
+                value: `${user.name}${premiumTag}\n[Profile](https://www.l4d2ranked.online/profile/${encodeURIComponent(user.name || '')})`,
                 inline: true
             },
             {
@@ -91,9 +110,25 @@ async function sendToDiscord(report: any, user: any) {
         ] as any[],
         timestamp: new Date().toISOString(),
         footer: {
-            text: 'L4D2 Ranked Reporting System'
+            text: `L4D2 Ranked Reporting System${user.isPremium ? ' | Premium Reporter' : ''}`
         }
     };
+
+    if (report.subType) {
+        embed.fields.push({
+            name: '📂 Category',
+            value: report.subType.replace('_', ' '),
+            inline: true
+        });
+    }
+
+    if (report.matchId) {
+        embed.fields.push({
+            name: '🎮 Match ID',
+            value: `\`${report.matchId}\``,
+            inline: true
+        });
+    }
 
     if (report.target) {
         embed.fields.push({
@@ -117,3 +152,4 @@ async function sendToDiscord(report: any, user: any) {
         body: JSON.stringify({ embeds: [embed] })
     });
 }
+

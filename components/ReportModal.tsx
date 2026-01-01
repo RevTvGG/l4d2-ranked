@@ -13,6 +13,7 @@ interface ReportModalProps {
 export default function ReportModal({ isOpen, onClose }: ReportModalProps) {
     const { data: session } = useSession();
     const [type, setType] = useState<ReportType>('BUG');
+    const [subType, setSubType] = useState<string>('OTHER'); // For bugs
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [target, setTarget] = useState(''); // Cheater name/steamid
@@ -37,7 +38,8 @@ export default function ReportModal({ isOpen, onClose }: ReportModalProps) {
                     title,
                     content,
                     evidence,
-                    target: type === 'PLAYER' ? target : undefined
+                    target: type === 'PLAYER' ? target : undefined,
+                    subType: type === 'BUG' ? subType : undefined
                 })
             });
 
@@ -58,6 +60,7 @@ export default function ReportModal({ isOpen, onClose }: ReportModalProps) {
                     setTarget('');
                     setEvidence('');
                     setType('BUG');
+                    setSubType('OTHER');
                 }, 300);
             }, 2000);
 
@@ -111,10 +114,10 @@ export default function ReportModal({ isOpen, onClose }: ReportModalProps) {
                                     type="button"
                                     onClick={() => setType(t)}
                                     className={`py-2 px-1 text-xs font-bold uppercase rounded border transition-all ${type === t
-                                            ? t === 'BUG' ? 'bg-orange-500/20 border-orange-500 text-orange-400'
-                                                : t === 'PLAYER' ? 'bg-red-500/20 border-red-500 text-red-400'
-                                                    : 'bg-blue-500/20 border-blue-500 text-blue-400'
-                                            : 'bg-zinc-800 border-transparent text-zinc-500 hover:bg-zinc-700'
+                                        ? t === 'BUG' ? 'bg-orange-500/20 border-orange-500 text-orange-400'
+                                            : t === 'PLAYER' ? 'bg-red-500/20 border-red-500 text-red-400'
+                                                : 'bg-blue-500/20 border-blue-500 text-blue-400'
+                                        : 'bg-zinc-800 border-transparent text-zinc-500 hover:bg-zinc-700'
                                         }`}
                                 >
                                     {t === 'PLAYER' ? 'Cheater/Toxic' : t}
@@ -136,6 +139,33 @@ export default function ReportModal({ isOpen, onClose }: ReportModalProps) {
                                         onChange={(e) => setTarget(e.target.value)}
                                         className="w-full bg-black/30 border border-white/10 rounded p-3 text-white focus:border-brand-green outline-none transition-colors"
                                     />
+                                </div>
+                            )}
+
+                            {type === 'BUG' && (
+                                <div>
+                                    <label className="block text-xs font-bold text-zinc-500 uppercase mb-2">Bug Category</label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {[
+                                            { value: 'IN_MATCH', label: '🎮 In-Match Bug', desc: 'During ranked game' },
+                                            { value: 'WEBSITE', label: '🌐 Website Issue', desc: 'UI/Frontend bug' },
+                                            { value: 'QUEUE', label: '⏳ Queue/Matchmaking', desc: 'Queue problems' },
+                                            { value: 'OTHER', label: '📋 Other', desc: 'General issue' }
+                                        ].map((cat) => (
+                                            <button
+                                                key={cat.value}
+                                                type="button"
+                                                onClick={() => setSubType(cat.value)}
+                                                className={`p-2 text-left rounded border transition-all ${subType === cat.value
+                                                    ? 'bg-orange-500/20 border-orange-500 text-orange-400'
+                                                    : 'bg-zinc-800 border-transparent text-zinc-400 hover:bg-zinc-700'
+                                                    }`}
+                                            >
+                                                <div className="text-xs font-bold">{cat.label}</div>
+                                                <div className="text-[10px] text-zinc-500">{cat.desc}</div>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 

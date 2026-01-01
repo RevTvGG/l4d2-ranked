@@ -328,6 +328,9 @@ model Report {
   evidence  String?
   target    String?    // Targeted player SteamID or Name (optional)
   status    String     @default("OPEN")
+  isPremium Boolean    @default(false) // Reporter's premium status
+  subType   String?    // For BUG: IN_MATCH, WEBSITE, QUEUE, OTHER
+  matchId   String?    // Optional: link to match for in-match bugs
   createdAt DateTime   @default(now())
 }
 
@@ -380,6 +383,7 @@ model UserReport {
   reason      ReportReason
   description String?
   status      ReportStatus @default(PENDING)
+  isPremium   Boolean      @default(false) // Reporter's premium status
   createdAt   DateTime     @default(now())
   
   reporterId  String

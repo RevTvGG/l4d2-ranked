@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1454980306607280362/XBmbylFD3io2BMsNYvKhahfoXgFgTBkotKNigUwa6luZhKUAicDbyW8DMDxsdoTyBe8l';
+
 export async function POST(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
@@ -22,10 +24,11 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Invalid report reason' }, { status: 400 });
         }
 
-        // Get reporter
+        // Get reporter with premium status
         const steamId = (session.user as any).steamId;
         const reporter = await prisma.user.findUnique({
-            where: { steamId }
+            where: { steamId },
+            select: { id: true, name: true, steamId: true, isPremium: true }
         });
 
         if (!reporter) {
@@ -39,7 +42,8 @@ export async function POST(request: NextRequest) {
 
         // Check if reported user exists
         const reportedUser = await prisma.user.findUnique({
-            where: { id: reportedUserId }
+            where: { id: reportedUserId },
+            select: { id: true, name: true, steamId: true }
         });
 
         if (!reportedUser) {
@@ -61,16 +65,24 @@ export async function POST(request: NextRequest) {
             }, { status: 429 });
         }
 
-        // Create report
+        // Create report with premium status
         const report = await prisma.userReport.create({
             data: {
                 reason,
                 description: description?.slice(0, 500) || null,
                 reporterId: reporter.id,
                 reportedId: reportedUserId,
-                matchId: matchId || null
+                matchId: matchId || null,
+                isPremium: reporter.isPremium
             }
         });
+
+        // Send to Discord
+        try {
+            await sendToDiscord(report, reporter, reportedUser, reason, description, matchId);
+        } catch (discordError) {
+            console.error('Failed to send to Discord:', discordError);
+        }
 
         return NextResponse.json({
             success: true,
@@ -82,3 +94,64 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Failed to submit report' }, { status: 500 });
     }
 }
+
+async function sendToDiscord(
+    report: any,
+    reporter: { id: string; name: string | null; steamId: string | null; isPremium: boolean },
+    reportedUser: { id: string; name: string | null; steamId: string | null },
+    reason: string,
+    description: string | null,
+    matchId: string | null
+) {
+    if (!DISCORD_WEBHOOK_URL) return;
+
+    const premiumBadge = reporter.isPremium ? ' ⭐' : '';
+    const premiumTag = reporter.isPremium ? ' (Premium)' : '';
+
+    const embed = {
+        title: `🚨 Player Report: ${reason}`,
+        description: description ? `**Details:**\n${description}` : 'No details provided',
+        color: reason === 'CHEATING' ? 0xe74c3c : 0xf39c12, // Red for cheating, orange for trolling
+        fields: [
+            {
+                name: `👤 Reporter${premiumBadge}`,
+                value: `${reporter.name}${premiumTag}\n[Profile](https://www.l4d2ranked.online/profile/${encodeURIComponent(reporter.name || '')})`,
+                inline: true
+            },
+            {
+                name: '🎯 Reported Player',
+                value: `${reportedUser.name}\n[Profile](https://www.l4d2ranked.online/profile/${encodeURIComponent(reportedUser.name || '')})`,
+                inline: true
+            },
+            {
+                name: '⚠️ Reason',
+                value: reason,
+                inline: true
+            },
+            {
+                name: '🆔 Report ID',
+                value: `\`${report.id}\``,
+                inline: true
+            }
+        ] as any[],
+        timestamp: new Date().toISOString(),
+        footer: {
+            text: `L4D2 Ranked Player Report${reporter.isPremium ? ' | Premium Reporter' : ''}`
+        }
+    };
+
+    if (matchId) {
+        embed.fields.push({
+            name: '🎮 Match ID',
+            value: `\`${matchId}\``,
+            inline: true
+        });
+    }
+
+    await fetch(DISCORD_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ embeds: [embed] })
+    });
+}
+
