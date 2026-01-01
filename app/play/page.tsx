@@ -10,6 +10,7 @@ import GlobalChat from '@/components/GlobalChat';
 import Link from 'next/link';
 import { Navbar } from "@/components/Navbar";
 import OnlineUsersList from "@/components/OnlineUsersList";
+import ParticleBackground from "@/components/ParticleBackground";
 
 export default function PlayPage() {
     const { data: session, status } = useSession();
@@ -188,7 +189,10 @@ export default function PlayPage() {
                 {/* Background Image with Overlay */}
                 <div className="absolute inset-0 z-0">
                     <div className="absolute inset-0 bg-[url('/l4d2_play_bg.jpg')] bg-cover bg-center" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-black via-black/70 to-black" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-black via-zinc-900/80 to-black" />
+                    {/* Animated gradient overlays */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-brand-green/5 via-transparent to-emerald-500/5 animate-gradient-shift" />
+                    <ParticleBackground />
                 </div>
 
                 {/* Content */}
@@ -244,22 +248,29 @@ export default function PlayPage() {
                                 {/* ONLINE USERS LIST */}
                                 <OnlineUsersList />
 
-                                {/* QUEUE STATUS CARD */}
-                                <div className="relative bg-zinc-900/80 border-2 border-brand-green/30 p-6 rounded-2xl backdrop-blur-md shadow-[0_0_60px_-20px_rgba(74,222,128,0.4)] hover:border-brand-green/60 hover:shadow-[0_0_80px_-20px_rgba(74,222,128,0.6)] transition-all duration-500 overflow-hidden group">
-                                    {/* Animated scan line effect */}
+                                {/* QUEUE STATUS CARD - PREMIUM 3D DESIGN */}
+                                <div className="relative bg-gradient-to-br from-zinc-900/95 via-zinc-900/90 to-black/95 border-2 border-brand-green/40 p-8 rounded-3xl backdrop-blur-xl shadow-[0_20px_80px_-20px_rgba(74,222,128,0.5),0_0_40px_-10px_rgba(74,222,128,0.3),inset_0_1px_0_rgba(255,255,255,0.1)] hover:border-brand-green/80 hover:shadow-[0_30px_100px_-20px_rgba(74,222,128,0.7),0_0_60px_-10px_rgba(74,222,128,0.5)] transition-all duration-700 overflow-hidden group transform hover:-translate-y-2 hover:scale-[1.02]">
+                                    {/* Animated gradient background */}
+                                    <div className="absolute inset-0 bg-gradient-to-br from-brand-green/10 via-transparent to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+                                    {/* Multiple animated scan lines */}
                                     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                                        <div className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-brand-green/50 to-transparent animate-scan-line"></div>
+                                        <div className="absolute left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-brand-green/60 to-transparent animate-scan-line shadow-[0_0_10px_rgba(74,222,128,0.5)]"></div>
+                                        <div className="absolute left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent animate-scan-line" style={{ animationDelay: '2s' }}></div>
                                     </div>
 
-                                    {/* Corner accents */}
-                                    <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-brand-green/50"></div>
-                                    <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-brand-green/50"></div>
-                                    <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-brand-green/50"></div>
-                                    <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-brand-green/50"></div>
+                                    {/* Premium corner frame */}
+                                    <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-brand-green/60 rounded-tl-2xl"></div>
+                                    <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-brand-green/60 rounded-tr-2xl"></div>
+                                    <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-brand-green/60 rounded-bl-2xl"></div>
+                                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-brand-green/60 rounded-br-2xl"></div>
 
-                                    <h3 className="font-black text-white mb-4 flex items-center gap-2 uppercase tracking-wide text-sm relative z-10">
-                                        <span className="text-2xl animate-float">⚔️</span>
-                                        <span className="bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">Battle Queue</span>
+                                    {/* Inner glow effect */}
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-gradient-to-b from-brand-green/20 to-transparent blur-3xl"></div>
+
+                                    <h3 className="font-black text-white mb-6 flex items-center gap-3 uppercase tracking-wider text-base relative z-10 drop-shadow-[0_0_10px_rgba(74,222,128,0.5)]">
+                                        <span className="text-3xl animate-float drop-shadow-[0_0_15px_rgba(74,222,128,0.8)]">⚔️</span>
+                                        <span className="bg-gradient-to-r from-white via-brand-green to-white bg-clip-text text-transparent animate-text-shimmer">BATTLE QUEUE</span>
                                     </h3>
 
                                     <div className="space-y-4">
@@ -351,7 +362,7 @@ export default function PlayPage() {
                                                     onClick={inQueue ? handleLeaveQueue : handleJoinQueue}
                                                     className={`relative w-full py-5 font-black uppercase tracking-widest rounded-xl transition-all transform hover:-translate-y-2 hover:scale-[1.03] active:scale-[0.98] overflow-hidden group ${inQueue
                                                         ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white shadow-[0_0_50px_-10px_rgba(239,68,68,0.7)] border-2 border-red-400/50'
-                                                        : 'bg-gradient-to-r from-brand-green to-emerald-500 hover:from-lime-400 hover:to-emerald-400 text-black shadow-[0_0_60px_-10px_rgba(74,222,128,0.8)] border-2 border-lime-300/50 animate-glow-pulse'
+                                                        : 'relative bg-gradient-to-br from-brand-green to-emerald-500 text-black shadow-[0_0_60px_-10px_rgba(74,222,128,0.8),inset_0_0_20px_rgba(255,255,255,0.3)] border-2 border-lime-300/50 animate-glow-pulse hover:from-lime-400 hover:to-emerald-400 hover:shadow-[0_0_80px_-10px_rgba(74,222,128,1),inset_0_0_30px_rgba(255,255,255,0.5)]'
                                                         }`}
                                                 >
                                                     {/* Button shine effect */}
