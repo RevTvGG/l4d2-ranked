@@ -349,7 +349,6 @@ export function PlayerProfile({
                 {/* Main Stats Column */}
                 <div className="md:col-span-2 grid grid-cols-3 gap-4">
                     <StatCard label="Win Rate" value={`${winRate.toFixed(1)}%`} subDetail={winRate > 50 ? "Above Avg" : "Needs Improvement"} />
-
                     <StatCard
                         label="K/D Ratio"
                         value={`${(totalDeaths > 0 ? (totalKills / totalDeaths) : totalKills).toFixed(2)}`}
@@ -357,12 +356,10 @@ export function PlayerProfile({
                     />
                     <StatCard label="Total MVPs" value={totalMvps.toLocaleString()} />
 
-                    {/* Fav Weapon Section */}
-
 
                     {/* MEDALS SECTION */}
                     {medals && medals.length > 0 && (
-                        <div className="col-span-2 mt-6">
+                        <div className="col-span-3 mt-6">
                             <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-wider mb-4 flex items-center gap-2">
                                 🏅 Medals & Achievements
                             </h3>
@@ -373,8 +370,43 @@ export function PlayerProfile({
 
                 {/* Sidebar Info */}
                 <div className="space-y-4">
-                    {/* Rank History Graph Placeholder */}
+                    {/* Rank History Graph */}
+                    <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 h-48 flex flex-col justify-between">
+                        <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-widest">Rating History</h3>
+                        {ratingHistory && ratingHistory.length > 0 ? (
+                            <div className="flex-1 flex items-end justify-between gap-1 pt-4">
+                                {ratingHistory.slice(-20).map((h, i) => {
+                                    // Normalize height to max value for relative scaling
+                                    const max = Math.max(...ratingHistory);
+                                    const min = Math.min(...ratingHistory);
+                                    const range = max - min || 1;
+                                    // Calculate height percentage (min 20% to avoid invisible bars)
+                                    const heightPercent = 20 + ((h - min) / range) * 80;
 
+                                    return (
+                                        <div
+                                            key={i}
+                                            className="w-full bg-zinc-800 rounded-t-sm hover:bg-brand-green transition-colors relative group"
+                                            style={{ height: `${heightPercent}%` }}
+                                            title={`Rating: ${h}`}
+                                        >
+                                            {/* Tooltip */}
+                                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-black text-white text-xs font-bold py-1 px-2 rounded whitespace-nowrap z-50 pointer-events-none">
+                                                {h} ELO
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div className="flex-1 flex items-center justify-center pt-4 opacity-50">
+                                <div className="text-center">
+                                    <div className="text-2xl mb-2">📉</div>
+                                    <div className="text-xs uppercase font-bold tracking-widest">No Matches Yet</div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
                     {/* Team Section - Only visible if has team */}
                     {team && (
