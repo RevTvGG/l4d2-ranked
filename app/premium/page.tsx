@@ -12,6 +12,8 @@ export default function PremiumPage() {
     const [loading, setLoading] = useState(false);
     const [msg, setMsg] = useState("");
 
+    const isPremium = (session?.user as any)?.isPremium;
+
     const handleBuy = async () => {
         if (!session) return router.push("/api/auth/signin");
         setLoading(true);
@@ -35,6 +37,24 @@ export default function PremiumPage() {
         }
     };
 
+    const handleManageSubscription = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch("/api/stripe/portal", {
+                method: "POST",
+            });
+
+            if (!response.ok) throw new Error("Portal failed");
+
+            const data = await response.json();
+            window.location.href = data.url;
+        } catch (error) {
+            console.error(error);
+            setMsg("Error opening portal. Please try again.");
+            setLoading(false);
+        }
+    }
+
     return (
         <div className="min-h-screen bg-black flex items-center justify-center p-6 bg-[url('/l4d2_bg.jpg')] bg-cover bg-center bg-blend-overlay bg-black/80">
             <div className="max-w-md w-full bg-zinc-900/90 backdrop-blur-xl border border-yellow-500/30 rounded-3xl p-8 text-center shadow-2xl relative overflow-hidden group">
@@ -48,11 +68,14 @@ export default function PremiumPage() {
                     </div>
 
                     <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter">
-                        <ShinyText text="PREMIUM PASS" theme="GOLD" />
+                        <ShinyText text={isPremium ? "YOU ARE PREMIUM" : "PREMIUM PASS"} theme="GOLD" />
                     </h1>
 
                     <p className="text-zinc-400 font-medium leading-relaxed">
-                        Upgrade your presence. Stand out in the leaderboard. Unlock exclusive features.
+                        {isPremium
+                            ? "Thanks for supporting the community! You have full access to all features."
+                            : "Upgrade your presence. Stand out in the leaderboard. Unlock exclusive features."
+                        }
                     </p>
 
                     <div className="space-y-3 text-left bg-black/20 p-6 rounded-xl border border-white/5">
@@ -65,9 +88,11 @@ export default function PremiumPage() {
                         <Feature icon="📈" text="Support the Platform" />
                     </div>
 
-                    <div className="text-3xl font-black text-white">
-                        $4.00 <span className="text-sm font-bold text-zinc-500 normal-case">/ month</span>
-                    </div>
+                    {!isPremium && (
+                        <div className="text-3xl font-black text-white">
+                            $4.00 <span className="text-sm font-bold text-zinc-500 normal-case">/ month</span>
+                        </div>
+                    )}
 
                     {/* Message Display */}
                     {msg && (
@@ -76,13 +101,23 @@ export default function PremiumPage() {
                         </div>
                     )}
 
-                    <button
-                        onClick={handleBuy}
-                        disabled={loading}
-                        className="w-full py-4 bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black text-xl uppercase tracking-widest rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg hover:shadow-yellow-500/20 disabled:opacity-50 disabled:pointer-events-none"
-                    >
-                        {loading ? "Processing..." : "UPGRADE NOW"}
-                    </button>
+                    {isPremium ? (
+                        <button
+                            onClick={handleManageSubscription}
+                            disabled={loading}
+                            className="w-full py-4 bg-zinc-800 text-zinc-300 font-bold text-lg uppercase tracking-widest rounded-xl hover:bg-zinc-700 transition-all border border-white/10"
+                        >
+                            {loading ? "Loading..." : "Manage Subscription"}
+                        </button>
+                    ) : (
+                        <button
+                            onClick={handleBuy}
+                            disabled={loading}
+                            className="w-full py-4 bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black text-xl uppercase tracking-widest rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg hover:shadow-yellow-500/20 disabled:opacity-50 disabled:pointer-events-none"
+                        >
+                            {loading ? "Processing..." : "UPGRADE NOW"}
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
