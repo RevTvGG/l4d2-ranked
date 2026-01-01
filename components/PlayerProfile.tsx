@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { getRankForElo } from "@/lib/ranks";
 import Link from "next/link";
 import { MedalList } from "./MedalList";
 
@@ -354,12 +357,19 @@ export function PlayerProfile({
 
                     {/* Big Rank Badge (Right Side) */}
                     <div className="hidden md:flex flex-col items-end">
-                        <div className="text-zinc-500 font-bold tracking-widest text-sm mb-[-10px] z-10 uppercase">Current Rank</div>
-                        <div className="text-6xl md:text-8xl leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-600 tracking-tighter drop-shadow-2xl text-right">
-                            {rank}
+                        <div className="relative w-32 h-32 md:w-48 md:h-48 drop-shadow-[0_0_25px_rgba(0,0,0,0.6)] animate-in fade-in zoom-in duration-700 hover:scale-105 transition-transform cursor-pointer">
+                            <Image
+                                src={getRankForElo(rating).imagePath}
+                                alt={getRankForElo(rating).name}
+                                fill
+                                className="object-contain"
+                            />
                         </div>
-                        <div className="text-brand-green font-mono text-xl tracking-wider font-bold">
+                        <div className="mt-[-10px] text-brand-green font-mono text-2xl tracking-wider font-black drop-shadow-lg">
                             {rating} ELO
+                        </div>
+                        <div className="text-zinc-400 font-bold tracking-widest text-sm uppercase opacity-80" style={{ color: getRankForElo(rating).color }}>
+                            {getRankForElo(rating).name}
                         </div>
                     </div>
                 </div>
