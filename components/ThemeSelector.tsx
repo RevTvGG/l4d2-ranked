@@ -25,6 +25,8 @@ export default function ThemeSelector({ currentTheme, isPremium }: ThemeSelector
 
     const handleThemeChange = async (theme: ThemeName) => {
         setLoading(true);
+        console.log('Attempting to change theme to:', theme);
+
         try {
             const response = await fetch('/api/profile/theme', {
                 method: 'POST',
@@ -32,16 +34,24 @@ export default function ThemeSelector({ currentTheme, isPremium }: ThemeSelector
                 body: JSON.stringify({ theme }),
             });
 
+            console.log('Response status:', response.status);
             const data = await response.json();
+            console.log('Response data:', data);
 
             if (data.success) {
                 setSelectedTheme(theme);
-                toast.success('Theme updated! Refresh to see changes.');
+                toast.success('✅ Theme updated! Reloading...');
+                // Auto-reload page after 1 second
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
             } else {
+                console.error('Theme update failed:', data.error);
                 toast.error(data.error || 'Failed to update theme');
             }
         } catch (error) {
-            toast.error('Failed to update theme');
+            console.error('Theme update error:', error);
+            toast.error('Network error - failed to update theme');
         } finally {
             setLoading(false);
         }
@@ -65,8 +75,8 @@ export default function ThemeSelector({ currentTheme, isPremium }: ThemeSelector
                         onClick={() => handleThemeChange(theme.id)}
                         disabled={loading}
                         className={`relative p-6 rounded-2xl border-2 transition-all transform hover:-translate-y-1 hover:scale-[1.02] ${selectedTheme === theme.id
-                                ? 'border-white/50 shadow-[0_0_30px_-5px_var(--glow)]'
-                                : 'border-white/10 hover:border-white/30'
+                            ? 'border-white/50 shadow-[0_0_30px_-5px_var(--glow)]'
+                            : 'border-white/10 hover:border-white/30'
                             }`}
                         style={
                             {
