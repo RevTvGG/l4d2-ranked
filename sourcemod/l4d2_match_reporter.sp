@@ -108,7 +108,7 @@ public void OnCheckServerStatusResponse(Handle hRequest, bool bFailure, bool bRe
         return;
     }
     
-    if (eStatusCode >= 200 && eStatusCode < 300)
+    if (view_as<int>(eStatusCode) >= 200 && view_as<int>(eStatusCode) < 300)
 
     {
         // Get response body
@@ -196,9 +196,9 @@ public void OnPluginStart()
     
     // Block spectate commands during matches
     AddCommandListener(Cmd_BlockSpectate, "jointeam");
-    RegConsoleCmd("sm_s", Cmd_BlockSpectate, "Blocked during ranked matches");
-    RegConsoleCmd("sm_spec", Cmd_BlockSpectate, "Blocked during ranked matches");
-    RegConsoleCmd("sm_spectate", Cmd_BlockSpectate, "Blocked during ranked matches");
+    RegConsoleCmd("sm_s", Cmd_BlockSpectateCmd, "Blocked during ranked matches");
+    RegConsoleCmd("sm_spec", Cmd_BlockSpectateCmd, "Blocked during ranked matches");
+    RegConsoleCmd("sm_spectate", Cmd_BlockSpectateCmd, "Blocked during ranked matches");
     
     AutoExecConfig(true, "l4d2_match_reporter");
     
@@ -594,6 +594,22 @@ public Action Cmd_BlockSpectate(int client, const char[] command, int argc)
     return Plugin_Handled;
 }
 
+// Wrapper for RegConsoleCmd (different signature than AddCommandListener)
+public Action Cmd_BlockSpectateCmd(int client, int args)
+{
+    // Allow if no match is active
+    if (!g_bIsMatchLive || g_sMatchId[0] == '\0')
+        return Plugin_Continue;
+    
+    // Allow admins
+    if (CheckCommandAccess(client, "sm_ranked_admin", ADMFLAG_ROOT, true))
+        return Plugin_Continue;
+    
+    PrintToChat(client, "\x04[L4D2 Ranked]\x03 Spectate commands are disabled during ranked matches!");
+    PrintToChat(client, "\x04[L4D2 Ranked]\x01 You must stay with your team until the match ends.");
+    return Plugin_Handled;
+}
+
 
 // ------------------------------------------------------------------------
 // ReadyUp Forward - Match Goes Live
@@ -928,7 +944,7 @@ public void OnMatchLiveResponse(Handle hRequest, bool bFailure, bool bSuccessful
     {
         PrintToServer("[Match Reporter] notify-live FAILED - Connection error");
     }
-    else if (eStatusCode >= 200 && eStatusCode < 300)
+    else if (view_as<int>(eStatusCode) >= 200 && view_as<int>(eStatusCode) < 300)
     {
         PrintToServer("[Match Reporter] notify-live SUCCESS - Status: %d", eStatusCode);
     }
@@ -1034,7 +1050,7 @@ public void OnMatchCompleteResponse(Handle hRequest, bool bFailure, bool bSucces
     {
         PrintToServer("[Match Reporter] match-end FAILED - Connection error");
     }
-    else if (eStatusCode >= 200 && eStatusCode < 300)
+    else if (view_as<int>(eStatusCode) >= 200 && view_as<int>(eStatusCode) < 300)
     {
         PrintToServer("[Match Reporter] match-end SUCCESS - Status: %d", eStatusCode);
         PrintToChatAll("\x04[L4D2 Ranked]\x01 Match results submitted successfully!");
@@ -1147,7 +1163,7 @@ void ReportPlayerEvent(const char[] sSteamId, const char[] sEvent, const char[] 
 
 public void OnEventReportResponse(Handle hRequest, bool bFailure, bool bRequestSuccessful, EHTTPStatusCode eStatusCode, int data)
 {
-    if (bFailure || !bRequestSuccessful || eStatusCode < 200 || eStatusCode >= 300)
+    if (bFailure || !bRequestSuccessful || view_as<int>(eStatusCode) < 200 || view_as<int>(eStatusCode) >= 300)
     {
         PrintToServer("[Match Reporter] Event report failed (status: %d)", eStatusCode);
     }
