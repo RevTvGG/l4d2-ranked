@@ -22,20 +22,20 @@ export function Navbar() {
 
     return (
         <header className="fixed w-full top-0 z-50 border-b border-white/10 bg-black/50 backdrop-blur-md">
-            <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+            <div className="container mx-auto px-6 h-20 flex items-center justify-between">
                 <div className="text-xl font-bold tracking-tighter text-white">
-                    <Link href="/" className="flex items-center gap-2">
+                    <Link href="/" className="flex items-center gap-3">
                         <Image
                             src="/site-logo.png"
                             alt="L4D2 Ranked Logo"
-                            width={50}
-                            height={50}
-                            className="object-contain hover:scale-110 transition-transform"
+                            width={64}
+                            height={64}
+                            className="object-contain hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(74,222,128,0.5)]"
                         />
-                        <span>L4D2<span className="text-brand-green">RANKED</span></span>
+                        <span className="text-2xl">L4D2<span className="text-brand-green">RANKED</span></span>
                     </Link>
                 </div>
-                <nav className="hidden md:flex gap-6 text-sm font-medium text-zinc-400">
+                <nav className="hidden md:flex gap-6 text-sm font-medium text-zinc-400 items-center">
                     <Link href="/" className="hover:text-white transition-colors">Home</Link>
                     <Link href="/leaderboard" className="hover:text-white transition-colors">Leaderboard</Link>
                     <Link href="/teams" className="hover:text-white transition-colors">Teams</Link>
