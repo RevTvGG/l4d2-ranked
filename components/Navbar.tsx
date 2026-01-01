@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { AuthButton } from "./AuthButton";
 import { useSession } from "next-auth/react";
 
@@ -23,8 +24,15 @@ export function Navbar() {
         <header className="fixed w-full top-0 z-50 border-b border-white/10 bg-black/50 backdrop-blur-md">
             <div className="container mx-auto px-6 h-16 flex items-center justify-between">
                 <div className="text-xl font-bold tracking-tighter text-white">
-                    <Link href="/">
-                        L4D2<span className="text-brand-green">RANKED</span>
+                    <Link href="/" className="flex items-center gap-2">
+                        <Image
+                            src="/site-logo.png"
+                            alt="L4D2 Ranked Logo"
+                            width={36}
+                            height={36}
+                            className="object-contain hover:scale-110 transition-transform"
+                        />
+                        <span>L4D2<span className="text-brand-green">RANKED</span></span>
                     </Link>
                 </div>
                 <nav className="hidden md:flex gap-6 text-sm font-medium text-zinc-400">
