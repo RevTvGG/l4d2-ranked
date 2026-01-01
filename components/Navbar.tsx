@@ -22,20 +22,10 @@ export function Navbar() {
         <header className="fixed w-full top-0 z-50 border-b border-white/10 bg-black/50 backdrop-blur-md">
             <div className="container mx-auto px-6 h-24 flex items-center justify-between">
                 <div className="text-xl font-bold tracking-tighter text-white">
-                    <Link href="/" className="flex items-center gap-3 group">
+                    <Link href="/" className="flex items-center gap-1 group">
                         <span className="text-4xl font-black italic tracking-tighter text-white transition-all group-hover:scale-105 group-hover:text-zinc-100">
                             L4D2
                         </span>
-
-                        <div className="relative w-[60px] h-[60px] transform transition-transform duration-300 group-hover:rotate-3 group-hover:scale-110">
-                            <Image
-                                src="/site-logo.png"
-                                alt="L4D2 Ranked Logo"
-                                fill
-                                className="object-contain drop-shadow-[0_0_15px_rgba(74,222,128,0.5)]"
-                            />
-                        </div>
-
                         <span className="text-4xl font-black italic tracking-tighter text-brand-green drop-shadow-[0_0_8px_rgba(74,222,128,0.5)] transition-all group-hover:scale-105 group-hover:brightness-110">
                             RANKED
                         </span>
