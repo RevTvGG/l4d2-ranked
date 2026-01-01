@@ -14,6 +14,7 @@ export default function ReportModal({ isOpen, onClose }: ReportModalProps) {
     const { data: session } = useSession();
     const [type, setType] = useState<ReportType>('BUG');
     const [subType, setSubType] = useState<string>('OTHER'); // For bugs
+    const [matchId, setMatchId] = useState<string>(''); // For in-match bugs
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [target, setTarget] = useState(''); // Cheater name/steamid
@@ -39,7 +40,8 @@ export default function ReportModal({ isOpen, onClose }: ReportModalProps) {
                     content,
                     evidence,
                     target: type === 'PLAYER' ? target : undefined,
-                    subType: type === 'BUG' ? subType : undefined
+                    subType: type === 'BUG' ? subType : undefined,
+                    matchId: (type === 'BUG' && subType === 'IN_MATCH' && matchId) ? matchId : undefined
                 })
             });
 
@@ -61,6 +63,7 @@ export default function ReportModal({ isOpen, onClose }: ReportModalProps) {
                     setEvidence('');
                     setType('BUG');
                     setSubType('OTHER');
+                    setMatchId('');
                 }, 300);
             }, 2000);
 
@@ -166,6 +169,20 @@ export default function ReportModal({ isOpen, onClose }: ReportModalProps) {
                                             </button>
                                         ))}
                                     </div>
+                                </div>
+                            )}
+
+                            {type === 'BUG' && subType === 'IN_MATCH' && (
+                                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Match ID (Optional)</label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. Match #1234 or paste ID"
+                                        value={matchId}
+                                        onChange={(e) => setMatchId(e.target.value)}
+                                        className="w-full bg-black/30 border border-white/10 rounded p-3 text-white focus:border-brand-green outline-none transition-colors border-dashed"
+                                    />
+                                    <p className="text-[10px] text-zinc-600 mt-1">Found in your Match History or end of game screen</p>
                                 </div>
                             )}
 
