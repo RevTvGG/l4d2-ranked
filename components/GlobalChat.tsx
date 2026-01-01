@@ -60,9 +60,7 @@ export default function GlobalChat({ currentUser }: { currentUser: any }) {
 
         if (result.success) {
             fetchMessages();
-            setTimeout(() => {
-                chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-            }, 100);
+            // Removed auto-scroll - let user scroll manually
         } else {
             // SECURITY: Don't expose raw server errors to user. 
             // Only show known friendly messages.

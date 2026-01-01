@@ -94,12 +94,21 @@ export async function getMessages() {
     }
 }
 
-// Fetch users active in the last 15 minutes (or just recently updated for demo)
+// Fetch users active in the last 5 minutes (truly online)
 export async function getOnlineUsers() {
     try {
         const { prisma } = await import("@/lib/prisma");
+
+        // Only show users who were active in the last 5 minutes
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
         const users = await prisma.user.findMany({
-            take: 20,
+            where: {
+                updatedAt: {
+                    gte: fiveMinutesAgo
+                }
+            },
+            take: 50,
             orderBy: {
                 updatedAt: 'desc'
             },
