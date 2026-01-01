@@ -37,6 +37,38 @@ export async function getProfile(username: string) {
                     orderBy: {
                         awardedAt: 'desc'
                     }
+                },
+                // Fetch match history for profile
+                matchPlayers: {
+                    where: {
+                        match: {
+                            status: 'COMPLETED'
+                        }
+                    },
+                    orderBy: {
+                        match: {
+                            completedAt: 'desc'
+                        }
+                    },
+                    take: 20,
+                    include: {
+                        match: {
+                            include: {
+                                players: {
+                                    include: {
+                                        user: {
+                                            select: {
+                                                id: true,
+                                                name: true,
+                                                image: true,
+                                                steamId: true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         })
@@ -102,7 +134,52 @@ export async function getProfile(username: string) {
                 rarity: m.medal.rarity as "COMMON" | "RARE" | "EPIC" | "LEGENDARY",
                 awardedAt: m.awardedAt.toISOString(),
                 note: m.note
-            }))
+            })),
+            // Match History (Premium Feature)
+            matchHistory: user.matchPlayers.map(mp => {
+                const match = mp.match;
+                const userTeam = mp.team; // "TEAM_A" or "TEAM_B"
+
+                // Determine if user won
+                let result: 'WIN' | 'LOSS' | 'DRAW' = 'DRAW';
+                if (match.winnerTeam) {
+                    if (match.winnerTeam === userTeam) {
+                        result = 'WIN';
+                    } else {
+                        result = 'LOSS';
+                    }
+                }
+
+                // Separate teammates and opponents
+                const teammates = match.players
+                    .filter(p => p.team === userTeam && p.userId !== user.id)
+                    .map(p => ({
+                        id: p.user.id,
+                        name: p.user.name || 'Unknown',
+                        image: p.user.image,
+                        steamId: p.user.steamId
+                    }));
+
+                const opponents = match.players
+                    .filter(p => p.team !== userTeam)
+                    .map(p => ({
+                        id: p.user.id,
+                        name: p.user.name || 'Unknown',
+                        image: p.user.image,
+                        steamId: p.user.steamId
+                    }));
+
+                return {
+                    matchId: match.id,
+                    mapName: match.mapName || match.selectedMap || 'Unknown',
+                    date: match.completedAt?.toISOString() || match.createdAt.toISOString(),
+                    result,
+                    eloChange: mp.eloChange || 0,
+                    team: userTeam === 'TEAM_A' ? 'A' : 'B',
+                    teammates,
+                    opponents
+                };
+            })
         }
 
 

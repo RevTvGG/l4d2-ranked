@@ -10,6 +10,7 @@ import { PremiumBadge } from "./PremiumBadge";
 import { ShinyText } from "./ShinyText";
 import { RefreshAvatarButton } from "./RefreshAvatarButton";
 import { PremiumUsername } from "./PremiumUsername";
+import { MatchHistory } from "./MatchHistory";
 
 interface Team {
     name: string;
@@ -82,6 +83,17 @@ interface PlayerProfileProps {
     totalWins?: number;
     totalLosses?: number;
     rankingPosition?: number;
+    // Match History (Premium Feature)
+    matchHistory?: {
+        matchId: string;
+        mapName: string;
+        date: string;
+        result: 'WIN' | 'LOSS' | 'DRAW';
+        eloChange: number;
+        team: 'A' | 'B';
+        teammates: { id: string; name: string; image: string | null; steamId: string | null }[];
+        opponents: { id: string; name: string; image: string | null; steamId: string | null }[];
+    }[];
 }
 
 export function PlayerProfile({
@@ -123,6 +135,7 @@ export function PlayerProfile({
     totalWins = 0,
     totalLosses = 0,
     rankingPosition,
+    matchHistory = [],
 }: PlayerProfileProps) {
     // Get theme colors based on user's selected theme
     // Handle legacy "DEFAULT" theme by converting to "emerald"
@@ -578,6 +591,13 @@ export function PlayerProfile({
                     )}
                 </div>
             </div>
+
+            {/* 3. MATCH HISTORY (Premium Feature) */}
+            <MatchHistory
+                matches={matchHistory}
+                isPremium={isPremium || false}
+                isOwner={isOwner}
+            />
         </div>
     );
 }

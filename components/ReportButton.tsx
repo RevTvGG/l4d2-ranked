@@ -6,9 +6,10 @@ import { useSession } from 'next-auth/react';
 interface ReportButtonProps {
     reportedUserId: string;
     reportedUserName: string;
+    matchId?: string; // Optional: for reporting from match history
 }
 
-export default function ReportButton({ reportedUserId, reportedUserName }: ReportButtonProps) {
+export default function ReportButton({ reportedUserId, reportedUserName, matchId }: ReportButtonProps) {
     const { data: session } = useSession();
     const [isOpen, setIsOpen] = useState(false);
     const [reason, setReason] = useState<'CHEATING' | 'TROLLING'>('CHEATING');
@@ -27,7 +28,8 @@ export default function ReportButton({ reportedUserId, reportedUserName }: Repor
                 body: JSON.stringify({
                     reportedUserId,
                     reason,
-                    description: description.trim() || null
+                    description: description.trim() || null,
+                    matchId: matchId || null // Include match context if available
                 })
             });
 
@@ -94,8 +96,8 @@ export default function ReportButton({ reportedUserId, reportedUserName }: Repor
                                         <button
                                             onClick={() => setReason('CHEATING')}
                                             className={`p-3 rounded-lg border text-sm font-medium transition-colors ${reason === 'CHEATING'
-                                                    ? 'bg-red-500/20 border-red-500 text-red-400'
-                                                    : 'bg-zinc-800 border-white/10 text-zinc-400 hover:border-white/20'
+                                                ? 'bg-red-500/20 border-red-500 text-red-400'
+                                                : 'bg-zinc-800 border-white/10 text-zinc-400 hover:border-white/20'
                                                 }`}
                                         >
                                             🎮 Cheating
@@ -103,8 +105,8 @@ export default function ReportButton({ reportedUserId, reportedUserName }: Repor
                                         <button
                                             onClick={() => setReason('TROLLING')}
                                             className={`p-3 rounded-lg border text-sm font-medium transition-colors ${reason === 'TROLLING'
-                                                    ? 'bg-orange-500/20 border-orange-500 text-orange-400'
-                                                    : 'bg-zinc-800 border-white/10 text-zinc-400 hover:border-white/20'
+                                                ? 'bg-orange-500/20 border-orange-500 text-orange-400'
+                                                : 'bg-zinc-800 border-white/10 text-zinc-400 hover:border-white/20'
                                                 }`}
                                         >
                                             🤡 Trolling
