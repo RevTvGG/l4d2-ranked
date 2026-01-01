@@ -4,7 +4,7 @@ import Image from "next/image";
 import { getRankForElo } from "@/lib/ranks";
 import Link from "next/link";
 import { MedalList } from "./MedalList";
-
+import { getThemeColors } from "@/lib/themes";
 
 import { PremiumBadge } from "./PremiumBadge";
 import { ShinyText } from "./ShinyText";
@@ -121,33 +121,68 @@ export function PlayerProfile({
     totalLosses = 0,
     rankingPosition,
 }: PlayerProfileProps) {
-    const themeBg: Record<string, string> = {
-        DEFAULT: "border-white/10 bg-zinc-900",
-        GOLD: "border-yellow-500/50 bg-yellow-950/30 shadow-yellow-500/20",
-        DIAMOND: "border-cyan-500/50 bg-cyan-950/30 shadow-cyan-500/20",
-        RUBY: "border-red-500/50 bg-red-950/30 shadow-red-500/20",
-        EMERALD: "border-emerald-500/50 bg-emerald-950/30 shadow-emerald-500/20",
-        VOID: "border-purple-500/50 bg-purple-950/30 shadow-purple-500/20",
-    };
-
-    // If profileColor is set, it overrides the theme classes with a custom style
-    const hasCustomColor = !!profileColor;
-    const customStyle = hasCustomColor ? {
-        borderColor: profileColor,
-        backgroundColor: `${profileColor}10`, // Low opacity hex
-        boxShadow: `0 0 40px -10px ${profileColor}40` // Glow
-    } : {};
-
-    const containerClasses = hasCustomColor ? "bg-black/80" : (themeBg[profileTheme] || themeBg.DEFAULT);
+    // Get theme colors based on user's selected theme
+    const themeColors = getThemeColors(profileTheme);
 
     return (
         <div className="w-full max-w-6xl mx-auto space-y-6">
 
-            {/* 1. HERO SECTION */}
+            {/* 1. HERO SECTION - PREMIUM DESIGN */}
             <div
-                className={`relative rounded-3xl overflow-hidden border shadow-2xl transition-all duration-500 ${containerClasses}`}
-                style={customStyle}
+                className="relative rounded-3xl overflow-hidden border-2 shadow-2xl transition-all duration-700 group bg-gradient-to-br from-zinc-900/95 via-zinc-900/90 to-black/95 backdrop-blur-xl hover:shadow-[0_30px_100px_-20px_var(--theme-glow)]"
+                style={{
+                    borderColor: `${themeColors.primary}40`,
+                    boxShadow: `0 20px 80px -20px ${themeColors.glow}, 0 0 40px -10px ${themeColors.glow}`,
+                    '--theme-glow': themeColors.glow,
+                } as React.CSSProperties}
             >
+                {/* Animated gradient background */}
+                <div
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"
+                    style={{ background: `linear-gradient(to bottom right, ${themeColors.primary}10, transparent, ${themeColors.accent}10)` }}
+                />
+
+                {/* Multiple animated scan lines */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div
+                        className="absolute left-0 right-0 h-[3px] bg-gradient-to-r from-transparent to-transparent animate-scan-line"
+                        style={{
+                            backgroundImage: `linear-gradient(to right, transparent, ${themeColors.primary}60, transparent)`,
+                            filter: `drop-shadow(0 0 10px ${themeColors.glow})`
+                        }}
+                    />
+                    <div
+                        className="absolute left-0 right-0 h-[1px] bg-gradient-to-r from-transparent to-transparent animate-scan-line"
+                        style={{
+                            backgroundImage: `linear-gradient(to right, transparent, ${themeColors.accent}40, transparent)`,
+                            animationDelay: '2s'
+                        }}
+                    />
+                </div>
+
+                {/* Premium corner frame */}
+                <div
+                    className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 rounded-tl-2xl"
+                    style={{ borderColor: `${themeColors.primary}60` }}
+                />
+                <div
+                    className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 rounded-tr-2xl"
+                    style={{ borderColor: `${themeColors.primary}60` }}
+                />
+                <div
+                    className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 rounded-bl-2xl"
+                    style={{ borderColor: `${themeColors.primary}60` }}
+                />
+                <div
+                    className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 rounded-br-2xl"
+                    style={{ borderColor: `${themeColors.primary}60` }}
+                />
+
+                {/* Inner glow effect */}
+                <div
+                    className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 blur-3xl"
+                    style={{ background: `linear-gradient(to bottom, ${themeColors.primary}20, transparent)` }}
+                />
 
                 {/* ACTION BUTTONS (Visible to owner) */}
                 {isOwner && (
@@ -177,7 +212,6 @@ export function PlayerProfile({
                     ) : (
                         <div
                             className="w-full h-full bg-[url('/l4d2_bg.jpg')] bg-cover bg-center opacity-40 mix-blend-luminosity"
-                            style={hasCustomColor ? { backgroundColor: profileColor, mixBlendMode: 'overlay', opacity: 0.1 } : {}}
                         ></div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/80 to-transparent"></div>
