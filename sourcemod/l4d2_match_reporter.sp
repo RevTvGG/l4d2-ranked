@@ -645,16 +645,42 @@ public void OnRoundEnd(Event event, const char[] name, bool dontBroadcast)
     GetCurrentMap(sCurrentMap, sizeof(sCurrentMap));
     
     // Check if this is the last competitive map (penultimate map before finale)
+    if (IsCompetitiveFinalMap(sCurrentMap))
     {
-        PrintToServer("[Match Reporter] Competitive campaign complete! Waiting 5 seconds to determine winner...");
-        PrintToChatAll("\x04[L4D2 Ranked]\x01 Campaign complete! Calculating results...");
-        CreateTimer(5.0, Timer_AutoEndMatch, _, TIMER_FLAG_NO_MAPCHANGE);
+        // Check if we're in the second half (about to finish this map)
+        if (InSecondHalfOfRound())
+        {
+            // === MATCH IS ENDING ===
+            PrintToServer("[Match Reporter] Competitive campaign complete! Waiting 5 seconds to determine winner...");
+            PrintToChatAll("");
+            PrintToChatAll("\x04[L4D2 Ranked]\x05 ¡PARTIDA TERMINADA!");
+            PrintToChatAll("\x04[L4D2 Ranked]\x03 ⚠️ NO DESCONECTARSE ⚠️");
+            PrintToChatAll("\x04[L4D2 Ranked]\x01 Esperando resultados para calcular ELO...");
+            PrintToChatAll("");
+            
+            CreateTimer(5.0, Timer_AutoEndMatch, _, TIMER_FLAG_NO_MAPCHANGE);
+        }
+        else
+        {
+            // === FIRST HALF OF LAST MAP - Show warning ===
+            PrintToChatAll("");
+            PrintToChatAll("\x04[L4D2 Ranked]\x05 ¡ÚLTIMO MAPA!");
+            PrintToChatAll("\x04[L4D2 Ranked]\x03 ⚠️ NO DESCONECTARSE HASTA QUE TERMINE ⚠️");
+            PrintToChatAll("\x04[L4D2 Ranked]\x01 Al finalizar, recibirán sus puntos de ELO.");
+            PrintToChatAll("");
+        }
     }
     
     // Always send round stats at the end of every round/map
     // This ensures that even if the match isn't over, we save the progress
     SendRoundStats();
     ResetPlayerStats(); // RESET STATS NOW (Delta Strategy)
+}
+
+// Helper: Check if we're in the second half of the round
+bool InSecondHalfOfRound()
+{
+    return GameRules_GetProp("m_bInSecondHalfOfRound", 1) != 0;
 }
 
 // ========================================
