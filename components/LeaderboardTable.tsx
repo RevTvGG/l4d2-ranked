@@ -1,5 +1,4 @@
 
-
 import Link from "next/link";
 import Image from "next/image";
 
@@ -7,6 +6,7 @@ import { PremiumBadge } from "./PremiumBadge";
 import { ShinyText } from "./ShinyText";
 
 import { getLeaderboard } from "@/app/actions/getLeaderboard";
+import { getRankForElo } from "@/lib/ranks";
 
 export async function LeaderboardTable() {
     const players = await getLeaderboard();
@@ -43,14 +43,13 @@ export async function LeaderboardTable() {
     );
 }
 
-import { getRankFromElo } from "@/lib/rankingSystem";
-
 function LeaderboardRow({ player }: { player: any }) {
     const isTop1 = player.rank === 1;
     const isTop2 = player.rank === 2;
     const isTop3 = player.rank === 3;
 
-    const rankInfo = getRankFromElo(player.rating);
+    // Use shared rank logic
+    const rankInfo = getRankForElo(player.rating);
 
     let rowStyle = "bg-zinc-900/40 border-white/5 hover:border-white/10";
     let rankColor = "text-zinc-500";
@@ -114,8 +113,16 @@ function LeaderboardRow({ player }: { player: any }) {
             </div>
 
             {/* 3. Tier (Calculated from ELO) */}
-            <div className="col-span-2 text-center hidden md:flex items-center justify-center">
-                <span className={`px-2 py-0.5 rounded text-xs font-black tracking-wider ${rankInfo.bg} ${rankInfo.color} ${rankInfo.border} border`}>
+            <div className="col-span-2 text-center hidden md:flex items-center justify-center gap-2">
+                <div className="relative w-8 h-8 drop-shadow-md group-hover:scale-110 transition-transform duration-300">
+                    <Image
+                        src={rankInfo.imagePath}
+                        alt={rankInfo.name}
+                        fill
+                        className="object-contain"
+                    />
+                </div>
+                <span className="text-xs font-black tracking-wider uppercase" style={{ color: rankInfo.color }}>
                     {rankInfo.name}
                 </span>
             </div>
