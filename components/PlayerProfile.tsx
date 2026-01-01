@@ -300,7 +300,7 @@ export function PlayerProfile({
                                         <span className="text-base leading-none filter drop-shadow-md">
                                             {rankingPosition === 1 ? '👑' : rankingPosition === 2 ? '🥈' : '🥉'}
                                         </span>
-                                        {rankingPosition === 1 ? 'SEASON #1' : rankingPosition === 2 ? 'SEASON #2' : 'SEASON #3'}
+                                        {rankingPosition === 1 ? 'TOP #1 RANKING' : rankingPosition === 2 ? 'TOP #2 RANKING' : 'TOP #3 RANKING'}
                                     </span>
                                 </div>
                             )}
