@@ -356,20 +356,14 @@ export function PlayerProfile({
                     </div>
 
                     {/* Big Rank Badge (Right Side) */}
+                    {/* Text Rank (Right Side) */}
                     <div className="hidden md:flex flex-col items-end">
-                        <div className="relative w-32 h-32 md:w-48 md:h-48 drop-shadow-[0_0_25px_rgba(0,0,0,0.6)] animate-in fade-in zoom-in duration-700 hover:scale-105 transition-transform cursor-pointer">
-                            <Image
-                                src={getRankForElo(rating).imagePath}
-                                alt={getRankForElo(rating).name}
-                                fill
-                                className="object-contain"
-                            />
-                        </div>
-                        <div className="mt-[-10px] text-brand-green font-mono text-2xl tracking-wider font-black drop-shadow-lg">
-                            {rating} ELO
-                        </div>
-                        <div className="text-zinc-400 font-bold tracking-widest text-sm uppercase opacity-80" style={{ color: getRankForElo(rating).color }}>
+                        <div className="text-zinc-500 font-bold tracking-widest text-sm mb-[-10px] z-10 uppercase">Current Rank</div>
+                        <div className="text-5xl md:text-7xl leading-none font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-400 tracking-tighter drop-shadow-2xl text-right animate-in fade-in slide-in-from-right duration-700">
                             {getRankForElo(rating).name}
+                        </div>
+                        <div className="text-brand-green font-mono text-xl tracking-wider font-bold mt-2">
+                            {rating} ELO
                         </div>
                     </div>
                 </div>
@@ -406,6 +400,25 @@ export function PlayerProfile({
 
                 {/* Sidebar Info */}
                 <div className="space-y-4">
+                    {/* Rank Card */}
+                    <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 flex flex-col items-center justify-center relative overflow-hidden group hover:border-brand-green/30 transition-colors">
+                        <div className="absolute inset-0 bg-gradient-to-b from-brand-green/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-widest mb-4 z-10">Current Rank</h3>
+                        <div className="relative w-40 h-40 drop-shadow-[0_0_35px_rgba(74,222,128,0.2)] animate-pulse z-10 transform group-hover:scale-105 transition-transform duration-500">
+                            <Image
+                                src={getRankForElo(rating).imagePath}
+                                alt={getRankForElo(rating).name}
+                                fill
+                                className="object-contain"
+                            />
+                        </div>
+                        <div className="mt-4 z-10 text-center">
+                            <div className="text-3xl font-black text-white tracking-tight" style={{ color: getRankForElo(rating).color }}>
+                                {getRankForElo(rating).name}
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Rank History Graph */}
                     <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 h-48 flex flex-col justify-between">
                         <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-widest">Rating History</h3>
