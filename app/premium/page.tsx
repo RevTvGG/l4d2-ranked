@@ -16,17 +16,23 @@ export default function PremiumPage() {
         if (!session) return router.push("/api/auth/signin");
         setLoading(true);
 
-        // Simulating Payment Delay
-        await new Promise(r => setTimeout(r, 1500));
+        try {
+            const response = await fetch("/api/stripe/checkout", {
+                method: "POST",
+            });
 
-        const res = await buyPremium();
-        setMsg(res.message);
-        if (res.success) {
-            router.refresh();
-            // Redirect to profile after success
-            if (session.user?.name) router.push(`/profile/${session.user.name}?steamId=${session.user.steamId}`);
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(text || "Checkout failed");
+            }
+
+            const data = await response.json();
+            window.location.href = data.url;
+        } catch (error) {
+            console.error(error);
+            setMsg("Error starting checkout. Please try again.");
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     return (

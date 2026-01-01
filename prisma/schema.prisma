@@ -62,6 +62,12 @@ model User {
   premiumSince     DateTime?
   premiumExpiresAt DateTime?
   
+  // Stripe Subscription
+  stripeCustomerId       String?   @unique
+  stripeSubscriptionId   String?   @unique
+  stripePriceId          String?
+  stripeCurrentPeriodEnd DateTime?
+  
   // Premium Customization
   profileTheme   String        @default("emerald")  // emerald, sapphire, amethyst, ruby, gold, cyan
   profileColor   String?       // Hex color for custom theme
