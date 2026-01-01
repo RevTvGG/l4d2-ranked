@@ -252,6 +252,14 @@ public void OnMapStart()
     // ResetPlayerStats(); <-- REMOVED: in Delta Strategy, we reset manually after sending stats at Round End.
     // Making it explicit prevents accidental resets on map change.
     
+    // If we don't have a match ID yet, try to get one from the API
+    // This handles ZoneMod reloads and plugin reloads
+    if (g_sMatchId[0] == '\0')
+    {
+        PrintToServer("[Match Reporter] No Match ID set. Checking API for assigned match...");
+        CreateTimer(5.0, Timer_CheckServerStatus); // Wait for server to stabilize
+    }
+    
     // Layer 3: Verify Match ID is set after map loads
     CreateTimer(30.0, Timer_CheckMatchIdSet, _, TIMER_FLAG_NO_MAPCHANGE);
 }

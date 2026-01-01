@@ -34,11 +34,14 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Find any match assigned to this server that is READY or IN_PROGRESS
+        // Find any match assigned to this server that is pending or active
+        // WAITING_FOR_PLAYERS: Match created, waiting for players to join server
+        // READY: Players have connected, waiting for ready-up
+        // IN_PROGRESS: Match is live
         const activeMatch = await prisma.match.findFirst({
             where: {
                 serverId: server.id,
-                status: { in: ['READY', 'IN_PROGRESS'] }
+                status: { in: ['WAITING_FOR_PLAYERS', 'READY', 'IN_PROGRESS'] }
             },
             include: {
                 players: {
@@ -56,6 +59,7 @@ export async function GET(request: NextRequest) {
 
         if (!activeMatch) {
             // No pending match - server is free
+            console.log(`[check-status] Server ${server.name}: No active match`);
             return NextResponse.json({
                 has_match: false,
                 match_id: null,
@@ -64,6 +68,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Return match info so the plugin can configure itself
+        console.log(`[check-status] Server ${server.name}: Found match ${activeMatch.id} (${activeMatch.status})`);
         return NextResponse.json({
             has_match: true,
             match_id: activeMatch.id,
