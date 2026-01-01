@@ -3,6 +3,7 @@ import { getAdminRole } from '@/lib/admin';
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { Navbar } from '@/components/Navbar';
+import { ForceReleaseButton } from './ServerActions';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,13 +61,18 @@ export default async function AdminServersPage() {
                                                 <h3 className="font-bold text-xl text-white">{server.name}</h3>
                                                 <p className="text-zinc-500 font-mono">{server.ipAddress}:{server.port}</p>
                                             </div>
-                                            <span className={`px-3 py-1 rounded-full font-bold text-sm ${server.status === 'AVAILABLE' ? 'bg-brand-green/20 text-brand-green' :
-                                                server.status === 'IN_USE' ? 'bg-yellow-500/20 text-yellow-400' :
-                                                    server.status === 'MAINTENANCE' ? 'bg-orange-500/20 text-orange-400' :
-                                                        'bg-red-500/20 text-red-400'
-                                                }`}>
-                                                {server.status}
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <span className={`px-3 py-1 rounded-full font-bold text-sm ${server.status === 'AVAILABLE' ? 'bg-brand-green/20 text-brand-green' :
+                                                    server.status === 'IN_USE' ? 'bg-yellow-500/20 text-yellow-400' :
+                                                        server.status === 'MAINTENANCE' ? 'bg-orange-500/20 text-orange-400' :
+                                                            'bg-red-500/20 text-red-400'
+                                                    }`}>
+                                                    {server.status}
+                                                </span>
+                                                {server.status === 'IN_USE' && (
+                                                    <ForceReleaseButton serverId={server.id} />
+                                                )}
+                                            </div>
                                         </div>
 
                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
