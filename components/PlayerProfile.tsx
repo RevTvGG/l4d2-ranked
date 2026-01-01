@@ -354,9 +354,9 @@ export function PlayerProfile({
                 <div className="md:col-span-2 grid grid-cols-3 gap-4">
                     <StatCard
                         label="Win Rate"
-                        value={`${winRate.toFixed(1)}%`}
+                        value={`${((totalWins + totalLosses) > 0 ? (totalWins / (totalWins + totalLosses) * 100) : 0).toFixed(1)}%`}
                         subDetail={`${totalWins} W - ${totalLosses} L`}
-                        highlight={winRate >= 50}
+                        highlight={((totalWins + totalLosses) > 0 ? (totalWins / (totalWins + totalLosses) * 100) : 0) >= 50}
                     />
                     <StatCard
                         label="K/D Ratio"
