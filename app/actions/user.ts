@@ -76,13 +76,13 @@ export async function updatePreferences(formData: FormData) {
 
         // Update Premium Fields if user is Premium
         if (currentUser?.isPremium) {
-            updateData.customTitle = customTitle && customTitle.length <= 30 ? customTitle : undefined;
-            updateData.profileColor = profileColor;
-            updateData.nameGradient = nameGradient;
-            updateData.profileBanner = profileBanner;
-            updateData.profileFrame = profileFrame;
-            updateData.profileGlow = profileGlow;
-            if (profileTheme) updateData.profileTheme = profileTheme;
+            if (customTitle !== null) updateData.customTitle = customTitle && customTitle.length <= 30 ? customTitle : undefined;
+            if (profileColor !== null) updateData.profileColor = profileColor;
+            if (nameGradient !== null) updateData.nameGradient = nameGradient;
+            if (profileBanner !== null) updateData.profileBanner = profileBanner;
+            if (profileFrame !== null) updateData.profileFrame = profileFrame;
+            if (profileGlow) updateData.profileGlow = profileGlow; // Boolean toggle handled differently usually, but let's check parsing
+            if (profileTheme && validThemes.includes(profileTheme)) updateData.profileTheme = profileTheme;
         }
 
         // Only update staffBio if user is staff

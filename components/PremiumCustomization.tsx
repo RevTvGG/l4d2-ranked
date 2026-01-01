@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { PREMIUM_FONTS, GRADIENT_PRESETS } from './PremiumUsername';
 
@@ -40,6 +41,8 @@ export default function PremiumCustomization({ user }: PremiumCustomizationProps
 
     const MAX_TITLE_LENGTH = 10;
 
+    const router = useRouter();
+
     const saveField = async (field: string, value: any) => {
         setSaving(field);
         try {
@@ -51,6 +54,7 @@ export default function PremiumCustomization({ user }: PremiumCustomizationProps
             const data = await response.json();
             if (data.success) {
                 toast.success('Saved!');
+                router.refresh();
             } else {
                 toast.error(data.error || 'Failed to save');
             }
