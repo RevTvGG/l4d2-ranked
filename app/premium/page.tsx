@@ -69,16 +69,19 @@ export default function PremiumPage() {
                         $4.00 <span className="text-sm font-bold text-zinc-500 normal-case">/ month</span>
                     </div>
 
-                    {/* DISABLED NOTICE */}
-                    <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-xl text-red-200 text-sm font-medium">
-                        ⚠️ Premium features are currently <strong>disabled</strong> for maintenance.
-                    </div>
+                    {/* Message Display */}
+                    {msg && (
+                        <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-xl text-red-200 text-sm font-medium">
+                            {msg}
+                        </div>
+                    )}
 
                     <button
-                        disabled={true}
-                        className="w-full py-4 bg-zinc-800 text-zinc-500 font-black text-xl uppercase tracking-widest rounded-xl cursor-not-allowed border border-white/5"
+                        onClick={handleBuy}
+                        disabled={loading}
+                        className="w-full py-4 bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black text-xl uppercase tracking-widest rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg hover:shadow-yellow-500/20 disabled:opacity-50 disabled:pointer-events-none"
                     >
-                        TEMPORARILY UNAVAILABLE
+                        {loading ? "Processing..." : "UPGRADE NOW"}
                     </button>
                 </div>
             </div>
