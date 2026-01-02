@@ -73,11 +73,12 @@ model User {
   profileColor   String?       // Hex color for custom theme
   profileGlow    Boolean       @default(false)     // Glow effect on avatar
   profileBanner  String?       // Custom banner URL
-  nameGradient   String?       // Tailwind gradient classes
+  nameGradient   String?       // CSS gradient string
   profileFrame   String?       // Avatar frame: NONE, GOLD, FIRE, ICE, ELECTRIC, RAINBOW, etc.
   customTitle    String?       // Custom title under name (max 30 chars)
   customFont     String?       // Premium typography: default, gaming, elegant, modern, futuristic, pixel, retro, script, bold, mono
   premiumIcon    String?       @default("star")    // Premium badge icon: star, crown, diamond, fire, bolt, skull, rocket, heart, gem, verified
+  profileWallpaper String?     // Custom wallpaper URL from wallhaven.cc (premium only)
   
   // Privacy Settings
   playstylePublic Boolean      @default(true)      // Show playstyle tags on public profile

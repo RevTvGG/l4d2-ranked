@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 
 interface ProfileBackgroundProps {
     isPremium: boolean;
+    profileWallpaper?: string | null;
     themeColors: {
         primary: string;
         accent: string;
@@ -12,11 +14,18 @@ interface ProfileBackgroundProps {
     };
 }
 
-export default function ProfileBackground({ isPremium, themeColors }: ProfileBackgroundProps) {
+export default function ProfileBackground({ isPremium, profileWallpaper, themeColors }: ProfileBackgroundProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [wallpaperLoaded, setWallpaperLoaded] = useState(false);
+    const [wallpaperError, setWallpaperError] = useState(false);
+
+    // Show wallpaper if available
+    const showWallpaper = isPremium && profileWallpaper && !wallpaperError;
+    // Show animated background if no wallpaper or if wallpaper failed to load
+    const showAnimatedBackground = isPremium && !showWallpaper;
 
     useEffect(() => {
-        if (!isPremium) return;
+        if (!showAnimatedBackground) return;
 
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -122,43 +131,71 @@ export default function ProfileBackground({ isPremium, themeColors }: ProfileBac
             window.removeEventListener('resize', updateCanvasSize);
             cancelAnimationFrame(animationFrame);
         };
-    }, [isPremium, themeColors]);
+    }, [showAnimatedBackground, themeColors]);
 
     if (!isPremium) return null;
 
     return (
         <>
-            {/* Particle Canvas */}
-            <canvas
-                ref={canvasRef}
-                className="fixed inset-0 pointer-events-none opacity-30"
-                style={{ zIndex: 0 }}
-            />
-            {/* Gradient overlays */}
-            <div
-                className="fixed inset-0 pointer-events-none"
-                style={{
-                    background: `radial-gradient(ellipse at top, ${themeColors.primary}10, transparent 50%)`,
-                    zIndex: 0,
-                }}
-            />
-            <div
-                className="fixed inset-0 pointer-events-none"
-                style={{
-                    background: `radial-gradient(ellipse at bottom right, ${themeColors.accent}08, transparent 50%)`,
-                    zIndex: 0,
-                }}
-            />
-            {/* Scan line effect */}
-            <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
-                <div
-                    className="absolute left-0 right-0 h-[2px] animate-scan-line"
-                    style={{
-                        backgroundImage: `linear-gradient(to right, transparent, ${themeColors.primary}40, transparent)`,
-                        filter: `drop-shadow(0 0 8px ${themeColors.glow})`
-                    }}
-                />
-            </div>
+            {/* Custom Wallpaper Layer */}
+            {showWallpaper && (
+                <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+                    <img
+                        src={profileWallpaper}
+                        alt="Profile background"
+                        className={`w-full h-full object-cover transition-opacity duration-500 ${wallpaperLoaded ? 'opacity-100' : 'opacity-0'
+                            }`}
+                        loading="lazy"
+                        onLoad={() => setWallpaperLoaded(true)}
+                        onError={() => {
+                            setWallpaperError(true);
+                            setWallpaperLoaded(false);
+                        }}
+                        style={{
+                            filter: 'brightness(0.3) blur(1px)',
+                        }}
+                    />
+                    {/* Dark overlay for readability */}
+                    <div className="absolute inset-0 bg-black/70" />
+                </div>
+            )}
+
+            {/* Animated Background (fallback or default) */}
+            {showAnimatedBackground && (
+                <>
+                    {/* Particle Canvas */}
+                    <canvas
+                        ref={canvasRef}
+                        className="fixed inset-0 pointer-events-none opacity-30"
+                        style={{ zIndex: 0 }}
+                    />
+                    {/* Gradient overlays */}
+                    <div
+                        className="fixed inset-0 pointer-events-none"
+                        style={{
+                            background: `radial-gradient(ellipse at top, ${themeColors.primary}10, transparent 50%)`,
+                            zIndex: 0,
+                        }}
+                    />
+                    <div
+                        className="fixed inset-0 pointer-events-none"
+                        style={{
+                            background: `radial-gradient(ellipse at bottom right, ${themeColors.accent}08, transparent 50%)`,
+                            zIndex: 0,
+                        }}
+                    />
+                    {/* Scan line effect */}
+                    <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+                        <div
+                            className="absolute left-0 right-0 h-[2px] animate-scan-line"
+                            style={{
+                                backgroundImage: `linear-gradient(to right, transparent, ${themeColors.primary}40, transparent)`,
+                                filter: `drop-shadow(0 0 8px ${themeColors.glow})`
+                            }}
+                        />
+                    </div>
+                </>
+            )}
         </>
     );
 }

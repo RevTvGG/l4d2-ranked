@@ -34,6 +34,7 @@ export async function POST(request: Request) {
             'profileColor',
             'profileBanner',
             'premiumIcon',
+            'profileWallpaper',
         ];
 
         // Fields available to all users
@@ -60,6 +61,40 @@ export async function POST(request: Request) {
 
                 if (field === 'profileGlow') {
                     value = Boolean(value);
+                }
+
+                if (field === 'profileWallpaper') {
+                    // Validate wallhaven.cc URL or allow empty string to clear
+                    if (value && typeof value === 'string' && value.trim() !== '') {
+                        const url = value.trim();
+                        const validDomains = [
+                            'wallhaven.cc',
+                            'w.wallhaven.cc',
+                            'th.wallhaven.cc'
+                        ];
+
+                        try {
+                            const parsedUrl = new URL(url);
+                            const isValidDomain = validDomains.some(domain =>
+                                parsedUrl.hostname === domain || parsedUrl.hostname.endsWith('.' + domain)
+                            );
+
+                            if (!isValidDomain) {
+                                return NextResponse.json({
+                                    error: 'Invalid wallpaper URL. Only wallhaven.cc URLs are allowed.'
+                                }, { status: 400 });
+                            }
+
+                            value = url;
+                        } catch (e) {
+                            return NextResponse.json({
+                                error: 'Invalid URL format'
+                            }, { status: 400 });
+                        }
+                    } else {
+                        // Allow empty string to clear wallpaper
+                        value = null;
+                    }
                 }
 
                 updateData[field] = value;

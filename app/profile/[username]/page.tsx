@@ -46,6 +46,7 @@ export default async function ProfilePage({ params }: Props) {
             {/* Premium animated background */}
             <ProfileBackground
                 isPremium={profileData.isPremium || false}
+                profileWallpaper={profileData.profileWallpaper}
                 themeColors={themeColors}
             />
 

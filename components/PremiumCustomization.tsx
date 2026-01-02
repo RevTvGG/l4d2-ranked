@@ -28,6 +28,7 @@ interface PremiumCustomizationProps {
         customTitle?: string | null;
         nameGradient?: string | null;
         profileGlow?: boolean;
+        profileWallpaper?: string | null;
     };
 }
 
@@ -37,6 +38,8 @@ export default function PremiumCustomization({ user }: PremiumCustomizationProps
     const [customTitle, setCustomTitle] = useState(user?.customTitle || '');
     const [nameGradient, setNameGradient] = useState(user?.nameGradient || '');
     const [profileGlow, setProfileGlow] = useState(user?.profileGlow || false);
+    const [profileWallpaper, setProfileWallpaper] = useState(user?.profileWallpaper || '');
+    const [wallpaperError, setWallpaperError] = useState('');
     const [saving, setSaving] = useState<string | null>(null);
 
     const MAX_TITLE_LENGTH = 10;
@@ -214,6 +217,100 @@ export default function PremiumCustomization({ user }: PremiumCustomizationProps
                                 </span>
                             </button>
                         ))}
+                    </div>
+                </div>
+
+                {/* Profile Wallpaper */}
+                <div>
+                    <label className="block text-sm font-bold text-zinc-400 uppercase tracking-wider mb-3">
+                        🖼️ Profile Wallpaper
+                    </label>
+                    <div className="space-y-3">
+                        <div className="flex gap-2">
+                            <input
+                                type="url"
+                                value={profileWallpaper}
+                                onChange={(e) => {
+                                    setProfileWallpaper(e.target.value);
+                                    setWallpaperError('');
+                                }}
+                                placeholder="https://th.wallhaven.cc/lg/..."
+                                className="flex-1 px-4 py-3 bg-black/40 border-2 border-white/10 rounded-xl text-white placeholder-zinc-500 focus:border-amber-400 focus:outline-none transition-colors"
+                            />
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    const url = profileWallpaper.trim();
+                                    if (!url) {
+                                        // Clear wallpaper
+                                        await saveField('profileWallpaper', '');
+                                        setWallpaperError('');
+                                        return;
+                                    }
+
+                                    // Validate URL
+                                    try {
+                                        const parsedUrl = new URL(url);
+                                        const validDomains = ['wallhaven.cc', 'w.wallhaven.cc', 'th.wallhaven.cc'];
+                                        const isValid = validDomains.some(domain =>
+                                            parsedUrl.hostname === domain || parsedUrl.hostname.endsWith('.' + domain)
+                                        );
+
+                                        if (!isValid) {
+                                            setWallpaperError('Only wallhaven.cc URLs are allowed');
+                                            return;
+                                        }
+
+                                        await saveField('profileWallpaper', url);
+                                        setWallpaperError('');
+                                    } catch (e) {
+                                        setWallpaperError('Invalid URL format');
+                                    }
+                                }}
+                                disabled={saving === 'profileWallpaper'}
+                                className="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-xl transition-colors disabled:opacity-50"
+                            >
+                                {saving === 'profileWallpaper' ? 'Saving...' : 'Save'}
+                            </button>
+                            {profileWallpaper && (
+                                <button
+                                    type="button"
+                                    onClick={async () => {
+                                        setProfileWallpaper('');
+                                        await saveField('profileWallpaper', '');
+                                        setWallpaperError('');
+                                    }}
+                                    className="px-4 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 font-bold rounded-xl transition-colors"
+                                >
+                                    Clear
+                                </button>
+                            )}
+                        </div>
+
+                        {wallpaperError && (
+                            <p className="text-sm text-red-400 flex items-center gap-2">
+                                <span>⚠️</span>
+                                {wallpaperError}
+                            </p>
+                        )}
+
+                        {profileWallpaper && !wallpaperError && (
+                            <div className="relative w-full h-32 rounded-xl overflow-hidden border-2 border-white/10">
+                                <img
+                                    src={profileWallpaper}
+                                    alt="Wallpaper preview"
+                                    className="w-full h-full object-cover opacity-50"
+                                    onError={() => setWallpaperError('Failed to load image')}
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                                    <span className="text-xs text-white font-bold">Preview</span>
+                                </div>
+                            </div>
+                        )}
+
+                        <p className="text-xs text-zinc-500">
+                            Use wallhaven.cc image URLs. Example: https://th.wallhaven.cc/lg/3q/3q3z9d.jpg
+                        </p>
                     </div>
                 </div>
 

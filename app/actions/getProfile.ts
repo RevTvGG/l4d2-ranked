@@ -94,6 +94,7 @@ export async function getProfile(username: string) {
             customTitle: user.customTitle,
             customFont: (user as any).customFont,
             premiumIcon: (user as any).premiumIcon,
+            profileWallpaper: (user as any).profileWallpaper,
             playstylePublic: (user as any).playstylePublic ?? true,
             steamAvatarUrl: user.image || "/default_avatar.jpg",
             countryCode: user.countryCode || "MX", // Default to MX as requested by user if missing
