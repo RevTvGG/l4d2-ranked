@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { PREMIUM_FONTS, GRADIENT_PRESETS } from './PremiumUsername';
+import { PREMIUM_FONTS, GRADIENT_PRESETS } from '@/lib/premium';
 
 // Extended Avatar Frames
 export const AVATAR_FRAMES = [
