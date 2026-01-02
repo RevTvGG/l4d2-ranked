@@ -60,6 +60,8 @@ interface PlayerProfileProps {
     profileFrame?: string | null;
     customTitle?: string | null;
     customFont?: string | null;
+    premiumIcon?: string | null;
+    playstylePublic?: boolean;
     team?: Team; // Optional: Player might not have a team
     isOwner?: boolean; // True if viewing own profile
     medals?: {
@@ -120,6 +122,8 @@ export function PlayerProfile({
     profileFrame,
     customTitle,
     customFont,
+    premiumIcon,
+    playstylePublic = true,
     team,
     countryCode,
     isOwner = false,
@@ -301,8 +305,8 @@ export function PlayerProfile({
                                 )}
 
 
-                                {/* 2. SKILL LEVEL */}
-                                {skillLevel && (
+                                {/* 2. SKILL LEVEL - Respects playstylePublic */}
+                                {(playstylePublic || isOwner) && skillLevel && (
                                     <span className="px-2.5 py-1 rounded-full border border-purple-500/20 bg-purple-500/5 text-purple-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
                                         <span className="opacity-70">
                                             {skillLevel === 'CASUAL' ? '☕' :
@@ -313,8 +317,8 @@ export function PlayerProfile({
                                     </span>
                                 )}
 
-                                {/* 4. MAIN SIDE */}
-                                {mainSide && (
+                                {/* 4. MAIN SIDE - Respects playstylePublic */}
+                                {(playstylePublic || isOwner) && mainSide && (
                                     <span className={`px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 ${mainSide === 'INFECTED' ? 'bg-red-900/10 text-red-500 border-red-900/40' : 'bg-cyan-900/10 text-cyan-400 border-cyan-900/40'
                                         }`}>
                                         <span className="opacity-70">
@@ -324,8 +328,8 @@ export function PlayerProfile({
                                     </span>
                                 )}
 
-                                {/* 5. WEAPON */}
-                                {survivorWeapon && (
+                                {/* 5. WEAPON - Respects playstylePublic */}
+                                {(playstylePublic || isOwner) && survivorWeapon && (
                                     <span className="px-2.5 py-1 rounded-full border border-zinc-700/50 bg-zinc-800/50 text-zinc-300 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
                                         <span className="opacity-70">
                                             {survivorWeapon === 'SMG' ? '🔫' : survivorWeapon === 'SHOTGUN' ? '💥' : '🔁'}
@@ -334,8 +338,8 @@ export function PlayerProfile({
                                     </span>
                                 )}
 
-                                {/* 6. COMM */}
-                                {communication && (
+                                {/* 6. COMM - Respects playstylePublic */}
+                                {(playstylePublic || isOwner) && communication && (
                                     <span className="px-2.5 py-1 rounded-full border border-yellow-500/20 bg-yellow-500/5 text-yellow-500 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
                                         <span className="opacity-70">
                                             {communication === 'MIC_ACTIVE' ? '🎙️' :
@@ -387,6 +391,7 @@ export function PlayerProfile({
                                     profileTheme={profileTheme}
                                     nameGradient={nameGradient}
                                     customFont={customFont}
+                                    premiumIcon={premiumIcon}
                                     size="4xl"
                                     showBadge={isPremium}
                                     showGlow={profileGlow}

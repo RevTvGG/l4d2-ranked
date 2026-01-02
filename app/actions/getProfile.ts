@@ -93,6 +93,8 @@ export async function getProfile(username: string) {
             profileFrame: user.profileFrame,
             customTitle: user.customTitle,
             customFont: (user as any).customFont,
+            premiumIcon: (user as any).premiumIcon,
+            playstylePublic: (user as any).playstylePublic ?? true,
             steamAvatarUrl: user.image || "/default_avatar.jpg",
             countryCode: user.countryCode || "MX", // Default to MX as requested by user if missing
             totalHours: user.totalHours,

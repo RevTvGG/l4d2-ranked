@@ -1,5 +1,5 @@
 // Premium Theme Configuration - EXPANDED VERSION
-// 15 Premium Themes for maximum customization
+// 28 Premium Themes for maximum customization
 
 export const THEMES = {
     // ===== CLASSIC GEMS =====
@@ -131,6 +131,117 @@ export const THEMES = {
         category: 'exclusive',
         isAnimated: true,
     },
+
+    // ===== DARK SERIES (NEW) =====
+    midnight: {
+        name: 'Midnight',
+        primary: '#1e3a5f',
+        accent: '#0f172a',
+        dark: '#020617',
+        glow: 'rgba(30, 58, 95, 0.6)',
+        category: 'dark',
+    },
+    shadow: {
+        name: 'Shadow',
+        primary: '#374151',
+        accent: '#1f2937',
+        dark: '#111827',
+        glow: 'rgba(55, 65, 81, 0.5)',
+        category: 'dark',
+    },
+    abyss: {
+        name: 'Abyss',
+        primary: '#0c0a3e',
+        accent: '#1a1a4e',
+        dark: '#000022',
+        glow: 'rgba(12, 10, 62, 0.7)',
+        category: 'dark',
+    },
+    carbon: {
+        name: 'Carbon',
+        primary: '#27272a',
+        accent: '#18181b',
+        dark: '#09090b',
+        glow: 'rgba(39, 39, 42, 0.5)',
+        category: 'dark',
+    },
+    slate: {
+        name: 'Slate',
+        primary: '#64748b',
+        accent: '#475569',
+        dark: '#334155',
+        glow: 'rgba(100, 116, 139, 0.5)',
+        category: 'dark',
+    },
+
+    // ===== NATURE SERIES (NEW) =====
+    forest: {
+        name: 'Forest',
+        primary: '#166534',
+        accent: '#14532d',
+        dark: '#052e16',
+        glow: 'rgba(22, 101, 52, 0.6)',
+        category: 'nature',
+    },
+    ocean: {
+        name: 'Ocean',
+        primary: '#0369a1',
+        accent: '#075985',
+        dark: '#0c4a6e',
+        glow: 'rgba(3, 105, 161, 0.6)',
+        category: 'nature',
+    },
+    sunset: {
+        name: 'Sunset',
+        primary: '#fb923c',
+        accent: '#f97316',
+        dark: '#ea580c',
+        glow: 'rgba(251, 146, 60, 0.6)',
+        category: 'nature',
+    },
+    aurora: {
+        name: 'Aurora',
+        primary: '#2dd4bf',
+        accent: '#34d399',
+        dark: '#a78bfa',
+        glow: 'rgba(45, 212, 191, 0.5)',
+        category: 'nature',
+        isAnimated: true,
+    },
+    earth: {
+        name: 'Earth',
+        primary: '#92400e',
+        accent: '#78350f',
+        dark: '#451a03',
+        glow: 'rgba(146, 64, 14, 0.5)',
+        category: 'nature',
+    },
+
+    // ===== METALLIC SERIES (NEW) =====
+    silver: {
+        name: 'Silver',
+        primary: '#c0c0c0',
+        accent: '#a8a9ad',
+        dark: '#71797e',
+        glow: 'rgba(192, 192, 192, 0.6)',
+        category: 'metallic',
+    },
+    bronze: {
+        name: 'Bronze',
+        primary: '#cd7f32',
+        accent: '#b08d57',
+        dark: '#8b4513',
+        glow: 'rgba(205, 127, 50, 0.6)',
+        category: 'metallic',
+    },
+    titanium: {
+        name: 'Titanium',
+        primary: '#878681',
+        accent: '#6e6e6d',
+        dark: '#3d3d3d',
+        glow: 'rgba(135, 134, 129, 0.5)',
+        category: 'metallic',
+    },
 } as const;
 
 export type ThemeName = keyof typeof THEMES;
@@ -155,4 +266,8 @@ export const THEME_CATEGORIES = {
     neon: { name: '⚡ Neon Gaming', themes: ['neonPink', 'neonLime', 'electric'] },
     legendary: { name: '🔥 Legendary', themes: ['diamond', 'obsidian', 'inferno'] },
     exclusive: { name: '👑 Exclusive', themes: ['rainbow', 'void', 'plasma'] },
+    dark: { name: '🌑 Dark Series', themes: ['midnight', 'shadow', 'abyss', 'carbon', 'slate'] },
+    nature: { name: '🌿 Nature', themes: ['forest', 'ocean', 'sunset', 'aurora', 'earth'] },
+    metallic: { name: '⚙️ Metallic', themes: ['silver', 'bronze', 'titanium'] },
 };
+

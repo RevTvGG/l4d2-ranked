@@ -22,14 +22,10 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
-        if (!user.isPremium) {
-            return NextResponse.json({ error: 'Premium required' }, { status: 403 });
-        }
-
         const body = await request.json();
 
-        // Allowed fields to update
-        const allowedFields = [
+        // Fields that require premium
+        const premiumFields = [
             'customFont',
             'profileFrame',
             'customTitle',
@@ -37,22 +33,45 @@ export async function POST(request: Request) {
             'profileGlow',
             'profileColor',
             'profileBanner',
+            'premiumIcon',
+        ];
+
+        // Fields available to all users
+        const publicFields = [
+            'playstylePublic',
         ];
 
         // Build update data with validation
         const updateData: Record<string, any> = {};
 
-        for (const field of allowedFields) {
+        // Handle premium fields
+        for (const field of premiumFields) {
             if (body[field] !== undefined) {
+                if (!user.isPremium) {
+                    return NextResponse.json({ error: 'Premium required for this field' }, { status: 403 });
+                }
+
                 let value = body[field];
 
                 // Validation
                 if (field === 'customTitle') {
-                    // Limit to 10 characters
                     value = String(value).slice(0, 10);
                 }
 
                 if (field === 'profileGlow') {
+                    value = Boolean(value);
+                }
+
+                updateData[field] = value;
+            }
+        }
+
+        // Handle public fields (no premium required)
+        for (const field of publicFields) {
+            if (body[field] !== undefined) {
+                let value = body[field];
+
+                if (field === 'playstylePublic') {
                     value = Boolean(value);
                 }
 
@@ -75,3 +94,4 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Failed to update' }, { status: 500 });
     }
 }
+

@@ -69,14 +69,18 @@ model User {
   stripeCurrentPeriodEnd DateTime?
   
   // Premium Customization
-  profileTheme   String        @default("emerald")  // emerald, sapphire, amethyst, ruby, gold, cyan
+  profileTheme   String        @default("emerald")  // emerald, sapphire, amethyst, ruby, gold, cyan + new themes
   profileColor   String?       // Hex color for custom theme
   profileGlow    Boolean       @default(false)     // Glow effect on avatar
   profileBanner  String?       // Custom banner URL
   nameGradient   String?       // Tailwind gradient classes
-  profileFrame   String?       // Avatar frame: NONE, GOLD, FIRE, ICE, ELECTRIC, RAINBOW, PREMIUM
+  profileFrame   String?       // Avatar frame: NONE, GOLD, FIRE, ICE, ELECTRIC, RAINBOW, etc.
   customTitle    String?       // Custom title under name (max 30 chars)
-  customFont     String?       // Premium typography: default, gaming, elegant, modern, futuristic, pixel
+  customFont     String?       // Premium typography: default, gaming, elegant, modern, futuristic, pixel, retro, script, bold, mono
+  premiumIcon    String?       @default("star")    // Premium badge icon: star, crown, diamond, fire, bolt, skull, rocket, heart, gem, verified
+  
+  // Privacy Settings
+  playstylePublic Boolean      @default(true)      // Show playstyle tags on public profile
   
   rating         Int           @default(1000)
   rank           String        @default("Unranked")

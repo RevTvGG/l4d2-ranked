@@ -24,6 +24,7 @@ export async function getLeaderboard() {
                 customTitle: true,
                 nameGradient: true,
                 profileGlow: true,
+                premiumIcon: true,
                 team: {
                     select: {
                         name: true,
@@ -49,6 +50,7 @@ export async function getLeaderboard() {
             customTitle: player.customTitle,
             nameGradient: player.nameGradient,
             profileGlow: player.profileGlow,
+            premiumIcon: player.premiumIcon,
         }))
     } catch (error) {
         console.error("Error fetching leaderboard:", error)

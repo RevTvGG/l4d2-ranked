@@ -4,7 +4,7 @@ import Image from "next/image";
 
 import { PremiumBadge } from "./PremiumBadge";
 import { ShinyText } from "./ShinyText";
-import { PremiumUsername } from "./PremiumUsername";
+import { PremiumUsername, getPremiumIcon } from "./PremiumUsername";
 import { getThemeColors } from "@/lib/themes";
 
 import { getLeaderboard } from "@/app/actions/getLeaderboard";
@@ -127,6 +127,7 @@ function LeaderboardRow({ player }: { player: any }) {
                                 profileTheme={player.profileTheme}
                                 nameGradient={player.nameGradient}
                                 customFont={player.customFont}
+                                premiumIcon={player.premiumIcon}
                                 size="sm"
                                 showBadge={false}
                                 showGlow={false}
@@ -136,7 +137,7 @@ function LeaderboardRow({ player }: { player: any }) {
                                 {player.username}
                             </span>
                         )}
-                        {player.isPremium && <div className="text-[10px]">👑</div>}
+                        {player.isPremium && <div className="text-[10px]">{getPremiumIcon(player.premiumIcon).icon}</div>}
                     </div>
                     {player.team && (
                         <span className="text-xs text-zinc-500 group-hover:text-brand-green transition-colors">
