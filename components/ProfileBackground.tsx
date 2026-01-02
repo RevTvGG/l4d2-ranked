@@ -156,7 +156,7 @@ export default function ProfileBackground({ isPremium, profileWallpaper, themeCo
                         }}
                     />
                     {/* Dark overlay for readability */}
-                    <div className="absolute inset-0 bg-black/70" />
+                    <div className="absolute inset-0 bg-black/40" />
                 </div>
             )}
 

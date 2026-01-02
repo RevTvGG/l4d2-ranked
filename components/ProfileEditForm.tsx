@@ -7,6 +7,7 @@ import ThemeSelector from "@/components/ThemeSelector"
 import PremiumCustomization from "@/components/PremiumCustomization"
 import PremiumIconSelector from "@/components/PremiumIconSelector"
 import ProfileEditTabs from "@/components/ProfileEditTabs"
+import PremiumBenefits from "@/components/PremiumBenefits"
 import { toast } from 'sonner'
 
 export function ProfileEditForm({ user }: { user: any }) {
@@ -64,14 +65,18 @@ export function ProfileEditForm({ user }: { user: any }) {
                 isPremium={isPremium}
             />
 
-            {/* Premium Customization (fonts, frames, gradients, glow) */}
-            {isPremium && (
+            {/* Premium Customization or Upgrade Card */}
+            {isPremium ? (
                 <>
                     <PremiumCustomization user={user} />
                     <div className="bg-gradient-to-br from-zinc-900/95 via-zinc-900/90 to-black/95 border-2 border-amber-500/40 p-6 rounded-3xl">
                         <PremiumIconSelector currentIcon={user?.premiumIcon || 'star'} />
                     </div>
                 </>
+            ) : (
+                <div className="py-8">
+                    <PremiumBenefits />
+                </div>
             )}
         </div>
     );
