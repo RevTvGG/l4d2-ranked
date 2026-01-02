@@ -1,10 +1,10 @@
-
 import Link from "next/link";
 import Image from "next/image";
 
 import { PremiumBadge } from "./PremiumBadge";
 import { ShinyText } from "./ShinyText";
-import { PremiumUsername, getPremiumIcon } from "./PremiumUsername";
+import { PremiumUsername } from "./PremiumUsername";
+import { getPremiumIcon } from "@/lib/premium";
 import { getThemeColors } from "@/lib/themes";
 
 import { getLeaderboard } from "@/app/actions/getLeaderboard";

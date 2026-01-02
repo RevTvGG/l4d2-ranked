@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { PREMIUM_ICONS } from './PremiumUsername';
+import { PREMIUM_ICONS } from '@/lib/premium';
 
 interface PremiumIconSelectorProps {
     currentIcon: string;
@@ -61,8 +61,8 @@ export default function PremiumIconSelector({ currentIcon }: PremiumIconSelector
                         onClick={() => handleIconChange(icon.id)}
                         disabled={loading}
                         className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center gap-1 hover:scale-105 ${selectedIcon === icon.id
-                                ? 'border-amber-400 bg-amber-500/10 scale-105'
-                                : 'border-white/10 hover:border-white/30 bg-black/20'
+                            ? 'border-amber-400 bg-amber-500/10 scale-105'
+                            : 'border-white/10 hover:border-white/30 bg-black/20'
                             } ${loading ? 'opacity-50 cursor-wait' : ''}`}
                     >
                         <span className={`text-2xl ${icon.color}`}>

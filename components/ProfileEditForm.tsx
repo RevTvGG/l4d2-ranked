@@ -196,7 +196,9 @@ export function ProfileEditForm({ user }: { user: any }) {
                 <div>
                     <h4 className="font-bold text-white">Show Playstyle on Profile</h4>
                     <p className="text-xs text-zinc-400">
-                        When enabled, your playstyle tags (side, weapon, communication, skill level) are visible to everyone
+                        When enabled, your playstyle tags (side, weapon, communication, skill level) are visible to everyone.
+                        <br />
+                        <span className="text-brand-green">You (the owner) will always see them.</span>
                     </p>
                 </div>
                 <button
@@ -229,8 +231,19 @@ export function ProfileEditForm({ user }: { user: any }) {
     ];
 
     return (
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto space-y-6">
             <ProfileEditTabs tabs={tabs} defaultTab="appearance" />
+
+            <div className="flex justify-center border-t border-white/10 pt-6">
+                <button
+                    type="button"
+                    onClick={() => window.location.href = `/profile/${user?.name || ''}`}
+                    className="flex items-center gap-2 px-6 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold transition-all border border-white/5"
+                >
+                    <span>⬅️</span>
+                    <span>Back to Profile</span>
+                </button>
+            </div>
         </div>
     )
 }

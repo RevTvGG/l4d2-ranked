@@ -14,5 +14,5 @@ export const MAP_IMAGES: Record<string, string> = {
 };
 
 export function getMapImage(mapName: string): string {
-    return MAP_IMAGES[mapName] || '/maps/default.jpg';
+    return MAP_IMAGES[mapName] || '/maps/no_mercy.jpg';
 }
