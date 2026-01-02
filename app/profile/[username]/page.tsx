@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import ReportButton from "@/components/ReportButton";
+import ProfileBackground from "@/components/ProfileBackground";
+import { getThemeColors } from "@/lib/themes";
 
 type Props = {
     params: Promise<{ username: string }>;
@@ -36,10 +38,19 @@ export default async function ProfilePage({ params }: Props) {
         )
     }
 
+    // Get theme colors for premium background
+    const themeColors = getThemeColors(profileData.profileTheme === "DEFAULT" ? "emerald" : profileData.profileTheme);
+
     return (
-        <div className="min-h-screen bg-black pt-32 pb-16 px-4">
+        <div className="min-h-screen bg-black pt-32 pb-16 px-4 relative">
+            {/* Premium animated background */}
+            <ProfileBackground
+                isPremium={profileData.isPremium || false}
+                themeColors={themeColors}
+            />
+
             <Navbar />
-            <div className="container mx-auto">
+            <div className="container mx-auto relative z-10">
                 <PlayerProfile {...profileData} isOwner={isOwner} />
 
                 {/* Report Button - Only visible when viewing other profiles */}
@@ -59,4 +70,3 @@ export default async function ProfilePage({ params }: Props) {
         </div>
     );
 }
-

@@ -30,12 +30,12 @@ interface MatchHistoryProps {
 }
 
 export function MatchHistory({ matches, isPremium, isOwner }: MatchHistoryProps) {
-    const [showAll, setShowAll] = useState(false);
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const [reportingMatch, setReportingMatch] = useState<string | null>(null);
     const [reportingPlayer, setReportingPlayer] = useState<MatchPlayer | null>(null);
 
-    const displayedMatches = showAll ? matches : matches.slice(0, 5);
+    // Limit to max 5 matches (visual only - FIFO behavior)
+    const displayedMatches = matches.slice(0, 5);
 
     const copyMatchId = (matchId: string) => {
         navigator.clipboard.writeText(matchId);
@@ -343,16 +343,6 @@ export function MatchHistory({ matches, isPremium, isOwner }: MatchHistoryProps)
                             </div>
                         </div>
                     ))}
-
-                    {/* Show More Button */}
-                    {matches.length > 5 && (
-                        <button
-                            onClick={() => setShowAll(!showAll)}
-                            className="w-full py-3 bg-zinc-800/50 text-zinc-400 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors text-sm font-medium"
-                        >
-                            {showAll ? 'Show Less' : `Show All (${matches.length} matches)`}
-                        </button>
-                    )}
                 </div>
             )}
         </div>

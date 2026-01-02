@@ -429,28 +429,79 @@ export function PlayerProfile({
                 </div>
             </div>
 
-            {/* 2. STATS GRID & WEAPONS */}
+            {/* 2. STATS ROW - Compact Stats + Rating History */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <StatCard
+                    label="Win Rate"
+                    value={`${((totalWins + totalLosses) > 0 ? (totalWins / (totalWins + totalLosses) * 100) : 0).toFixed(1)}%`}
+                    subDetail={`${totalWins}W - ${totalLosses}L`}
+                    highlight={((totalWins + totalLosses) > 0 ? (totalWins / (totalWins + totalLosses) * 100) : 0) >= 50}
+                    themeColors={themeColors}
+                    isPremium={isPremium}
+                />
+                <StatCard
+                    label="K/D Ratio"
+                    value={`${(totalDeaths > 0 ? (totalKills / totalDeaths) : totalKills).toFixed(2)}`}
+                    themeColors={themeColors}
+                    isPremium={isPremium}
+                />
+                <StatCard
+                    label="Total MVPs"
+                    value={totalMvps.toLocaleString()}
+                    themeColors={themeColors}
+                    isPremium={isPremium}
+                />
+                {/* Rating History - Compact inline */}
+                <div
+                    className="p-3 rounded-xl border transition-all group relative overflow-hidden"
+                    style={{
+                        backgroundColor: isPremium ? `${themeColors.primary}08` : 'rgba(24, 24, 27, 0.5)',
+                        borderColor: isPremium ? `${themeColors.primary}30` : 'rgba(255, 255, 255, 0.05)',
+                    }}
+                >
+                    {isPremium && (
+                        <div
+                            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                            style={{ background: `radial-gradient(circle at center, ${themeColors.glow}, transparent 70%)` }}
+                        />
+                    )}
+                    <div className="text-[10px] font-bold uppercase tracking-wider mb-1 text-zinc-500 group-hover:text-zinc-400 relative z-10">Rating</div>
+                    {ratingHistory && ratingHistory.length > 0 ? (
+                        <div className="flex items-end justify-between gap-0.5 h-12 relative z-10">
+                            {ratingHistory.slice(-12).map((h, i) => {
+                                const max = Math.max(...ratingHistory);
+                                const min = Math.min(...ratingHistory);
+                                const range = max - min || 1;
+                                const heightPercent = 20 + ((h - min) / range) * 80;
+                                return (
+                                    <div
+                                        key={i}
+                                        className="w-full rounded-t-sm transition-colors"
+                                        style={{
+                                            height: `${heightPercent}%`,
+                                            backgroundColor: isPremium ? themeColors.primary : '#3f3f46',
+                                        }}
+                                        title={`${h} ELO`}
+                                    />
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <div className="h-12 flex items-center justify-center text-zinc-600 text-[10px] relative z-10">
+                            No data
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* 3. MEDALS & SIDEBAR */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-                {/* Main Stats Column */}
-                <div className="md:col-span-2 grid grid-cols-3 gap-4">
-                    <StatCard
-                        label="Win Rate"
-                        value={`${((totalWins + totalLosses) > 0 ? (totalWins / (totalWins + totalLosses) * 100) : 0).toFixed(1)}%`}
-                        subDetail={`${totalWins} W - ${totalLosses} L`}
-                        highlight={((totalWins + totalLosses) > 0 ? (totalWins / (totalWins + totalLosses) * 100) : 0) >= 50}
-                    />
-                    <StatCard
-                        label="K/D Ratio"
-                        value={`${(totalDeaths > 0 ? (totalKills / totalDeaths) : totalKills).toFixed(2)}`}
-                    />
-                    <StatCard label="Total MVPs" value={totalMvps.toLocaleString()} />
-
-
+                {/* Main Content Column */}
+                <div className="md:col-span-2">
                     {/* MEDALS SECTION */}
                     {medals && medals.length > 0 && (
-                        <div className="col-span-3 mt-6">
-                            <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-wider mb-4 flex items-center gap-2">
+                        <div>
+                            <h3 className="text-zinc-400 font-bold uppercase text-xs tracking-wider mb-3 flex items-center gap-2">
                                 🏅 Medals & Achievements
                             </h3>
                             <MedalList medals={medals} userId={userId} isOwner={isOwner} />
@@ -459,92 +510,10 @@ export function PlayerProfile({
                 </div>
 
                 {/* Sidebar Info */}
-                <div className="space-y-4">
-                    {/* Rank Card */}
-                    <div
-                        className="rounded-2xl p-6 flex flex-col items-center justify-center relative overflow-hidden group transition-all duration-500 hover:scale-[1.02]"
-                        style={{
-                            backgroundColor: 'rgba(24, 24, 27, 0.6)', // zinc-900/60
-                            borderColor: `${getRankForElo(rating).color}40`, // Low opacity border
-                            borderWidth: '1px',
-                            boxShadow: `0 0 40px -10px ${getRankForElo(rating).color}20` // Subtle outer glow
-                        }}
-                    >
-                        {/* Dynamic Background Glow */}
-                        <div
-                            className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity duration-700"
-                            style={{
-                                background: `radial-gradient(circle at center, ${getRankForElo(rating).color}, transparent 70%)`
-                            }}
-                        />
-
-                        <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-widest mb-4 z-10">Current Rank</h3>
-
-                        <div
-                            className="relative w-40 h-40 animate-pulse z-10 transform group-hover:scale-105 transition-transform duration-500"
-                            style={{
-                                filter: `drop-shadow(0 0 25px ${getRankForElo(rating).color}60)` // Dynamic colored shadow/glow
-                            }}
-                        >
-                            <Image
-                                src={getRankForElo(rating).imagePath}
-                                alt={getRankForElo(rating).name}
-                                fill
-                                className="object-contain"
-                            />
-                        </div>
-
-                        <div className="mt-4 z-10 text-center">
-                            <div className="text-3xl font-black text-white tracking-tight drop-shadow-md" style={{ color: getRankForElo(rating).color }}>
-                                {getRankForElo(rating).name}
-                            </div>
-                            <div className="text-xs font-bold text-zinc-500 uppercase tracking-widest mt-1">
-                                {rating} ELO
-                            </div>
-                        </div>
-                    </div>
-                    {/* Rank History Graph */}
-                    <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 h-48 flex flex-col justify-between">
-                        <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-widest">Rating History</h3>
-                        {ratingHistory && ratingHistory.length > 0 ? (
-                            <div className="flex-1 flex items-end justify-between gap-1 pt-4">
-                                {ratingHistory.slice(-20).map((h, i) => {
-                                    // Normalize height to max value for relative scaling
-                                    const max = Math.max(...ratingHistory);
-                                    const min = Math.min(...ratingHistory);
-                                    const range = max - min || 1;
-                                    // Calculate height percentage (min 20% to avoid invisible bars)
-                                    const heightPercent = 20 + ((h - min) / range) * 80;
-
-                                    return (
-                                        <div
-                                            key={i}
-                                            className="w-full bg-zinc-800 rounded-t-sm hover:bg-brand-green transition-colors relative group"
-                                            style={{ height: `${heightPercent}%` }}
-                                            title={`Rating: ${h}`}
-                                        >
-                                            {/* Tooltip */}
-                                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-black text-white text-xs font-bold py-1 px-2 rounded whitespace-nowrap z-50 pointer-events-none">
-                                                {h} ELO
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        ) : (
-                            <div className="flex-1 flex items-center justify-center pt-4 opacity-50">
-                                <div className="text-center">
-                                    <div className="text-2xl mb-2">📉</div>
-                                    <div className="text-xs uppercase font-bold tracking-widest">No Matches Yet</div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Team Section - Only visible if has team */}
+                <div className="space-y-3">
+                    {/* Club Section - Now FIRST */}
                     {team && (
-                        <div className="bg-zinc-900 border border-white/10 rounded-2xl p-6 min-h-[140px] flex flex-col justify-center relative overflow-hidden group/card">
-
+                        <div className="bg-zinc-900 border border-white/10 rounded-xl p-4 min-h-[100px] flex flex-col justify-center relative overflow-hidden group/card">
                             {/* Banner Background */}
                             {team.bannerUrl && (
                                 <>
@@ -557,38 +526,83 @@ export function PlayerProfile({
                                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/80 to-zinc-900/40" />
                                 </>
                             )}
-
                             <div className="relative z-10">
-                                <h3 className="text-zinc-400 font-bold uppercase text-sm tracking-widest mb-4">
+                                <h3 className="text-zinc-400 font-bold uppercase text-xs tracking-widest mb-2">
                                     CLUB
                                 </h3>
-
-                                <Link href={`/teams/${team.tag}`} className="block group/team hover:bg-white/5 p-2 -m-2 rounded-xl transition-colors">
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <span className="text-brand-green font-bold text-lg tracking-tight group-hover/team:text-brand-green/80 transition-colors">[{team.tag}]</span>
-                                        <span className="text-white font-bold text-lg truncate group-hover/team:text-zinc-200 transition-colors">{team.name}</span>
+                                <Link href={`/teams/${team.tag}`} className="block group/team hover:bg-white/5 p-1.5 -m-1.5 rounded-lg transition-colors">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <span className="text-brand-green font-bold text-sm tracking-tight group-hover/team:text-brand-green/80 transition-colors">[{team.tag}]</span>
+                                        <span className="text-white font-bold text-sm truncate group-hover/team:text-zinc-200 transition-colors">{team.name}</span>
                                     </div>
-                                    <div className="flex -space-x-3 overflow-hidden pl-1">
-                                        {team.members?.map((member) => (
+                                    <div className="flex -space-x-2 overflow-hidden">
+                                        {team.members?.slice(0, 4).map((member) => (
                                             <div
                                                 key={member.id}
-                                                className="h-10 w-10 rounded-full border-2 border-zinc-900 bg-zinc-800 relative z-0 hover:z-10 hover:scale-110 transition-transform cursor-pointer overflow-hidden group"
+                                                className="h-7 w-7 rounded-full border-2 border-zinc-900 bg-zinc-800 relative z-0 hover:z-10 hover:scale-110 transition-transform cursor-pointer overflow-hidden"
                                                 title={member.name}
                                             >
                                                 {member.image ? (
                                                     <Image src={member.image} alt={member.name} fill className="object-cover" />
                                                 ) : (
-                                                    <div className="w-full h-full flex items-center justify-center bg-zinc-700 text-[10px] text-zinc-400 font-bold">
+                                                    <div className="w-full h-full flex items-center justify-center bg-zinc-700 text-[8px] text-zinc-400 font-bold">
                                                         {member.name[0]?.toUpperCase()}
                                                     </div>
                                                 )}
                                             </div>
                                         ))}
+                                        {(team.members?.length || 0) > 4 && (
+                                            <div className="h-7 w-7 rounded-full border-2 border-zinc-900 bg-zinc-800 flex items-center justify-center text-[8px] text-zinc-400 font-bold">
+                                                +{(team.members?.length || 0) - 4}
+                                            </div>
+                                        )}
                                     </div>
                                 </Link>
                             </div>
                         </div>
                     )}
+
+                    {/* Rank Card - Now smaller */}
+                    <div
+                        className="rounded-xl p-4 flex flex-col items-center justify-center relative overflow-hidden group transition-all duration-500 hover:scale-[1.02]"
+                        style={{
+                            backgroundColor: 'rgba(24, 24, 27, 0.6)',
+                            borderColor: `${getRankForElo(rating).color}40`,
+                            borderWidth: '1px',
+                            boxShadow: `0 0 30px -10px ${getRankForElo(rating).color}20`
+                        }}
+                    >
+                        {/* Dynamic Background Glow */}
+                        <div
+                            className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity duration-700"
+                            style={{
+                                background: `radial-gradient(circle at center, ${getRankForElo(rating).color}, transparent 70%)`
+                            }}
+                        />
+                        <h3 className="text-zinc-400 font-bold uppercase text-xs tracking-widest mb-2 z-10">Current Rank</h3>
+                        {/* Smaller rank image: w-28 h-28 instead of w-40 h-40 */}
+                        <div
+                            className="relative w-28 h-28 animate-pulse z-10 transform group-hover:scale-105 transition-transform duration-500"
+                            style={{
+                                filter: `drop-shadow(0 0 20px ${getRankForElo(rating).color}60)`
+                            }}
+                        >
+                            <Image
+                                src={getRankForElo(rating).imagePath}
+                                alt={getRankForElo(rating).name}
+                                fill
+                                className="object-contain"
+                            />
+                        </div>
+                        <div className="mt-2 z-10 text-center">
+                            <div className="text-xl font-black tracking-tight drop-shadow-md" style={{ color: getRankForElo(rating).color }}>
+                                {getRankForElo(rating).name}
+                            </div>
+                            <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                                {rating} ELO
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -602,12 +616,27 @@ export function PlayerProfile({
     );
 }
 
-function StatCard({ label, value, subDetail, highlight = false }: { label: string, value: string, subDetail?: string, highlight?: boolean }) {
+function StatCard({ label, value, subDetail, highlight = false, themeColors, isPremium }: { label: string, value: string, subDetail?: string, highlight?: boolean, themeColors?: any, isPremium?: boolean }) {
     return (
-        <div className={`p-6 rounded-2xl border transition-all group ${highlight ? 'bg-brand-green text-black border-brand-green' : 'bg-zinc-900/50 border-white/5 hover:border-white/20'}`}>
-            <div className={`text-xs font-bold uppercase tracking-wider mb-2 ${highlight ? 'text-black/60' : 'text-zinc-500 group-hover:text-brand-green'}`}>{label}</div>
-            <div className={`text-4xl font-black ${highlight ? 'text-black' : 'text-white'}`}>{value}</div>
-            {subDetail && <div className={`text-sm mt-1 font-medium ${highlight ? 'text-black/70' : 'text-zinc-500'}`}>{subDetail}</div>}
+        <div
+            className={`p-3 rounded-xl border transition-all group relative overflow-hidden ${highlight ? 'bg-brand-green text-black border-brand-green' : 'border-white/5 hover:border-white/20'}`}
+            style={!highlight && isPremium && themeColors ? {
+                backgroundColor: `${themeColors.primary}08`,
+                borderColor: `${themeColors.primary}30`,
+            } : !highlight ? {
+                backgroundColor: 'rgba(24, 24, 27, 0.5)',
+            } : undefined}
+        >
+            {/* Premium glow effect */}
+            {!highlight && isPremium && themeColors && (
+                <div
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                    style={{ background: `radial-gradient(circle at center, ${themeColors.glow}, transparent 70%)` }}
+                />
+            )}
+            <div className={`text-[10px] font-bold uppercase tracking-wider mb-1 relative z-10 ${highlight ? 'text-black/60' : 'text-zinc-500 group-hover:text-zinc-400'}`}>{label}</div>
+            <div className={`text-2xl font-black relative z-10 ${highlight ? 'text-black' : 'text-white'}`}>{value}</div>
+            {subDetail && <div className={`text-[10px] mt-0.5 font-medium relative z-10 ${highlight ? 'text-black/70' : 'text-zinc-500'}`}>{subDetail}</div>}
         </div>
     );
 }
