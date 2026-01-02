@@ -182,10 +182,10 @@ export default function PremiumCustomization({ user }: PremiumCustomizationProps
                             }}
                             className={`p-3 rounded-xl border-2 transition-all ${!nameGradient
                                 ? 'border-amber-400 bg-amber-500/10'
-                                : 'border-white/10 hover:border-white/30 bg-black/20'
+                                : 'border-white/10 hover:border-white/30 bg-zinc-800/50'
                                 }`}
                         >
-                            <span className="text-sm text-white font-bold">None</span>
+                            <span className="text-base text-white font-bold">None</span>
                         </button>
                         {GRADIENT_PRESETS.map((gradient) => (
                             <button
@@ -198,10 +198,10 @@ export default function PremiumCustomization({ user }: PremiumCustomizationProps
                                 disabled={saving === 'nameGradient'}
                                 className={`p-3 rounded-xl border-2 transition-all ${nameGradient === gradient.class
                                     ? 'border-amber-400 bg-amber-500/10'
-                                    : 'border-white/10 hover:border-white/30 bg-black/20'
+                                    : 'border-white/10 hover:border-white/30 bg-zinc-800/50'
                                     }`}
                             >
-                                <span className={`text-sm font-bold bg-gradient-to-r ${gradient.class} bg-clip-text text-transparent`}>
+                                <span className={`text-base font-black bg-gradient-to-r ${gradient.class} bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]`}>
                                     {gradient.name}
                                 </span>
                             </button>

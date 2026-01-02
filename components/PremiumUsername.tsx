@@ -88,13 +88,14 @@ export function PremiumUsername({
                         ? `bg-gradient-to-r ${nameGradient} bg-clip-text text-transparent animate-gradient-x bg-[length:200%_auto]`
                         : ''
                     }
-                    drop-shadow-[0_0_10px_currentColor]
                     hover:scale-105 transition-transform duration-300
                 `}
-                style={!hasGradient ? {
+                style={hasGradient ? {
+                    filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.4)) drop-shadow(0 0 20px rgba(255,255,255,0.2))',
+                } : {
                     color: themeColors.primary,
                     textShadow: `0 0 20px ${themeColors.glow}, 0 0 40px ${themeColors.glow}`,
-                } : {}}
+                }}
             >
                 {username}
             </span>
