@@ -25,6 +25,7 @@ export default function AdminAnnouncementsPage() {
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         title: '',
         content: '',
@@ -64,22 +65,42 @@ export default function AdminAnnouncementsPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const res = await fetch('/api/admin/announcements', {
-                method: 'POST',
+            const url = editingId
+                ? `/api/admin/announcements/${editingId}`
+                : '/api/admin/announcements';
+
+            const method = editingId ? 'PATCH' : 'POST';
+
+            const res = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
             const data = await res.json();
             if (data.success) {
                 setShowForm(false);
+                setEditingId(null); // Reset
                 setFormData({ title: '', content: '', type: 'INFO', location: 'HOME', expiresAt: '' });
                 fetchAnnouncements();
             } else {
-                alert(data.error || 'Failed to create announcement');
+                alert(data.error || 'Failed to save announcement');
             }
         } catch (error) {
-            console.error('Create failed:', error);
+            console.error('Save failed:', error);
         }
+    };
+
+    const handleEdit = (ann: Announcement) => {
+        setFormData({
+            title: ann.title,
+            content: ann.content,
+            type: ann.type,
+            location: ann.location,
+            expiresAt: ann.expiresAt ? new Date(ann.expiresAt).toISOString().slice(0, 16) : ''
+        });
+        setEditingId(ann.id);
+        setShowForm(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleToggle = async (id: string, active: boolean) => {
@@ -143,17 +164,25 @@ export default function AdminAnnouncementsPage() {
                                 ⚡ Init Defaults
                             </button>
                             <button
-                                onClick={() => setShowForm(!showForm)}
-                                className="px-4 py-2 bg-brand-green text-black font-bold rounded-xl hover:bg-white transition-colors"
+                                onClick={() => {
+                                    setShowForm(!showForm);
+                                    if (showForm) {
+                                        setEditingId(null);
+                                        setFormData({ title: '', content: '', type: 'INFO', location: 'HOME', expiresAt: '' });
+                                    }
+                                }}
+                                className={`px-4 py-2 font-bold rounded-xl transition-colors ${showForm ? 'bg-zinc-800 text-zinc-400' : 'bg-brand-green text-black hover:bg-white'}`}
                             >
-                                + New Announcement
+                                {showForm ? 'Cancel' : '+ New Announcement'}
                             </button>
                         </div>
                     </div>
 
-                    {/* Create Form */}
+                    {/* Create/Edit Form */}
                     {showForm && (
-                        <form onSubmit={handleSubmit} className="bg-zinc-900 border border-white/10 rounded-xl p-6 mb-8 space-y-4">
+                        <form onSubmit={handleSubmit} className="bg-zinc-900 border border-white/10 rounded-xl p-6 mb-8 space-y-4 relative overflow-hidden">
+                            {editingId && <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-bl-xl">EDITING MODE</div>}
+
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Type</label>
@@ -212,10 +241,14 @@ export default function AdminAnnouncementsPage() {
                                 />
                             </div>
                             <div className="flex gap-4">
-                                <button type="submit" className="px-6 py-3 bg-brand-green text-black font-bold rounded-xl">
-                                    Create
+                                <button type="submit" className={`px-6 py-3 font-bold rounded-xl ${editingId ? 'bg-blue-500 text-white' : 'bg-brand-green text-black'}`}>
+                                    {editingId ? 'Update Announcement' : 'Create'}
                                 </button>
-                                <button type="button" onClick={() => setShowForm(false)} className="px-6 py-3 bg-zinc-800 text-zinc-400 font-bold rounded-xl">
+                                <button type="button" onClick={() => {
+                                    setShowForm(false);
+                                    setEditingId(null);
+                                    setFormData({ title: '', content: '', type: 'INFO', location: 'HOME', expiresAt: '' });
+                                }} className="px-6 py-3 bg-zinc-800 text-zinc-400 font-bold rounded-xl">
                                     Cancel
                                 </button>
                             </div>
@@ -245,14 +278,20 @@ export default function AdminAnnouncementsPage() {
                                         </div>
                                         <div className="flex gap-2">
                                             <button
+                                                onClick={() => handleEdit(ann)}
+                                                className="px-3 py-1 bg-blue-500/20 border border-blue-500/30 text-blue-400 rounded text-sm hover:bg-blue-500/30 transition-colors"
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
                                                 onClick={() => handleToggle(ann.id, ann.active)}
-                                                className="px-3 py-1 bg-zinc-800 border border-white/10 rounded text-sm"
+                                                className="px-3 py-1 bg-zinc-800 border border-white/10 rounded text-sm hover:bg-zinc-700 transition-colors"
                                             >
                                                 {ann.active ? 'Disable' : 'Enable'}
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(ann.id)}
-                                                className="px-3 py-1 bg-red-500/20 border border-red-500/30 text-red-400 rounded text-sm"
+                                                className="px-3 py-1 bg-red-500/20 border border-red-500/30 text-red-400 rounded text-sm hover:bg-red-500/30 transition-colors"
                                             >
                                                 Delete
                                             </button>
