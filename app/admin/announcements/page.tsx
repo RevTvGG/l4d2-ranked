@@ -30,8 +30,7 @@ export default function AdminAnnouncementsPage() {
         title: '',
         content: '',
         type: 'INFO',
-        location: 'HOME',
-        expiresAt: ''
+        location: 'HOME'
     });
 
     const userRole = session?.user?.role;
@@ -80,7 +79,7 @@ export default function AdminAnnouncementsPage() {
             if (data.success) {
                 setShowForm(false);
                 setEditingId(null); // Reset
-                setFormData({ title: '', content: '', type: 'INFO', location: 'HOME', expiresAt: '' });
+                setFormData({ title: '', content: '', type: 'INFO', location: 'HOME' });
                 fetchAnnouncements();
             } else {
                 alert(data.error || 'Failed to save announcement');
@@ -95,8 +94,7 @@ export default function AdminAnnouncementsPage() {
             title: ann.title,
             content: ann.content,
             type: ann.type,
-            location: ann.location,
-            expiresAt: ann.expiresAt ? new Date(ann.expiresAt).toISOString().slice(0, 16) : ''
+            location: ann.location
         });
         setEditingId(ann.id);
         setShowForm(true);
@@ -168,7 +166,7 @@ export default function AdminAnnouncementsPage() {
                                     setShowForm(!showForm);
                                     if (showForm) {
                                         setEditingId(null);
-                                        setFormData({ title: '', content: '', type: 'INFO', location: 'HOME', expiresAt: '' });
+                                        setFormData({ title: '', content: '', type: 'INFO', location: 'HOME' });
                                     }
                                 }}
                                 className={`px-4 py-2 font-bold rounded-xl transition-colors ${showForm ? 'bg-zinc-800 text-zinc-400' : 'bg-brand-green text-black hover:bg-white'}`}
@@ -231,15 +229,7 @@ export default function AdminAnnouncementsPage() {
                                     placeholder="Announcement message"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-zinc-500 uppercase mb-1">Expires At (Optional)</label>
-                                <input
-                                    type="datetime-local"
-                                    value={formData.expiresAt}
-                                    onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
-                                    className="w-full bg-black border border-white/10 rounded p-3 text-white"
-                                />
-                            </div>
+
                             <div className="flex gap-4">
                                 <button type="submit" className={`px-6 py-3 font-bold rounded-xl ${editingId ? 'bg-blue-500 text-white' : 'bg-brand-green text-black'}`}>
                                     {editingId ? 'Update Announcement' : 'Create'}
@@ -247,7 +237,7 @@ export default function AdminAnnouncementsPage() {
                                 <button type="button" onClick={() => {
                                     setShowForm(false);
                                     setEditingId(null);
-                                    setFormData({ title: '', content: '', type: 'INFO', location: 'HOME', expiresAt: '' });
+                                    setFormData({ title: '', content: '', type: 'INFO', location: 'HOME' });
                                 }} className="px-6 py-3 bg-zinc-800 text-zinc-400 font-bold rounded-xl">
                                     Cancel
                                 </button>
