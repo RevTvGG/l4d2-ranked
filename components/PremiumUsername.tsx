@@ -84,13 +84,13 @@ export function PremiumUsername({
             <span
                 className={`
                     relative ${sizeClasses[size] || sizeClasses['md']} font-black ${fontClass} tracking-wide
-                    ${hasGradient
-                        ? `bg-gradient-to-r ${nameGradient} bg-clip-text text-transparent animate-gradient-x bg-[length:200%_auto]`
-                        : ''
-                    }
                     hover:scale-105 transition-transform duration-300
                 `}
                 style={hasGradient ? {
+                    background: nameGradient,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
                     filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.4)) drop-shadow(0 0 20px rgba(255,255,255,0.2))',
                 } : {
                     color: themeColors.primary,

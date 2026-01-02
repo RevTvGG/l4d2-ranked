@@ -192,16 +192,24 @@ export default function PremiumCustomization({ user }: PremiumCustomizationProps
                                 key={gradient.id}
                                 type="button"
                                 onClick={() => {
-                                    setNameGradient(gradient.class);
-                                    saveField('nameGradient', gradient.class);
+                                    setNameGradient(gradient.css);
+                                    saveField('nameGradient', gradient.css);
                                 }}
                                 disabled={saving === 'nameGradient'}
-                                className={`p-3 rounded-xl border-2 transition-all ${nameGradient === gradient.class
+                                className={`p-3 rounded-xl border-2 transition-all ${nameGradient === gradient.css
                                     ? 'border-amber-400 bg-amber-500/10'
                                     : 'border-white/10 hover:border-white/30 bg-zinc-800/50'
                                     }`}
                             >
-                                <span className={`text-base font-black bg-gradient-to-r ${gradient.class} bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]`}>
+                                <span
+                                    className="text-base font-black"
+                                    style={{
+                                        background: gradient.css,
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                        backgroundClip: 'text',
+                                    }}
+                                >
                                     {gradient.name}
                                 </span>
                             </button>
