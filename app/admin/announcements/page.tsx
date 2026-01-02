@@ -33,7 +33,6 @@ export default function AdminAnnouncementsPage() {
         expiresAt: ''
     });
 
-    // @ts-expect-error - role is custom field
     const userRole = session?.user?.role;
     const canEdit = userRole && ADMIN_ROLES.includes(userRole);
 
@@ -127,12 +126,29 @@ export default function AdminAnnouncementsPage() {
                             <Link href="/admin" className="text-zinc-500 hover:text-white transition-colors">← Back</Link>
                             <h1 className="text-3xl font-black uppercase italic">📢 Announcements</h1>
                         </div>
-                        <button
-                            onClick={() => setShowForm(!showForm)}
-                            className="px-4 py-2 bg-brand-green text-black font-bold rounded-xl hover:bg-white transition-colors"
-                        >
-                            + New Announcement
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={async () => {
+                                    if (!confirm('Initialize default "Beta Notice" announcement?')) return;
+                                    const res = await fetch('/api/admin/announcements/seed', { method: 'POST' });
+                                    const data = await res.json();
+                                    if (data.skipped) alert('Already exists!');
+                                    else if (data.success) {
+                                        alert('Created!');
+                                        fetchAnnouncements();
+                                    } else alert('Error: ' + data.error);
+                                }}
+                                className="px-4 py-2 bg-zinc-800 border border-white/10 text-white font-bold rounded-xl hover:bg-zinc-700 transition-colors"
+                            >
+                                ⚡ Init Defaults
+                            </button>
+                            <button
+                                onClick={() => setShowForm(!showForm)}
+                                className="px-4 py-2 bg-brand-green text-black font-bold rounded-xl hover:bg-white transition-colors"
+                            >
+                                + New Announcement
+                            </button>
+                        </div>
                     </div>
 
                     {/* Create Form */}
@@ -215,8 +231,8 @@ export default function AdminAnnouncementsPage() {
                         <div className="space-y-4">
                             {announcements.map((ann) => (
                                 <div key={ann.id} className={`border rounded-xl p-4 ${ann.type === 'MAINTENANCE' ? 'bg-red-500/10 border-red-500/30' :
-                                        ann.type === 'WARNING' ? 'bg-yellow-500/10 border-yellow-500/30' :
-                                            'bg-blue-500/10 border-blue-500/30'
+                                    ann.type === 'WARNING' ? 'bg-yellow-500/10 border-yellow-500/30' :
+                                        'bg-blue-500/10 border-blue-500/30'
                                     } ${!ann.active && 'opacity-50'}`}>
                                     <div className="flex items-start justify-between">
                                         <div>
