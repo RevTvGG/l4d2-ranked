@@ -50,9 +50,9 @@ export default function StuckMatchesPanel() {
         setTimeout(() => setMessage(null), 3000);
     };
 
-    const handleCreateTest = async () => {
+    const handleCreateTest = async (friendId?: string) => {
         setLoading(true);
-        const result = await createTestMatch();
+        const result = await createTestMatch(friendId);
         if (result.success) {
             setMessage('Test match created! Go to /play');
             loadMatches();
@@ -80,12 +80,24 @@ export default function StuckMatchesPanel() {
                     >
                         ☢️ RESET ALL
                     </button>
-                    <button
-                        onClick={handleCreateTest}
-                        className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-500 rounded font-bold"
-                    >
-                        🧪 TEST MATCH
-                    </button>
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            placeholder="Friend SteamID (optional)"
+                            className="bg-zinc-800 border border-zinc-700 rounded px-2 text-xs w-32"
+                            id="friendSteamIdInput"
+                            defaultValue="76561198884962471"
+                        />
+                        <button
+                            onClick={() => {
+                                const input = document.getElementById('friendSteamIdInput') as HTMLInputElement;
+                                handleCreateTest(input.value);
+                            }}
+                            className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-500 rounded font-bold"
+                        >
+                            🧪 TEST MATCH
+                        </button>
+                    </div>
                 </div>
             </div>
 

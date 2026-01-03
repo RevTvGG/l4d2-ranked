@@ -224,7 +224,7 @@ export async function adminResetAllStuckMatches() {
 /**
  * DEBUG: Create a test match with bots to test VETO/GAME flow
  */
-export async function createTestMatch() {
+export async function createTestMatch(friendSteamId?: string) {
     const session = await getServerSession(authOptions);
     // Allow OWNER or ADMIN to create tests
     if (!session?.user || !['OWNER', 'ADMIN'].includes((session.user as any).role)) {
@@ -232,12 +232,24 @@ export async function createTestMatch() {
     }
 
     const userId = session.user.id;
-    console.log('[Test] Creating test match for user:', userId);
+    console.log('[Test] Creating test match for user:', userId, 'Friend:', friendSteamId);
 
     try {
-        // 1. Create bots if needed
+        // 1. Create bots if needed (or find friend)
         const botIds = [];
-        for (let i = 1; i <= 7; i++) {
+        const botCount = friendSteamId ? 6 : 7; // 1 Human + Friend + 6 Bots = 8 OR 1 Human + 7 Bots = 8
+
+        // If friend provided, add them first
+        if (friendSteamId) {
+            const friend = await prisma.user.findFirst({ where: { steamId: friendSteamId } });
+            if (!friend) {
+                // Return descriptive error
+                return { error: `Friend with SteamID ${friendSteamId} not found in database. Ask them to login first.` };
+            }
+            botIds.push(friend.id);
+        }
+
+        for (let i = 1; i <= botCount; i++) {
             const botSteamId = `FAKE_BOT_${i}`;
             let bot = await prisma.user.findFirst({ where: { steamId: botSteamId } });
 

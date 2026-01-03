@@ -33,6 +33,34 @@ export async function getMatch(matchId: string) {
     });
 }
 
+// Get CURRENT active match for user
+export async function getCurrentMatch() {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !(session.user as any).id) return null;
+
+    // IMPORTANT: Exclude CANCELLED and COMPLETED status
+    const activeMatch = await prisma.matchPlayer.findFirst({
+        where: {
+            userId: session.user.id,
+            match: {
+                status: {
+                    in: ['WAITING_FOR_PLAYERS', 'READY_CHECK', 'VETO', 'READY', 'IN_PROGRESS']
+                }
+            }
+        },
+        include: {
+            match: {
+                include: {
+                    players: { include: { user: true } },
+                    server: true
+                }
+            }
+        }
+    });
+
+    return activeMatch?.match || null;
+}
+
 export async function acceptMatch(matchId: string) {
     const session = await getServerSession(authOptions);
     if (!session?.user || !(session.user as any).id) return { error: "Not authenticated" };

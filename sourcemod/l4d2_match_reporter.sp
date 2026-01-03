@@ -491,16 +491,22 @@ public Action Timer_JoinTimeout(Handle timer)
         return Plugin_Stop;
     
     // Find players who didn't connect
+    bool anyMissing = false;
     for (int i = 0; i < g_iWhitelistCount; i++)
     {
         if (!g_bPlayerConnected[i])
         {
-            PrintToServer("[Match Reporter] Player %s did not connect in time!", g_sWhitelistedSteamIDs[i]);
-            PrintToChatAll("\x04[L4D2 Ranked]\x03 A player did not connect in time. Match cancelled.");
-            
-            // Report to API for ban
-            ReportPlayerEvent(g_sWhitelistedSteamIDs[i], "NO_JOIN_TIMEOUT", "Did not connect to server in time");
+             anyMissing = true;
+             PrintToServer("[Match Reporter] Player %s did not connect in time!", g_sWhitelistedSteamIDs[i]);
+             
+             // Report to API for ban
+             ReportPlayerEvent(g_sWhitelistedSteamIDs[i], "NO_JOIN_TIMEOUT", "Did not connect to server in time");
         }
+    }
+
+    if (anyMissing) {
+        PrintToChatAll("\x04[L4D2 Ranked]\x03 A player did not connect in time. Match cancelled.");
+        PerformMatchCancellation("Join Timeout - Not all players connected");
     }
     
     return Plugin_Stop;
@@ -513,7 +519,8 @@ public void OnClientPutInServer(int client)
         return;
     
     char sSteamId[32];
-    GetClientAuthId(client, AuthId_Steam2, sSteamId, sizeof(sSteamId));
+    // IMPORTANT: Web sends SteamID64 (e.g. 76561198...), so we must match that format
+    GetClientAuthId(client, AuthId_SteamID64, sSteamId, sizeof(sSteamId));
     
     // Check if this player is on the whitelist
     for (int i = 0; i < g_iWhitelistCount; i++)
@@ -597,6 +604,12 @@ public Action Cmd_BlockSpectate(int client, const char[] command, int argc)
     PrintToChat(client, "\x04[L4D2 Ranked]\x01 You must stay with your team until the match ends.");
     return Plugin_Handled;
 }
+
+
+// ... (Events section omitted, it's fine) ...
+
+
+
 
 // Wrapper for RegConsoleCmd (different signature than AddCommandListener)
 public Action Cmd_BlockSpectateCmd(int client, int args)
@@ -1239,8 +1252,17 @@ public Action Cmd_CancelMatch(int client, int args)
         GetCmdArgString(sReason, sizeof(sReason));
     }
     
-    PrintToChatAll("\x04[L4D2 Ranked]\x01 Match cancelled by admin: \x03%s", sReason);
-    PrintToServer("[Match Reporter] Match cancelled by admin: %s", sReason);
+    PerformMatchCancellation(sReason);
+    
+    ReplyToCommand(client, "[Ranked] Match cancelled and server reset.");
+    return Plugin_Handled;
+}
+
+// Internal reusable function
+void PerformMatchCancellation(const char[] sReason) 
+{
+    PrintToChatAll("\x04[L4D2 Ranked]\x01 Match cancelled: \x03%s", sReason);
+    PrintToServer("[Match Reporter] Match cancelled: %s", sReason);
     
     // Kick all players
     for (int i = 1; i <= MaxClients; i++)
@@ -1259,7 +1281,6 @@ public Action Cmd_CancelMatch(int client, int args)
     g_bWhitelistActive = false;
     
     ServerCommand("sm_resetmatch");
-    
-    ReplyToCommand(client, "[Ranked] Match cancelled and server reset.");
-    return Plugin_Handled;
 }
+
+
