@@ -209,7 +209,7 @@ export async function leaveMatch(matchId: string) {
     if (!session?.user || !(session.user as any).id) return { error: "Not authenticated" };
 
     try {
-        console.log('[leaveMatch] Player leaving match:', matchId, 'User:', session.user.id);
+        console.log('[leaveMatch] Player attempting to leave match:', matchId, 'User:', session.user.id);
 
         // Get match status first
         const match = await prisma.match.findUnique({
@@ -217,7 +217,18 @@ export async function leaveMatch(matchId: string) {
             select: { status: true }
         });
 
-        // Remove from MatchPlayer
+        if (!match) {
+            return { error: "Match not found" };
+        }
+
+        // CRITICAL: Only allow leaving during READY_CHECK phase
+        // After VETO starts, leaving would break the match for everyone
+        if (match.status !== 'READY_CHECK') {
+            console.log('[leaveMatch] Cannot leave - match is already in', match.status);
+            return { error: `Cannot leave match in ${match.status} phase` };
+        }
+
+        // Remove from MatchPlayer (only during READY_CHECK)
         await prisma.matchPlayer.deleteMany({
             where: {
                 matchId,
@@ -226,7 +237,7 @@ export async function leaveMatch(matchId: string) {
         });
         console.log('[leaveMatch] Removed from MatchPlayer');
 
-        // Remove from Queue (if linked)
+        // Remove from Queue
         await prisma.queueEntry.deleteMany({
             where: {
                 userId: session.user.id
@@ -234,27 +245,25 @@ export async function leaveMatch(matchId: string) {
         });
         console.log('[leaveMatch] Removed from QueueEntry');
 
-        // If match is in READY_CHECK, cancel it since we don't have 8 players anymore
-        if (match?.status === 'READY_CHECK') {
-            console.log('[leaveMatch] Match was in READY_CHECK, cancelling match');
-            await prisma.match.update({
-                where: { id: matchId },
-                data: {
-                    status: 'CANCELLED',
-                    cancelReason: 'Player declined match'
-                }
-            });
+        // Cancel the match since we don't have 8 players anymore
+        console.log('[leaveMatch] Cancelling match - player declined');
+        await prisma.match.update({
+            where: { id: matchId },
+            data: {
+                status: 'CANCELLED',
+                cancelReason: 'Player declined match'
+            }
+        });
 
-            // Also remove all other players from their queue entries for this match
-            await prisma.queueEntry.updateMany({
-                where: { matchId },
-                data: {
-                    status: 'WAITING',
-                    matchId: null
-                }
-            });
-            console.log('[leaveMatch] Other players returned to queue');
-        }
+        // Return other players to queue
+        await prisma.queueEntry.updateMany({
+            where: { matchId },
+            data: {
+                status: 'WAITING',
+                matchId: null
+            }
+        });
+        console.log('[leaveMatch] Other players returned to queue');
 
         revalidatePath('/play');
         return { success: true };
