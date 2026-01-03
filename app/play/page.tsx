@@ -406,6 +406,13 @@ export default function PlayPage() {
                                                 >
                                                     {isAccepted ? '⏳ Waiting for others...' : '✅ ACCEPT MATCH'}
                                                 </button>
+                                                {/* DECLINE BUTTON - Leave queue during ready check */}
+                                                <button
+                                                    onClick={handleLeaveQueue}
+                                                    className="w-full py-3 font-bold rounded-xl uppercase text-sm transition-all bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/40 hover:border-red-500/60 hover:scale-[1.02]"
+                                                >
+                                                    ❌ DECLINE MATCH
+                                                </button>
                                                 <div className="flex justify-center gap-2 mt-3">
                                                     {matchData?.players?.map((p: any) => (
                                                         <div
