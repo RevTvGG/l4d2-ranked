@@ -120,19 +120,26 @@ export async function POST(request: NextRequest) {
 
 
             // Set match ID with retry logic (Layer 1: Reliability)
-            console.log('[RCON] Setting Match ID with retry logic...');
+            // Extended to 12 attempts (60s) for slow/remote servers
+            console.log('[RCON] Setting Match ID with retry logic (60s timeout)...');
             let matchIdSet = false;
-            for (let attempt = 1; attempt <= 3; attempt++) {
+            for (let attempt = 1; attempt <= 12; attempt++) {
                 const matchIdResult = await rcon.execute(`sm_set_match_id ${matchId}`);
                 if (matchIdResult.success) {
                     console.log(`[RCON] Match ID set successfully on attempt ${attempt}: ${matchId}`);
                     matchIdSet = true;
                     break;
                 } else {
-                    console.warn(`[RCON] Attempt ${attempt}/3 failed: ${matchIdResult.error}`);
-                    if (attempt < 3) {
+                    console.warn(`[RCON] Attempt ${attempt}/12 failed: ${matchIdResult.error}`);
+                    if (attempt < 12) {
                         console.log('[RCON] Waiting 5 seconds before retry...');
                         await new Promise((resolve) => setTimeout(resolve, 5000));
+
+                        // Optional: Try to reconnect if it fails multiple times (e.g. attempt 4 and 8)
+                        if (attempt % 4 === 0) {
+                            console.log('[RCON] Performing intermediate reconnect...');
+                            try { await rcon.disconnect(); await rcon.connect(); } catch (e) { }
+                        }
                     }
                 }
             }
