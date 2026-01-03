@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { joinQueue, leaveQueue, getQueueStatus } from '@/app/actions/queue';
-import { acceptMatch, voteMap, getMatch } from '@/app/actions/match';
+import { acceptMatch, voteMap, getMatch, leaveMatch } from '@/app/actions/match';
 import { getOnlineUsers } from '@/app/actions/chat';
 import { redirect } from 'next/navigation';
 import GlobalChat from '@/components/GlobalChat';
@@ -112,6 +112,27 @@ export default function PlayPage() {
         if (!session?.user) return;
         await leaveQueue();
         setQueueStatus(null);
+        setMatchData(null);
+        setIsAccepted(false);
+        setErrorMsg(null);
+    };
+
+    const handleDeclineMatch = async () => {
+        if (!session?.user) return;
+        const currentMatchId = (queueStatus as any)?.matchId || (queueStatus as any)?.match?.id;
+
+        // Leave match first (removes from MatchPlayer)
+        if (currentMatchId) {
+            await leaveMatch(currentMatchId);
+        }
+
+        // Then leave queue
+        await leaveQueue();
+
+        // Reset local state
+        setQueueStatus(null);
+        setMatchData(null);
+        setIsAccepted(false);
         setErrorMsg(null);
     };
 
@@ -408,7 +429,7 @@ export default function PlayPage() {
                                                 </button>
                                                 {/* DECLINE BUTTON - Leave queue during ready check */}
                                                 <button
-                                                    onClick={handleLeaveQueue}
+                                                    onClick={handleDeclineMatch}
                                                     className="w-full py-3 font-bold rounded-xl uppercase text-sm transition-all bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/40 hover:border-red-500/60 hover:scale-[1.02]"
                                                 >
                                                     ❌ DECLINE MATCH
