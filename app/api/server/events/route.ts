@@ -50,6 +50,19 @@ export async function POST(request: NextRequest) {
         }
 
         switch (event as ServerEvent) {
+            case 'NO_JOIN_TIMEOUT':
+                console.log(`[ServerEvent] Player ${steamId} failed to join. Cancelling match...`);
+                // Immediate ban + Match Cancellation
+                if (matchId) {
+                    await cancelMatchAndBanPlayer(
+                        matchId,
+                        user.id,
+                        'NO_JOIN',
+                        reason || 'Failed to join server in time'
+                    );
+                }
+                return NextResponse.json({ success: true, message: 'Match cancelled and player banned for NO_JOIN' });
+
             case 'PLAYER_DISCONNECT':
             case 'PLAYER_CRASH':
                 // Different grace periods based on disconnect type
