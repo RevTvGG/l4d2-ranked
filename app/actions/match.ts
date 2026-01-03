@@ -173,27 +173,25 @@ export async function voteMap(matchId: string, mapName: string) {
                 }
             });
 
-            // AUTO-TRIGGER: Start the server via RCON
-            console.log('[VOTE] Auto-triggering server start...');
-            try {
-                const baseUrl = process.env.NEXTAUTH_URL || (process.env.NODE_ENV === 'production' ? 'https://www.l4d2ranked.online' : 'http://localhost:3000');
-                const response = await fetch(`${baseUrl}/api/server/start-match`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ matchId })
-                });
+            // AUTO-TRIGGER: Start the server via RCON (Fire and forget)
+            console.log('[VOTE] Auto-triggering server start (async)...');
+            const baseUrl = process.env.NEXTAUTH_URL || (process.env.NODE_ENV === 'production' ? 'https://www.l4d2ranked.online' : 'http://localhost:3000');
 
-                if (response.ok) {
-                    const result = await response.json();
-                    console.log('[VOTE] Server started successfully:', result);
+            // Don't await this to prevent deadlock in dev environment (Server Action -> API Route)
+            fetch(`${baseUrl}/api/server/start-match`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ matchId })
+            }).then(async (res) => {
+                if (res.ok) {
+                    console.log('[VOTE] Server start triggers successfully');
                 } else {
-                    const error = await response.text();
-                    console.error('[VOTE] Server start failed:', error);
+                    const txt = await res.text();
+                    console.error('[VOTE] Server start trigger failed:', txt);
                 }
-            } catch (serverError) {
-                console.error('[VOTE] Error starting server:', serverError);
-                // Don't fail the vote action, match can be started manually
-            }
+            }).catch(err => {
+                console.error('[VOTE] Error triggering server start:', err);
+            });
         }
 
         revalidatePath('/play');
