@@ -255,8 +255,19 @@ export async function createTestMatch() {
             botIds.push(bot.id);
         }
 
-        // 2. Find a server (or fake one)
-        let server = await prisma.gameServer.findFirst({ where: { status: 'AVAILABLE' } });
+        // 2. Find a server (prioritize active 9190 server)
+        let server = await prisma.gameServer.findFirst({
+            where: {
+                status: 'AVAILABLE',
+                port: 9190
+            }
+        });
+
+        // Fallback: any available server if 9190 not found
+        if (!server) {
+            server = await prisma.gameServer.findFirst({ where: { status: 'AVAILABLE' } });
+        }
+
         // If no server, check if we have any server at all
         if (!server) {
             server = await prisma.gameServer.findFirst();
