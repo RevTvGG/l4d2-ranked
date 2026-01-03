@@ -140,6 +140,16 @@ export async function POST(request: NextRequest) {
                     break;
                 } else {
                     console.warn(`[RCON] Attempt ${attempt}/12 failed: ${matchIdResult.error}`);
+
+                    // Auto-fix: If Unknown command, try to load the plugin from optional folder
+                    // (Common in ZoneMod setups where custom plugins are in addons/sourcemod/plugins/optional)
+                    if (matchIdResult.error?.includes('Unknown command')) {
+                        console.log('[RCON] Plugin seems missing. Attempting to force load: optional/l4d2_match_reporter.smx');
+                        await rcon.execute('sm plugins load optional/l4d2_match_reporter.smx');
+                        // Also try without extension or optional prefix just in case
+                        await rcon.execute('sm plugins load l4d2_match_reporter');
+                    }
+
                     if (attempt < 12) {
                         console.log('[RCON] Waiting 5 seconds before retry...');
                         await new Promise((resolve) => setTimeout(resolve, 5000));
