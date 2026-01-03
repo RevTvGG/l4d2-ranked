@@ -517,9 +517,7 @@ public Action Timer_DelayedCancel(Handle timer)
     PerformMatchCancellation("Join Timeout - Not all players connected");
     return Plugin_Stop;
 }
-    
-    return Plugin_Stop;
-}
+
 
 // Track when whitelisted players connect
 public void OnClientPutInServer(int client)
