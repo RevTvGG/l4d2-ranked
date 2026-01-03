@@ -481,7 +481,11 @@ export default function PlayPage() {
                                                     {['Dark Carnival', 'Dead Center', 'No Mercy', 'The Parish'].map(map => (
                                                         <button
                                                             key={map}
-                                                            onClick={() => handleVoteMap(map)}
+                                                            onClick={() => {
+                                                                console.log('[CLICK] Button clicked for map:', map);
+                                                                console.log('[CLICK] isVetoing state:', isVetoing);
+                                                                handleVoteMap(map);
+                                                            }}
                                                             disabled={isVetoing}
                                                             className={`p-3 text-sm font-bold border-2 rounded-xl transition-all ${isVetoing
                                                                 ? 'bg-zinc-800 text-zinc-600 border-zinc-700 cursor-wait'
