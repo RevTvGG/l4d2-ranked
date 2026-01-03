@@ -72,7 +72,13 @@ export default function PlayPage() {
         return () => clearInterval(pollInterval);
     }, [status, session?.user?.id]);
 
-
+    // Reset isVetoing when match status changes to VETO
+    useEffect(() => {
+        if (matchData?.status === 'VETO') {
+            setIsVetoing(false);
+            console.log('[DEBUG] Reset isVetoing to false for VETO phase');
+        }
+    }, [matchData?.status]);
 
     const handleJoinQueue = async () => {
         console.log('[DEBUG] Join Queue clicked');
@@ -214,6 +220,7 @@ export default function PlayPage() {
     console.log('[DEBUG] Match ID:', matchId);
     console.log('[DEBUG] Is Ready Check:', isReadyCheck);
     console.log('[DEBUG] Match Status:', matchData?.status);
+    console.log('[DEBUG] isVetoing state:', isVetoing);
 
     return (
         <div className="min-h-screen bg-black text-white font-sans selection:bg-brand-green selection:text-black flex flex-col">
