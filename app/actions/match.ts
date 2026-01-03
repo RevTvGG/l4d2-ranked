@@ -209,6 +209,14 @@ export async function leaveMatch(matchId: string) {
     if (!session?.user || !(session.user as any).id) return { error: "Not authenticated" };
 
     try {
+        console.log('[leaveMatch] Player leaving match:', matchId, 'User:', session.user.id);
+
+        // Get match status first
+        const match = await prisma.match.findUnique({
+            where: { id: matchId },
+            select: { status: true }
+        });
+
         // Remove from MatchPlayer
         await prisma.matchPlayer.deleteMany({
             where: {
@@ -216,6 +224,7 @@ export async function leaveMatch(matchId: string) {
                 userId: session.user.id
             }
         });
+        console.log('[leaveMatch] Removed from MatchPlayer');
 
         // Remove from Queue (if linked)
         await prisma.queueEntry.deleteMany({
@@ -223,6 +232,29 @@ export async function leaveMatch(matchId: string) {
                 userId: session.user.id
             }
         });
+        console.log('[leaveMatch] Removed from QueueEntry');
+
+        // If match is in READY_CHECK, cancel it since we don't have 8 players anymore
+        if (match?.status === 'READY_CHECK') {
+            console.log('[leaveMatch] Match was in READY_CHECK, cancelling match');
+            await prisma.match.update({
+                where: { id: matchId },
+                data: {
+                    status: 'CANCELLED',
+                    cancelReason: 'Player declined match'
+                }
+            });
+
+            // Also remove all other players from their queue entries for this match
+            await prisma.queueEntry.updateMany({
+                where: { matchId },
+                data: {
+                    status: 'WAITING',
+                    matchId: null
+                }
+            });
+            console.log('[leaveMatch] Other players returned to queue');
+        }
 
         revalidatePath('/play');
         return { success: true };
