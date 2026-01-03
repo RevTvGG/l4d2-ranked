@@ -505,9 +505,18 @@ public Action Timer_JoinTimeout(Handle timer)
     }
 
     if (anyMissing) {
-        PrintToChatAll("\x04[L4D2 Ranked]\x03 A player did not connect in time. Match cancelled.");
-        PerformMatchCancellation("Join Timeout - Not all players connected");
+        PrintToChatAll("\x04[L4D2 Ranked]\x03 A player did not connect in time. Cancelling match in 3 seconds...");
+        CreateTimer(3.0, Timer_DelayedCancel);
     }
+    
+    return Plugin_Stop;
+}
+
+public Action Timer_DelayedCancel(Handle timer)
+{
+    PerformMatchCancellation("Join Timeout - Not all players connected");
+    return Plugin_Stop;
+}
     
     return Plugin_Stop;
 }
