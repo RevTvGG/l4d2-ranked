@@ -4,8 +4,11 @@ import { prisma } from '@/lib/prisma';
 import { RANKED_MAP_POOL } from '@/lib/constants/maps';
 
 export async function POST(request: NextRequest) {
+    console.log('[API] start-match route hit!');
     try {
-        const { matchId } = await request.json();
+        const body = await request.json();
+        console.log('[API] start-match payload:', body);
+        const { matchId } = body;
 
         if (!matchId) {
             return NextResponse.json(
