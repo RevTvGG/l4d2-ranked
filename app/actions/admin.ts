@@ -303,7 +303,7 @@ export async function createTestMatch(friendSteamId?: string) {
         // 3. Create Match
         const match = await prisma.match.create({
             data: {
-                status: 'VETO', // Start directly in VETO
+                status: 'READY_CHECK', // Start in READY_CHECK so humans can click Accept
                 serverId: server.id,
                 serverIp: server.ipAddress,
                 serverPort: server.port,
@@ -311,43 +311,45 @@ export async function createTestMatch(friendSteamId?: string) {
             }
         });
 
-        // 4. Add Players
-        // User is Team A
-        await prisma.matchPlayer.create({
-            data: {
-                matchId: match.id,
-                userId: userId,
-                team: 'TEAM_A',
-                accepted: true
-            }
+        // 4. Add Players to Match
+        const allPlayerIds = [userId, ...botIds];
+
+        // Track humans (Admin + Friend) to create QueueEntries for them
+        const humans = [userId];
+        if (friendSteamId) humans.push(botIds[0]); // Friend is the first in botIds list
+
+        await prisma.matchPlayer.createMany({
+            data: allPlayerIds.map((pid, index) => {
+                // Determine if this player is a human (admin or friend)
+                const isHuman = pid === userId || (friendSteamId && pid === botIds[0]);
+                // Bots are always simple "FAKE_BOT_X" checks usually, but checking against ID list is safer here
+
+                return {
+                    matchId: match.id,
+                    userId: pid,
+                    team: index % 2 === 0 ? 'TEAM_A' : 'TEAM_B',
+                    // Humans must accept manualy; Bots auto-accept
+                    accepted: !isHuman
+                };
+            })
         });
 
-        // Bots
-        for (let i = 0; i < 7; i++) {
-            await prisma.matchPlayer.create({
+        // 5. Create QueueEntry for Humans (so UI shows the Accept popup)
+        for (const humanId of humans) {
+            // First delete any existing
+            await prisma.queueEntry.deleteMany({ where: { userId: humanId } });
+
+            await prisma.queueEntry.create({
                 data: {
+                    userId: humanId,
                     matchId: match.id,
-                    userId: botIds[i],
-                    team: i < 3 ? 'TEAM_A' : 'TEAM_B',
-                    accepted: true
+                    status: 'MATCHED', // This triggers the Ready Check UI
+                    isReady: true,
+                    mmr: 1000,
+                    expiresAt: new Date(Date.now() + 60 * 60 * 1000)
                 }
             });
         }
-
-        // 5. Create QueueEntry for User (so UI picks it up)
-        // First delete any existing
-        await prisma.queueEntry.deleteMany({ where: { userId } });
-
-        await prisma.queueEntry.create({
-            data: {
-                userId,
-                matchId: match.id,
-                status: 'MATCHED',
-                isReady: true,
-                mmr: 1000,
-                expiresAt: new Date(Date.now() + 60 * 60 * 1000)
-            }
-        });
 
         revalidatePath('/play');
         return { success: true, matchId: match.id };
