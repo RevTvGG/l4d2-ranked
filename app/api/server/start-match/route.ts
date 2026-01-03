@@ -89,13 +89,19 @@ export async function POST(request: NextRequest) {
 
             // Wait for config to load and map to change
             // Wait for config to load and map to change
-            console.log('[RCON] Waiting for ZoneMod and map to load (10s)...');
-            await new Promise((resolve) => setTimeout(resolve, 10000));
+            console.log('[RCON] Waiting for ZoneMod and map to load (20s)...');
+            await new Promise((resolve) => setTimeout(resolve, 20000));
 
-            // Force Reconnect RCON after map change (socket likely closed)
+            // Force Reconnect RCON after map change
             console.log('[RCON] Re-establishing connection for Match setup...');
-            await rcon.disconnect();
-            await rcon.connect();
+            try {
+                try { await rcon.disconnect(); } catch (e) { console.log('[RCON] Disconnect warning:', e); }
+                await rcon.connect();
+                console.log('[RCON] Reconnected successfully.');
+            } catch (reconnectError) {
+                console.error('[RCON] Failed to reconnect, checking if socket is still alive...', reconnectError);
+                // Try one more time with a fresh instance if needed, or proceed hoping the old one works
+            }
 
             // Set match ID for the reporter plugin
             const apiUrl = process.env.NEXTAUTH_URL;

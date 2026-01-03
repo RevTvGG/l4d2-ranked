@@ -59,7 +59,18 @@ export async function GET(request: NextRequest) {
 
         if (!activeMatch) {
             // No pending match - server is free
-            console.log(`[check-status] Server ${server.name}: No active match`);
+            console.log(`[check-status] Server ${server.name} (ID: ${server.id}): No active match found in status WAITING_FOR_PLAYERS/READY/IN_PROGRESS`);
+
+            // Debug: Check if there are ANY matches for this server, maybe in wrong status?
+            const anyMatch = await prisma.match.findFirst({
+                where: { serverId: server.id },
+                orderBy: { createdAt: 'desc' },
+                select: { id: true, status: true }
+            });
+            if (anyMatch) {
+                console.log(`[check-status] DEBUG: Found match ${anyMatch.id} for this server but status is ${anyMatch.status}`);
+            }
+
             return NextResponse.json({
                 has_match: false,
                 match_id: null,
