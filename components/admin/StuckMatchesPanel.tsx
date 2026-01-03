@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getStuckMatches, adminCancelMatch, adminResetAllStuckMatches, createTestMatch } from '@/app/actions/admin';
+import { getStuckMatches, adminCancelMatch, adminResetAllStuckMatches, createTestMatch, resendMatchId } from '@/app/actions/admin';
 
 interface StuckMatch {
     id: string;
@@ -114,12 +114,26 @@ export default function StuckMatchesPanel() {
                                     {match.server && ` • ${match.server.name}`}
                                 </div>
                             </div>
-                            <button
-                                onClick={() => handleCancelMatch(match.id)}
-                                className="px-3 py-1 text-xs bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded border border-red-500/30"
-                            >
-                                Cancel
-                            </button>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={async () => {
+                                        if (!confirm('Resend Match ID via RCON?')) return;
+                                        setLoading(true);
+                                        const res = await resendMatchId(match.id);
+                                        alert(res.success ? res.message : res.error);
+                                        setLoading(false);
+                                    }}
+                                    className="px-3 py-1 text-xs bg-blue-500/20 hover:bg-blue-500/40 text-blue-400 rounded border border-blue-500/30"
+                                >
+                                    🔄 Resend ID
+                                </button>
+                                <button
+                                    onClick={() => handleCancelMatch(match.id)}
+                                    className="px-3 py-1 text-xs bg-red-500/20 hover:bg-red-500/40 text-red-400 rounded border border-red-500/30"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
                         </div>
                     ))}
                 </div>

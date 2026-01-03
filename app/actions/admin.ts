@@ -335,3 +335,42 @@ export async function createTestMatch() {
         return { error: 'Failed to create test match' };
     }
 }
+
+export async function resendMatchId(matchId: string) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !['OWNER', 'ADMIN'].includes((session.user as any).role)) {
+        return { error: 'Unauthorized' };
+    }
+
+    try {
+        const match = await prisma.match.findUnique({
+            where: { id: matchId },
+            include: { server: true }
+        });
+
+        if (!match || !match.server) {
+            return { error: 'Match or server not found' };
+        }
+
+        // Trigger the start-match API again (idempotent for ID setting)
+        // We use the API route because it holds the RCON logic
+        const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+
+        // We can't easily call the API route function directly without mocking Request, 
+        // but we can execute RCON directly here since we are in a Server Action
+
+        // actually, let's just trigger the API route fetch, same as voteMap
+        // This ensures consistent logic with the retry loop
+        fetch(`${baseUrl}/api/server/start-match`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ matchId: match.id })
+        }).catch(err => console.error('Failed to trigger manual resend:', err));
+
+        return { success: true, message: 'Triggered Match ID resend sequence' };
+
+    } catch (error) {
+        console.error('Failed to resend match ID:', error);
+        return { error: 'Failed to resend ID' };
+    }
+}
