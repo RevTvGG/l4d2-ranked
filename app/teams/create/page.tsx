@@ -1,4 +1,3 @@
-import { Navbar } from "@/components/Navbar";
 import { CreateTeamForm } from "@/components/CreateTeamForm";
 
 export const dynamic = 'force-dynamic';
@@ -6,7 +5,6 @@ export const dynamic = 'force-dynamic';
 export default function CreateTeamPage() {
     return (
         <div className="min-h-screen bg-black pt-32 pb-16 px-4">
-            <Navbar />
 
             <div className="container mx-auto">
                 <div className="text-center mb-10">

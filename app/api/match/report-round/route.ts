@@ -6,6 +6,7 @@ interface PlayerStat {
     damage: number;
     kills: number;
     common: number;
+    mvp?: number;
 }
 
 export async function POST(request: NextRequest) {
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest) {
             healthBonus,
             damageBonus,
             pillsBonus,
-            mvpSteamId,
+            mvpSteamId: rootMvpSteamId, // Rename to distinguish
             playerStats,
         } = await request.json();
 
@@ -27,6 +28,15 @@ export async function POST(request: NextRequest) {
                 { error: 'Missing required fields' },
                 { status: 400 }
             );
+        }
+
+        // Determine MVP from playerStats if not in root
+        let mvpSteamId = rootMvpSteamId;
+        if (!mvpSteamId && playerStats && Array.isArray(playerStats)) {
+            const mvpPlayer = (playerStats as PlayerStat[]).find(p => p.mvp && p.mvp > 0);
+            if (mvpPlayer) {
+                mvpSteamId = mvpPlayer.steamId;
+            }
         }
 
         // Find the match
@@ -61,6 +71,19 @@ export async function POST(request: NextRequest) {
                 endedAt: new Date(),
             } as any,
         });
+
+        // INCREMENT GLOBAL MVP COUNT IMMEDIATELY
+        if (mvpSteamId) {
+            // Find user by SteamID (via MatchPlayer or directly)
+            const mvpUser = match.players.find(p => p.user.steamId === mvpSteamId);
+            if (mvpUser) {
+                await prisma.user.update({
+                    where: { id: mvpUser.userId },
+                    data: { totalMvps: { increment: 1 } }
+                });
+                console.log(`[Round Report] MVP Awarded to ${mvpUser.user.name} for Round ${round}`);
+            }
+        }
 
         console.log(`[Round Report] Match ${matchId} - Round ${round} - Score: ${teamScore}`);
 

@@ -1,4 +1,3 @@
-import { Navbar } from '@/components/Navbar';
 import { prisma } from '@/lib/prisma';
 import Image from 'next/image';
 
@@ -60,7 +59,6 @@ export default async function PublicBansPage() {
 
     return (
         <div className="min-h-screen bg-zinc-950 text-white">
-            <Navbar />
 
             {/* Hero */}
             <div className="relative py-24 overflow-hidden border-b border-white/5 bg-zinc-900/50">

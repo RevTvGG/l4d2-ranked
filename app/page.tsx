@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Navbar } from "@/components/Navbar";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = 'force-dynamic';
@@ -46,7 +45,6 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen flex flex-col font-sans bg-black text-white overflow-x-hidden">
-      <Navbar />
 
       {/* =============== HERO SECTION =============== */}
       <section className="relative min-h-screen flex items-center justify-center pt-16">

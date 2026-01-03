@@ -1,4 +1,3 @@
-import { Navbar } from "@/components/Navbar";
 import { getTeamByTag } from "@/app/actions/getTeam";
 import { leaveTeam } from "@/app/actions/team";
 import { joinTeam } from "@/app/actions/team";
@@ -62,7 +61,6 @@ export default async function TeamProfilePage({ params, searchParams }: Props) {
 
     return (
         <div className="min-h-screen bg-black pt-32 pb-16 px-4">
-            <Navbar />
 
             <div className="container mx-auto max-w-5xl">
 

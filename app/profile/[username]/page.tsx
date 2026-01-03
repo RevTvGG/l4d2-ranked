@@ -1,5 +1,4 @@
 import { PlayerProfile } from "@/components/PlayerProfile";
-import { Navbar } from "@/components/Navbar";
 import { getProfile } from "@/app/actions/getProfile";
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
@@ -29,7 +28,6 @@ export default async function ProfilePage({ params }: Props) {
         // If user not found in DB
         return (
             <div className="min-h-screen bg-black pt-32 pb-16 px-4">
-                <Navbar />
                 <div className="container mx-auto text-center text-white">
                     <h1 className="text-4xl font-bold mb-4">Player Not Found</h1>
                     <p className="text-zinc-500">The player &quot;{decodeURIComponent(username)}&quot; has not registered yet.</p>
@@ -50,7 +48,6 @@ export default async function ProfilePage({ params }: Props) {
                 themeColors={themeColors}
             />
 
-            <Navbar />
             <div className="container mx-auto relative z-10">
                 <PlayerProfile {...profileData} isOwner={isOwner} />
 

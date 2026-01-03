@@ -10,8 +10,7 @@ export const metadata: Metadata = {
 };
 
 import { Providers } from "./providers";
-
-import { Navbar } from "@/components/Navbar";
+import { Sidebar } from "@/components/Sidebar";
 
 export default function RootLayout({
   children,
@@ -20,12 +19,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${inter.className} antialiased`}
-      >
+      <body className={`${inter.className} antialiased`}>
         <Providers>
-          <Navbar />
-          {children}
+          <div className="flex min-h-screen">
+            <Sidebar />
+            <main className="flex-1 lg:ml-0">
+              {children}
+            </main>
+          </div>
         </Providers>
       </body>
     </html>

@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Navbar } from '@/components/Navbar';
 
 const ADMIN_ROLES = ['OWNER', 'ADMIN'];
 
@@ -93,7 +92,6 @@ export default function AdminContentPage() {
 
     return (
         <div className="min-h-screen bg-black text-white">
-            <Navbar />
 
             <div className="pt-24 pb-16 px-6">
                 <div className="container mx-auto max-w-4xl">

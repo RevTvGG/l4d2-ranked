@@ -1,4 +1,3 @@
-import { Navbar } from "@/components/Navbar";
 import { TeamCard } from "@/components/TeamCard";
 import { getTeams } from "@/app/actions/team";
 import Link from "next/link";
@@ -10,7 +9,6 @@ export default async function TeamsPage() {
 
     return (
         <div className="min-h-screen bg-black pt-32 pb-16 px-4">
-            <Navbar />
 
             <div className="container mx-auto">
                 <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-6">

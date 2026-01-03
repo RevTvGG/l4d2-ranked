@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Navbar } from '@/components/Navbar';
 import Image from 'next/image';
 
 const ADMIN_ROLES = ['OWNER', 'ADMIN', 'MODERATOR'];
@@ -139,7 +138,6 @@ export default function AdminBansPage() {
 
     return (
         <div className="min-h-screen bg-black text-white">
-            <Navbar />
 
             <div className="pt-24 pb-16 px-6">
                 <div className="container mx-auto max-w-6xl">
@@ -239,8 +237,8 @@ export default function AdminBansPage() {
                                 key={f}
                                 onClick={() => setFilter(f)}
                                 className={`px-4 py-2 rounded-lg font-bold text-sm uppercase transition-colors ${filter === f
-                                        ? 'bg-brand-green text-black'
-                                        : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                                    ? 'bg-brand-green text-black'
+                                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
                                     }`}
                             >
                                 {f}

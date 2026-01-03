@@ -8,7 +8,6 @@ import { getOnlineUsers } from '@/app/actions/chat';
 import { redirect } from 'next/navigation';
 import GlobalChat from '@/components/GlobalChat';
 import Link from 'next/link';
-import { Navbar } from "@/components/Navbar";
 import OnlineUsersList from "@/components/OnlineUsersList";
 import ParticleBackground from "@/components/ParticleBackground";
 
@@ -185,7 +184,6 @@ export default function PlayPage() {
 
     return (
         <div className="min-h-screen bg-black text-white font-sans selection:bg-brand-green selection:text-black flex flex-col">
-            <Navbar />
 
             {/* Hero Background Section */}
             <div className="relative min-h-screen flex flex-col">

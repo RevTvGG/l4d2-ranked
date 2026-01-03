@@ -805,12 +805,21 @@ void SendRoundStats()
             if (!first) Format(sJson, sizeof(sJson), "%s,", sJson);
             first = false;
             
+            // Check for MVP in this round
+            int mvpValue = 0;
+            if (g_bMvpAvailable && GetClientTeam(i) == TEAM_SURVIVOR)
+            {
+                // SURVMVP_GetMVP returns the client index of the MVP
+                if (i == SURVMVP_GetMVP()) mvpValue = 1;
+            }
+
             Format(sJson, sizeof(sJson), "%s{", sJson);
             Format(sJson, sizeof(sJson), "%s\"steam_id\":\"%s\",", sJson, sAuth);
             Format(sJson, sizeof(sJson), "%s\"kills\":%d,", sJson, g_iPlayerKills[i]);
             Format(sJson, sizeof(sJson), "%s\"deaths\":%d,", sJson, g_iPlayerDeaths[i]);
             Format(sJson, sizeof(sJson), "%s\"headshots\":%d,", sJson, g_iPlayerHeadshots[i]);
-            Format(sJson, sizeof(sJson), "%s\"damage\":%d", sJson, g_iPlayerDamage[i]); // Remove trailing comma
+            Format(sJson, sizeof(sJson), "%s\"damage\":%d,", sJson, g_iPlayerDamage[i]);
+            Format(sJson, sizeof(sJson), "%s\"mvp\":%d", sJson, mvpValue);
             Format(sJson, sizeof(sJson), "%s}", sJson);
         }
     }

@@ -1,4 +1,3 @@
-import { Navbar } from "@/components/Navbar";
 import { ProfileEditForm } from "@/components/ProfileEditForm";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -25,7 +24,6 @@ export default async function EditProfilePage() {
 
     return (
         <div className="min-h-screen bg-black pt-32 pb-16 px-4">
-            <Navbar />
             <div className="container mx-auto">
                 <div className="text-center mb-12">
                     <h1 className="text-4xl md:text-5xl font-black text-white italic tracking-tighter uppercase mb-4">

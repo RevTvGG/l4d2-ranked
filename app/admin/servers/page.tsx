@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation';
 import { getAdminRole } from '@/lib/admin';
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
-import { Navbar } from '@/components/Navbar';
 import { ForceReleaseButton } from './ServerActions';
 
 export const dynamic = 'force-dynamic';
@@ -30,7 +29,6 @@ export default async function AdminServersPage() {
 
     return (
         <div className="min-h-screen bg-black text-white">
-            <Navbar />
 
             <div className="pt-24 pb-16 px-6">
                 <div className="container mx-auto max-w-4xl">

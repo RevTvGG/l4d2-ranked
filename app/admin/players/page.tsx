@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Navbar } from '@/components/Navbar';
 import { BanModal } from '@/components/BanModal';
 import { PremiumBadge } from '@/components/PremiumBadge';
 import { AwardMedalModal } from '@/components/admin/AwardMedalModal';
@@ -210,7 +209,6 @@ export default function AdminPlayersPage() {
 
     return (
         <div className="min-h-screen bg-black text-white">
-            <Navbar />
 
             <div className="pt-24 pb-16 px-6">
                 <div className="container mx-auto max-w-6xl">
@@ -358,8 +356,8 @@ export default function AdminPlayersPage() {
                                                 onClick={() => handleTogglePremium(player)}
                                                 disabled={actionLoading === player.id}
                                                 className={`px-3 py-2 rounded font-bold text-sm transition-colors flex items-center gap-1 ${player.isPremium
-                                                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 hover:bg-amber-500/30'
-                                                        : 'bg-zinc-800 text-zinc-400 border border-white/10 hover:bg-zinc-700'
+                                                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 hover:bg-amber-500/30'
+                                                    : 'bg-zinc-800 text-zinc-400 border border-white/10 hover:bg-zinc-700'
                                                     }`}
                                                 title={player.isPremium ? 'Remove Premium' : 'Give Premium'}
                                             >

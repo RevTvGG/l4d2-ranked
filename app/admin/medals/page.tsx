@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Navbar } from '@/components/Navbar';
 import Link from 'next/link';
 
 const OWNER_ROLE = 'OWNER';
@@ -156,7 +155,6 @@ export default function AdminMedalsPage() {
 
     return (
         <div className="min-h-screen bg-black text-white">
-            <Navbar />
 
             <div className="pt-24 pb-16 px-6">
                 <div className="container mx-auto max-w-6xl">
