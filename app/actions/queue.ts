@@ -307,6 +307,37 @@ export async function leaveQueue() {
 }
 
 /**
+ * RESET - Force clear all queue and match state for a stuck player
+ */
+export async function resetQueueState() {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !(session.user as any).id) return { error: 'Not authenticated' };
+
+    const userId = session.user.id;
+    console.log('[resetQueueState] Resetting state for user:', userId);
+
+    // Delete ALL queue entries for this user (any status)
+    await prisma.queueEntry.deleteMany({
+        where: { userId }
+    });
+    console.log('[resetQueueState] Deleted all queue entries');
+
+    // Delete ALL match player entries for this user
+    await prisma.matchPlayer.deleteMany({
+        where: { userId }
+    });
+    console.log('[resetQueueState] Deleted all match player entries');
+
+    // Delete any map votes
+    await prisma.mapVote.deleteMany({
+        where: { userId }
+    });
+    console.log('[resetQueueState] Deleted all map votes');
+
+    return { success: true, message: 'Queue state reset successfully' };
+}
+
+/**
  * Get queue status for current user
  */
 export async function getQueueStatus() {

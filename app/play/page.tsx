@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { joinQueue, leaveQueue, getQueueStatus } from '@/app/actions/queue';
+import { joinQueue, leaveQueue, getQueueStatus, resetQueueState } from '@/app/actions/queue';
 import { acceptMatch, voteMap, getMatch, leaveMatch } from '@/app/actions/match';
 import { getOnlineUsers } from '@/app/actions/chat';
 import { redirect } from 'next/navigation';
@@ -130,6 +130,15 @@ export default function PlayPage() {
         await leaveQueue();
 
         // Reset local state
+        setQueueStatus(null);
+        setMatchData(null);
+        setIsAccepted(false);
+        setErrorMsg(null);
+    };
+
+    const handleReset = async () => {
+        if (!session?.user) return;
+        await resetQueueState();
         setQueueStatus(null);
         setMatchData(null);
         setIsAccepted(false);
@@ -407,6 +416,14 @@ export default function PlayPage() {
 
                                             </>
                                         )}
+
+                                        {/* Reset link for stuck players */}
+                                        <button
+                                            onClick={handleReset}
+                                            className="text-xs text-zinc-600 hover:text-red-400 transition-colors underline"
+                                        >
+                                            🔄 Stuck? Reset Queue State
+                                        </button>
 
 
 
