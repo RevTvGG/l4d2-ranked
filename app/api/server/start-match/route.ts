@@ -86,7 +86,13 @@ export async function POST(request: NextRequest) {
             console.log(`[RCON] Loading ZoneMod and changing to map: ${mapToLoad}`);
             const forceMatchResult = await rcon.execute(`sm_forcematch zonemod ${mapToLoad}`);
             if (!forceMatchResult.success) {
-                throw new Error(`Failed to force match: ${forceMatchResult.error}`);
+                console.warn(`[RCON] sm_forcematch failed (${forceMatchResult.error}). Falling back to changelevel...`);
+                // Fallback: Just change map using standard command
+                const changeLevelResult = await rcon.execute(`changelevel ${mapToLoad}`);
+                if (!changeLevelResult.success) {
+                    throw new Error(`Failed to change map: ${changeLevelResult.error}`);
+                }
+                console.log(`[RCON] Fallback map change to ${mapToLoad} successful`);
             }
             console.log(`[RCON] Successfully loaded ZoneMod with map: ${mapToLoad}`);
 
