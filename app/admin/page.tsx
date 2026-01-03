@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getAdminRole } from '@/lib/admin';
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
+import StuckMatchesPanel from '@/components/admin/StuckMatchesPanel';
 
 export const dynamic = 'force-dynamic';
 
@@ -122,6 +123,9 @@ export default async function AdminDashboard() {
                             <span className="w-8 h-1 bg-brand-green rounded-full"></span>
                             Quick Actions
                         </h2>
+
+                        {/* Stuck Matches Panel */}
+                        <StuckMatchesPanel />
                     </div>
 
                     {/* Panel Grid - Categories */}

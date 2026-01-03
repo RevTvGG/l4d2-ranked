@@ -88,3 +88,136 @@ export async function banUser(userId: string) {
         return { error: "Failed to ban user" };
     }
 }
+
+/**
+ * Get all stuck matches (not COMPLETED/CANCELLED)
+ */
+export async function getStuckMatches() {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !['OWNER', 'ADMIN', 'MODERATOR'].includes((session.user as any).role)) {
+        return { error: 'Unauthorized', matches: [] };
+    }
+
+    const matches = await prisma.match.findMany({
+        where: {
+            status: { notIn: ['COMPLETED', 'CANCELLED'] }
+        },
+        include: {
+            players: {
+                include: {
+                    user: {
+                        select: { id: true, name: true, steamId: true }
+                    }
+                }
+            },
+            server: {
+                select: { name: true, ipAddress: true }
+            }
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 20
+    });
+
+    return { matches };
+}
+
+/**
+ * Force cancel a stuck match and free all players
+ */
+export async function adminCancelMatch(matchId: string) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !['OWNER', 'ADMIN'].includes((session.user as any).role)) {
+        return { error: 'Unauthorized' };
+    }
+
+    console.log('[Admin] Cancelling match:', matchId);
+
+    try {
+        const match = await prisma.match.findUnique({
+            where: { id: matchId },
+            include: { players: true, server: true }
+        });
+
+        if (!match) return { error: 'Match not found' };
+        if (match.status === 'COMPLETED' || match.status === 'CANCELLED') {
+            return { error: 'Match already finalized' };
+        }
+
+        // Delete map votes
+        await prisma.mapVote.deleteMany({ where: { matchId } });
+
+        // Get player IDs before deleting
+        const playerIds = match.players.map(p => p.userId);
+
+        // Delete match players
+        await prisma.matchPlayer.deleteMany({ where: { matchId } });
+
+        // Delete queue entries for affected players
+        await prisma.queueEntry.deleteMany({ where: { userId: { in: playerIds } } });
+
+        // Cancel match
+        await prisma.match.update({
+            where: { id: matchId },
+            data: { status: 'CANCELLED', cancelReason: 'Admin cancelled - stuck match' }
+        });
+
+        // Free server
+        if (match.serverId) {
+            await prisma.gameServer.update({
+                where: { id: match.serverId },
+                data: { status: 'AVAILABLE' }
+            });
+        }
+
+        revalidatePath('/admin');
+        return { success: true, message: `Match cancelled. ${playerIds.length} players freed.` };
+
+    } catch (error) {
+        console.error('[Admin] Error cancelling match:', error);
+        return { error: 'Failed to cancel match' };
+    }
+}
+
+/**
+ * Force reset ALL stuck matches at once
+ */
+export async function adminResetAllStuckMatches() {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || !['OWNER', 'ADMIN'].includes((session.user as any).role)) {
+        return { error: 'Unauthorized' };
+    }
+
+    console.log('[Admin] Resetting ALL stuck matches');
+
+    try {
+        const stuckMatches = await prisma.match.findMany({
+            where: { status: { notIn: ['COMPLETED', 'CANCELLED'] } },
+            select: { id: true, serverId: true }
+        });
+
+        for (const match of stuckMatches) {
+            await prisma.mapVote.deleteMany({ where: { matchId: match.id } });
+            await prisma.matchPlayer.deleteMany({ where: { matchId: match.id } });
+            await prisma.match.update({
+                where: { id: match.id },
+                data: { status: 'CANCELLED', cancelReason: 'Admin bulk reset' }
+            });
+            if (match.serverId) {
+                await prisma.gameServer.update({
+                    where: { id: match.serverId },
+                    data: { status: 'AVAILABLE' }
+                });
+            }
+        }
+
+        // Clear all queue entries
+        await prisma.queueEntry.deleteMany({});
+
+        revalidatePath('/admin');
+        return { success: true, message: `Cancelled ${stuckMatches.length} matches. All queues cleared.` };
+
+    } catch (error) {
+        console.error('[Admin] Error resetting matches:', error);
+        return { error: 'Failed to reset matches' };
+    }
+}
