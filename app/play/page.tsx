@@ -480,21 +480,26 @@ export default function PlayPage() {
 
                                         {/* VETO PHASE */}
                                         {isVeto && (
-                                            <div className="bg-gradient-to-br from-blue-500/20 to-indigo-900/20 border-2 border-blue-500/40 p-6 rounded-2xl space-y-4 shadow-[0_0_40px_-10px_rgba(59,130,246,0.4)]">
+                                            <div className="relative z-50 bg-gradient-to-br from-blue-500/20 to-indigo-900/20 border-2 border-blue-500/40 p-6 rounded-2xl space-y-4 shadow-[0_0_40px_-10px_rgba(59,130,246,0.4)]">
                                                 <div className="text-blue-400 font-black text-xl text-center uppercase tracking-wider">
-                                                    🗺️ MAP SELECTION
+                                                    🗺️ MAP SELECTION {isVetoing ? '(BUSY)' : ''}
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-3">
                                                     {['Dark Carnival', 'Dead Center', 'No Mercy', 'The Parish'].map(map => (
                                                         <button
                                                             key={map}
-                                                            onClick={() => {
-                                                                console.log('[CLICK] Button clicked for map:', map);
-                                                                console.log('[CLICK] isVetoing state:', isVetoing);
-                                                                handleVoteMap(map);
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                console.log('[CLICK] Native click event fired for:', map);
+                                                                console.log('[CLICK] isVetoing check:', isVetoing);
+                                                                if (!isVetoing) {
+                                                                    handleVoteMap(map);
+                                                                } else {
+                                                                    console.warn('[CLICK] Blocked by isVetoing');
+                                                                }
                                                             }}
                                                             disabled={isVetoing}
-                                                            className={`p-3 text-sm font-bold border-2 rounded-xl transition-all ${isVetoing
+                                                            className={`p-3 text-sm font-bold border-2 rounded-xl transition-all relative z-50 cursor-pointer ${isVetoing
                                                                 ? 'bg-zinc-800 text-zinc-600 border-zinc-700 cursor-wait'
                                                                 : 'bg-zinc-800/80 hover:bg-blue-500/30 border-zinc-700 hover:border-blue-500/60 text-white hover:scale-[1.02] hover:shadow-[0_0_20px_-5px_rgba(59,130,246,0.5)]'
                                                                 }`}
