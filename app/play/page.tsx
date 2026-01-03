@@ -57,7 +57,7 @@ export default function PlayPage() {
 
                 // Get Online Users
                 const users = await getOnlineUsers();
-                setOnlineCount(users.length);
+                setOnlineCount(users?.length || 0);
 
             } catch (error) {
                 console.error("Polling error:", error);
