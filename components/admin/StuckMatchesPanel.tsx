@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { getStuckMatches, adminCancelMatch, adminResetAllStuckMatches, createTestMatch, resendMatchId } from '@/app/actions/admin';
 
 interface StuckMatch {
@@ -12,6 +13,7 @@ interface StuckMatch {
 }
 
 export default function StuckMatchesPanel() {
+    const router = useRouter();
     const [matches, setMatches] = useState<StuckMatch[]>([]);
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState<string | null>(null);
@@ -54,9 +56,11 @@ export default function StuckMatchesPanel() {
         setLoading(true);
         const result = await createTestMatch(friendId);
         if (result.success) {
-            setMessage('Test match created! Go to /play');
-            loadMatches();
+            setMessage('Test match created! Redirecting to /play...');
+            // Redirect to /play to see the Ready Check
+            router.push('/play');
         } else {
+            console.error(result.error);
             setMessage(result.error || 'Failed');
         }
         setLoading(false);

@@ -236,7 +236,7 @@ export async function createTestMatch(friendSteamId?: string) {
 
     try {
         // 1. Create bots if needed (or find friend)
-        const botIds = [];
+        const botIds: string[] = [];
         const botCount = friendSteamId ? 6 : 7; // 1 Human + Friend + 6 Bots = 8 OR 1 Human + 7 Bots = 8
 
         // If friend provided, add them first
