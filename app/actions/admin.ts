@@ -217,7 +217,110 @@ export async function adminResetAllStuckMatches() {
         return { success: true, message: `Cancelled ${stuckMatches.length} matches. All queues cleared.` };
 
     } catch (error) {
-        console.error('[Admin] Error resetting matches:', error);
         return { error: 'Failed to reset matches' };
+    }
+}
+
+/**
+ * DEBUG: Create a test match with bots to test VETO/GAME flow
+ */
+export async function createTestMatch() {
+    const session = await getServerSession(authOptions);
+    // Allow OWNER or ADMIN to create tests
+    if (!session?.user || !['OWNER', 'ADMIN'].includes((session.user as any).role)) {
+        return { error: 'Unauthorized' };
+    }
+
+    const userId = session.user.id;
+    console.log('[Test] Creating test match for user:', userId);
+
+    try {
+        // 1. Create bots if needed
+        const botIds = [];
+        for (let i = 1; i <= 7; i++) {
+            const botSteamId = `FAKE_BOT_${i}`;
+            let bot = await prisma.user.findFirst({ where: { steamId: botSteamId } });
+
+            if (!bot) {
+                bot = await prisma.user.create({
+                    data: {
+                        steamId: botSteamId,
+                        name: `Bot ${i}`,
+                        image: 'https://avatars.akamai.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg',
+                        role: 'USER',
+                        rating: 1000
+                    }
+                });
+            }
+            botIds.push(bot.id);
+        }
+
+        // 2. Find a server (or fake one)
+        let server = await prisma.gameServer.findFirst({ where: { status: 'AVAILABLE' } });
+        // If no server, check if we have any server at all
+        if (!server) {
+            server = await prisma.gameServer.findFirst();
+        }
+
+        // If still no server, create a dummy one if in dev
+        if (!server) {
+            return { error: 'No servers available. Please add a server first.' };
+        }
+
+        // 3. Create Match
+        const match = await prisma.match.create({
+            data: {
+                status: 'VETO', // Start directly in VETO
+                serverId: server.id,
+                serverIp: server.ipAddress,
+                serverPort: server.port,
+                serverPassword: 'test-password',
+            }
+        });
+
+        // 4. Add Players
+        // User is Team A
+        await prisma.matchPlayer.create({
+            data: {
+                matchId: match.id,
+                userId: userId,
+                team: 'TEAM_A',
+                accepted: true
+            }
+        });
+
+        // Bots
+        for (let i = 0; i < 7; i++) {
+            await prisma.matchPlayer.create({
+                data: {
+                    matchId: match.id,
+                    userId: botIds[i],
+                    team: i < 3 ? 'TEAM_A' : 'TEAM_B',
+                    accepted: true
+                }
+            });
+        }
+
+        // 5. Create QueueEntry for User (so UI picks it up)
+        // First delete any existing
+        await prisma.queueEntry.deleteMany({ where: { userId } });
+
+        await prisma.queueEntry.create({
+            data: {
+                userId,
+                matchId: match.id,
+                status: 'MATCHED',
+                isReady: true,
+                mmr: 1000,
+                expiresAt: new Date(Date.now() + 60 * 60 * 1000)
+            }
+        });
+
+        revalidatePath('/play');
+        return { success: true, matchId: match.id };
+
+    } catch (error) {
+        console.error('[Test] Failed to create test match:', error);
+        return { error: 'Failed to create test match' };
     }
 }

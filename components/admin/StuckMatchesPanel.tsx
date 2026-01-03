@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getStuckMatches, adminCancelMatch, adminResetAllStuckMatches } from '@/app/actions/admin';
+import { getStuckMatches, adminCancelMatch, adminResetAllStuckMatches, createTestMatch } from '@/app/actions/admin';
 
 interface StuckMatch {
     id: string;
@@ -50,6 +50,19 @@ export default function StuckMatchesPanel() {
         setTimeout(() => setMessage(null), 3000);
     };
 
+    const handleCreateTest = async () => {
+        setLoading(true);
+        const result = await createTestMatch();
+        if (result.success) {
+            setMessage('Test match created! Go to /play');
+            loadMatches();
+        } else {
+            setMessage(result.error || 'Failed');
+        }
+        setLoading(false);
+        setTimeout(() => setMessage(null), 3000);
+    };
+
     return (
         <div className="bg-zinc-900/50 border border-red-500/30 rounded-xl p-4">
             <div className="flex items-center justify-between mb-4">
@@ -66,6 +79,12 @@ export default function StuckMatchesPanel() {
                         className="px-3 py-1 text-xs bg-red-600 hover:bg-red-500 rounded font-bold"
                     >
                         ☢️ RESET ALL
+                    </button>
+                    <button
+                        onClick={handleCreateTest}
+                        className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-500 rounded font-bold"
+                    >
+                        🧪 TEST MATCH
                     </button>
                 </div>
             </div>
