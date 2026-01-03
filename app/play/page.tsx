@@ -162,13 +162,16 @@ export default function PlayPage() {
         setIsVetoing(true);
         console.log('[DEBUG] Voting for map:', map);
         try {
-            // Need matchId here. 
-            // In the failed chunk it used 'matchId' variable which might not be in scope here!
-            // Let's use the safer detection:
-            const currentMatchId = (queueStatus as any)?.matchId || (queueStatus as any)?.match?.id || (queueStatus as any)?.queueEntry?.matchId;
+            // Get matchId from multiple sources - including matchData itself
+            const currentMatchId = matchData?.id || (queueStatus as any)?.matchId || (queueStatus as any)?.match?.id || (queueStatus as any)?.queueEntry?.matchId;
+
+            console.log('[DEBUG] Vote - matchData:', matchData);
+            console.log('[DEBUG] Vote - queueStatus:', queueStatus);
+            console.log('[DEBUG] Vote - currentMatchId:', currentMatchId);
 
             if (!currentMatchId) {
                 console.error("No match ID for voting");
+                setErrorMsg("No match ID found - please refresh the page");
                 return;
             }
 
