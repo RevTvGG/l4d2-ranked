@@ -255,6 +255,16 @@ export async function createTestMatch() {
             botIds.push(bot.id);
         }
 
+        // 1.5 Clean up stale & reset active servers (Auto-fix)
+        // Delete the known bad server entry (27015)
+        await prisma.gameServer.deleteMany({ where: { port: 27015 } });
+
+        // Ensure the good server (9190) is AVAILABLE (fix stuck IN_USE)
+        await prisma.gameServer.updateMany({
+            where: { port: 9190 },
+            data: { status: 'AVAILABLE' }
+        });
+
         // 2. Find a server (prioritize active 9190 server)
         let server = await prisma.gameServer.findFirst({
             where: {
