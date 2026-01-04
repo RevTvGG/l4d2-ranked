@@ -93,6 +93,8 @@ model User {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   banCount       Int           @default(0)
+  readyCheckStrikes Int       @default(0)  // Strikes por no aceptar ready check (3+ = 30min ban)
+  lastStrikeReset   DateTime?              // Fecha para resetear strikes después de X días
   accounts         Account[]
   bans             Ban[]         @relation("Bans")
   bansGiven        Ban[]         @relation("BansGiven")

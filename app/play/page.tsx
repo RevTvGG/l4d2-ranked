@@ -15,7 +15,7 @@ export default function PlayPage() {
     const { data: session, status } = useSession();
     const [queueStatus, setQueueStatus] = useState<any>(null);
     const [matchData, setMatchData] = useState<any>(null);
-    const [timeLeft, setTimeLeft] = useState(30);
+    const [timeLeft, setTimeLeft] = useState(60);
     const [isAccepted, setIsAccepted] = useState(false);
     const [onlineCount, setOnlineCount] = useState(0);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);

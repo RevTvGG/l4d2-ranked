@@ -94,13 +94,13 @@ export async function checkQueueAndCreateMatch() {
 
     console.log(`[Queue] Match ${match.id} created with ${teamA.length + teamB.length} players`);
 
-    // Disable ready-check timeout for testing
-    // setTimeout(() => checkReadyTimeout(match.id), 30000);
+    // Enable ready-check timeout (60 seconds)
+    setTimeout(() => checkReadyTimeout(match.id), 60000);
 }
 
 /**
- * Check if all players are ready after 30 seconds
- * If not all ready: kick non-ready players, ban them, retry with next players
+ * Check if all players are ready after 60 seconds
+ * If not all ready: kick non-ready players, apply strikes (3+ = 30min ban), find replacements
  */
 async function checkReadyTimeout(matchId: string) {
     const match = await prisma.match.findUnique({
@@ -109,6 +109,7 @@ async function checkReadyTimeout(matchId: string) {
     });
 
     if (!match) return;
+    if (match.status !== 'READY_CHECK') return; // Already moved past ready check
 
     const readyPlayers = match.queueEntries.filter((q) => q.isReady);
     const notReadyPlayers = match.queueEntries.filter((q) => !q.isReady);
@@ -119,37 +120,144 @@ async function checkReadyTimeout(matchId: string) {
         return;
     }
 
-    // Kick non-ready players from queue
-    await prisma.queueEntry.updateMany({
-        where: { id: { in: notReadyPlayers.map((p) => p.id) } },
-        data: { status: 'TIMEOUT' },
-    });
+    console.log(`[Queue] Ready timeout for match ${matchId} - ${notReadyPlayers.length} players not ready`);
 
-    // Ban AFKers for 5 minutes
+    // Process each non-ready player: increment strikes and apply ban if needed
     for (const player of notReadyPlayers) {
-        await prisma.ban.create({
-            data: {
-                userId: player.userId,
-                reason: 'AFK_ACCEPT',
-                duration: 5,
-                expiresAt: new Date(Date.now() + 5 * 60 * 1000),
-            },
+        // Increment strikes
+        const user = await prisma.user.update({
+            where: { id: player.userId },
+            data: { readyCheckStrikes: { increment: 1 } }
+        });
+
+        const strikes = user.readyCheckStrikes;
+        console.log(`[Queue] Player ${user.name} now has ${strikes} strikes`);
+
+        // Determine ban duration based on strikes
+        // 1-2 strikes: warning (no ban)
+        // 3+ strikes: 30 minute ban
+        if (strikes >= 3) {
+            await prisma.ban.create({
+                data: {
+                    userId: player.userId,
+                    reason: 'AFK_ACCEPT',
+                    description: `Auto-ban: Failed to accept ready check ${strikes} times`,
+                    duration: 30, // 30 minutes
+                    expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+                },
+            });
+            console.log(`[Queue] Player ${user.name} banned for 30 min (${strikes} strikes)`);
+        }
+
+        // Mark queue entry as timeout
+        await prisma.queueEntry.update({
+            where: { id: player.id },
+            data: { status: 'TIMEOUT' }
         });
     }
 
-    // Cancel this match
-    await prisma.match.update({
-        where: { id: matchId },
-        data: {
-            status: 'CANCELLED',
-            cancelReason: 'Not all players ready',
+    // Try to find replacements for non-ready players
+    const replacementsNeeded = notReadyPlayers.length;
+    const foundReplacements = await findReplacementsForMatch(matchId, replacementsNeeded, readyPlayers);
+
+    if (foundReplacements >= replacementsNeeded) {
+        // All replacements found! Continue match with new players
+        console.log(`[Queue] Found ${foundReplacements} replacements, continuing match`);
+        // Don't proceed to voting yet - new players need time to accept
+        // The new players will trigger checkReadyTimeout again when they're added
+    } else {
+        // Not enough replacements - cancel match
+        console.log(`[Queue] Only found ${foundReplacements}/${replacementsNeeded} replacements, cancelling match`);
+        await prisma.match.update({
+            where: { id: matchId },
+            data: {
+                status: 'CANCELLED',
+                cancelReason: `Not all players ready (${notReadyPlayers.length} AFK)`,
+            },
+        });
+
+        // Clear remaining queue entries for this match
+        await prisma.queueEntry.updateMany({
+            where: { matchId },
+            data: { status: 'DECLINED', matchId: null }
+        });
+
+        // Retry with remaining queue
+        await checkQueueAndCreateMatch();
+    }
+}
+
+/**
+ * Find replacement players from the queue for a match
+ * Returns number of replacements successfully added
+ */
+async function findReplacementsForMatch(matchId: string, count: number, existingPlayers: any[]): Promise<number> {
+    if (count <= 0) return 0;
+
+    // Calculate average rating of existing players
+    const avgRating = existingPlayers.length > 0
+        ? existingPlayers.reduce((sum, p) => sum + (p.user?.rating || 1000), 0) / existingPlayers.length
+        : 1000;
+    const ratingRange = 200; // +/- 200 rating tolerance
+
+    // Find waiting players with similar rating
+    const waitingPlayers = await prisma.queueEntry.findMany({
+        where: {
+            status: 'WAITING',
+            user: {
+                rating: {
+                    gte: avgRating - ratingRange,
+                    lte: avgRating + ratingRange
+                }
+            }
         },
+        include: { user: true },
+        orderBy: { user: { rating: 'desc' } }, // Prefer higher rating players
+        take: count
     });
 
-    console.log(`[Queue] Match ${matchId} cancelled - ${notReadyPlayers.length} players not ready`);
+    if (waitingPlayers.length === 0) {
+        console.log(`[Queue] No replacement players found in queue with rating ${avgRating - ratingRange}-${avgRating + ratingRange}`);
+        return 0;
+    }
 
-    // Retry with next players in queue
-    await checkQueueAndCreateMatch();
+    let added = 0;
+    for (const replacement of waitingPlayers) {
+        // Determine team based on current imbalance
+        const match = await prisma.match.findUnique({
+            where: { id: matchId },
+            include: { players: true }
+        });
+
+        if (!match) continue;
+
+        const teamACount = match.players.filter(p => p.team === 'TEAM_A').length;
+        const teamBCount = match.players.filter(p => p.team === 'TEAM_B').length;
+        const assignTeam = teamACount <= teamBCount ? 'TEAM_A' : 'TEAM_B';
+
+        await prisma.matchPlayer.create({
+            data: {
+                matchId,
+                userId: replacement.userId,
+                team: assignTeam
+            }
+        });
+
+        // Update queue entry to MATCHED
+        await prisma.queueEntry.update({
+            where: { id: replacement.id },
+            data: {
+                status: 'MATCHED',
+                matchId,
+                isReady: false // New player must accept
+            }
+        });
+
+        console.log(`[Queue] Added replacement ${replacement.user.name} (${replacement.user.rating}) to ${assignTeam}`);
+        added++;
+    }
+
+    return added;
 }
 
 /**
@@ -212,8 +320,8 @@ async function proceedToMapVoting(matchId: string) {
     console.log(`  Team A (${avgEloA}): ${teamA.map((p: any) => p.user.name).join(', ')}`);
     console.log(`  Team B (${avgEloB}): ${teamB.map((p: any) => p.user.name).join(', ')}`);
 
-    // Start map voting timer (30 seconds)
-    setTimeout(() => finalizeMapVoting(matchId), 30000);
+    // Start map voting timer (60 seconds)
+    setTimeout(() => finalizeMapVoting(matchId), 60000);
 }
 
 /**
@@ -261,8 +369,73 @@ export async function voteForMap(matchId: string, mapId: string) {
 
 /**
  * Finalize map voting and start match
+ * Players who didn't vote are kicked FUERA de la cola (no reenqueue)
  */
 async function finalizeMapVoting(matchId: string) {
+    const match = await prisma.match.findUnique({
+        where: { id: matchId },
+        include: {
+            players: { include: { user: true } },
+            mapVotes: true
+        }
+    });
+
+    if (!match || match.status !== 'VETO') return; // Already processed
+
+    // Find players who didn't vote
+    const votedUserIds = match.mapVotes.map(v => v.userId);
+    const noVotePlayers = match.players.filter(p => !votedUserIds.includes(p.userId));
+
+    if (noVotePlayers.length > 0) {
+        console.log(`[Queue] Veto timeout - ${noVotePlayers.length} players didn't vote`);
+
+        // Remove non-voters from match and queue (FUERA de cola, sin reencolar)
+        for (const player of noVotePlayers) {
+            // Remove from MatchPlayer
+            await prisma.matchPlayer.delete({
+                where: { id: player.id }
+            });
+
+            // Remove from queue completely (FUERA de cola)
+            await prisma.queueEntry.deleteMany({
+                where: {
+                    userId: player.userId,
+                    matchId: matchId
+                }
+            });
+
+            console.log(`[Queue] Removed ${player.user.name} for not voting (out of queue)`);
+        }
+
+        // Check if we have enough players left
+        const remainingPlayers = await prisma.matchPlayer.count({
+            where: { matchId }
+        });
+
+        if (remainingPlayers < 8) {
+            // Not enough players - cancel match
+            console.log(`[Queue] Only ${remainingPlayers} players left, cancelling match`);
+
+            await prisma.match.update({
+                where: { id: matchId },
+                data: {
+                    status: 'CANCELLED',
+                    cancelReason: `Not enough players after veto (${noVotePlayers.length} didn't vote)`
+                }
+            });
+
+            // Release remaining queue entries
+            await prisma.queueEntry.updateMany({
+                where: { matchId },
+                data: { status: 'DECLINED', matchId: null }
+            });
+
+            // Try to create new match with remaining queue
+            await checkQueueAndCreateMatch();
+            return;
+        }
+    }
+
     // Count votes
     const votes = await prisma.mapVote.groupBy({
         by: ['map'],
