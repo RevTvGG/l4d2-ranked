@@ -53,6 +53,10 @@ Handle g_hJoinTimeoutTimer = null;
 bool g_bScoreModAvailable = false;
 bool g_bMvpAvailable = false;
 
+// Ready Timeout System (5 minutes to ready up between maps/chapters)
+#define INGAME_READY_TIMEOUT_SECONDS 300.0  // 5 minutes
+Handle g_hReadyTimeoutTimer = null;
+
 
 public Plugin myinfo =
 {
@@ -263,9 +267,93 @@ public void OnMapStart()
         PrintToServer("[Match Reporter] No Match ID set. Checking API for assigned match...");
         CreateTimer(5.0, Timer_CheckServerStatus); // Wait for server to stabilize
     }
+    else
+    {
+        // We have an active match - start ready timeout timer
+        // This covers the case of map changes between chapters
+        StartReadyTimeoutTimer();
+    }
     
     // Layer 3: Verify Match ID is set after map loads
     CreateTimer(30.0, Timer_CheckMatchIdSet, _, TIMER_FLAG_NO_MAPCHANGE);
+}
+
+void StartReadyTimeoutTimer()
+{
+    // Cancel any existing timer
+    if (g_hReadyTimeoutTimer != null)
+    {
+        delete g_hReadyTimeoutTimer;
+        g_hReadyTimeoutTimer = null;
+    }
+    
+    // Only start timer if we have an active match
+    if (g_sMatchId[0] == '\0')
+        return;
+    
+    // Start 5 minute timeout for ready check
+    g_hReadyTimeoutTimer = CreateTimer(INGAME_READY_TIMEOUT_SECONDS, Timer_ReadyTimeout, _, TIMER_FLAG_NO_MAPCHANGE);
+    PrintToServer("[Match Reporter] Started in-game ready timeout (%.0f seconds)", INGAME_READY_TIMEOUT_SECONDS);
+    PrintToChatAll("\x04[L4D2 Ranked]\x01 You have \x035 minutes\x01 to type \x05!ready\x01 or you will be removed.");
+}
+
+public Action Timer_ReadyTimeout(Handle timer)
+{
+    g_hReadyTimeoutTimer = null;
+    
+    // Check if we're still in ready-up period
+    if (!IsInReady())
+    {
+        PrintToServer("[Match Reporter] Ready timeout fired but not in ready period. Ignoring.");
+        return Plugin_Continue;
+    }
+    
+    // Check if there's an active match
+    if (g_sMatchId[0] == '\0')
+    {
+        PrintToServer("[Match Reporter] Ready timeout fired but no match ID. Ignoring.");
+        return Plugin_Continue;
+    }
+    
+    PrintToServer("[Match Reporter] Ready timeout expired! Checking who didn't ready...");
+    PrintToChatAll("\x04[L4D2 Ranked]\x03 Ready timeout expired! Checking for AFK players...");
+    
+    // Find players who are not ready
+    bool anyNotReady = false;
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (!IsClientInGame(i) || IsFakeClient(i))
+            continue;
+        
+        if (!IsReady(i))
+        {
+            anyNotReady = true;
+            
+            char sSteamId[32];
+            GetClientAuthId(i, AuthId_Steam2, sSteamId, sizeof(sSteamId));
+            
+            PrintToServer("[Match Reporter] Player %N (%s) did not ready in time!", i, sSteamId);
+            PrintToChatAll("\x04[L4D2 Ranked]\x03 Player \x05%N\x01 did not ready in time!", i);
+            
+            // Report to API for ban
+            ReportPlayerEvent(sSteamId, "READY_TIMEOUT_INGAME", "Did not ready up between maps/chapters");
+        }
+    }
+    
+    if (anyNotReady)
+    {
+        // Wait 3 seconds for API to process, then cancel match
+        PrintToChatAll("\x04[L4D2 Ranked]\x03 Match will be cancelled in 3 seconds...");
+        CreateTimer(3.0, Timer_CancelAfterReadyTimeout);
+    }
+    
+    return Plugin_Continue;
+}
+
+public Action Timer_CancelAfterReadyTimeout(Handle timer)
+{
+    PerformMatchCancellation("Ready timeout - Player(s) did not ready up");
+    return Plugin_Stop;
 }
 
 void ResetPlayerStats()
@@ -641,6 +729,14 @@ public Action Cmd_BlockSpectateCmd(int client, int args)
 
 public void OnRoundIsLive()
 {
+    // Cancel ready timeout timer - everyone is ready!
+    if (g_hReadyTimeoutTimer != null)
+    {
+        delete g_hReadyTimeoutTimer;
+        g_hReadyTimeoutTimer = null;
+        PrintToServer("[Match Reporter] Ready timeout cancelled - all players ready!");
+    }
+    
     if (g_sMatchId[0] != '\0' && !g_bIsMatchLive)
     {
         g_bIsMatchLive = true;

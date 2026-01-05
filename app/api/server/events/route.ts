@@ -9,7 +9,7 @@ import { createAutoBan, cancelMatchAndBanPlayer, forfeitMatchAndBanPlayer } from
 // - MATCH_READY: All players are ready
 // - ROUND_END: Round ended
 
-type ServerEvent = 'PLAYER_DISCONNECT' | 'PLAYER_CONNECT' | 'PLAYER_CRASH' | 'NO_JOIN_TIMEOUT';
+type ServerEvent = 'PLAYER_DISCONNECT' | 'PLAYER_CONNECT' | 'PLAYER_CRASH' | 'NO_JOIN_TIMEOUT' | 'READY_TIMEOUT_INGAME';
 
 // Store pending disconnects for grace period
 const pendingDisconnects = new Map<string, NodeJS.Timeout>();
@@ -62,6 +62,21 @@ export async function POST(request: NextRequest) {
                     );
                 }
                 return NextResponse.json({ success: true, message: 'Match cancelled and player banned for NO_JOIN' });
+
+            case 'READY_TIMEOUT_INGAME':
+                console.log(`[ServerEvent] Player ${steamId} did not ready up between maps. Banning...`);
+                // Ban the player who didn't ready (match cancellation handled by plugin)
+                await createAutoBan(
+                    user.id,
+                    'AFK_ACCEPT', // Reuse AFK_ACCEPT reason - similar violation
+                    matchId,
+                    reason || 'Did not ready up between maps/chapters'
+                );
+                return NextResponse.json({
+                    success: true,
+                    message: 'Player banned for not readying up in-game',
+                    banned: true
+                });
 
             case 'PLAYER_DISCONNECT':
             case 'PLAYER_CRASH':
