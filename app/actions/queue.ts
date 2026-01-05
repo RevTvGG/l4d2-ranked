@@ -105,7 +105,10 @@ export async function checkQueueAndCreateMatch() {
 async function checkReadyTimeout(matchId: string) {
     const match = await prisma.match.findUnique({
         where: { id: matchId },
-        include: { queueEntries: { include: { user: true } } },
+        include: {
+            queueEntries: { include: { user: true } },
+            server: true // Include server to release it if match is cancelled
+        },
     });
 
     if (!match) return;
@@ -166,8 +169,18 @@ async function checkReadyTimeout(matchId: string) {
         // Don't proceed to voting yet - new players need time to accept
         // The new players will trigger checkReadyTimeout again when they're added
     } else {
-        // Not enough replacements - cancel match
+        // Not enough replacements - cancel match and RELEASE SERVER
         console.log(`[Queue] Only found ${foundReplacements}/${replacementsNeeded} replacements, cancelling match`);
+
+        // Release the server first
+        if (match.serverId) {
+            await prisma.gameServer.update({
+                where: { id: match.serverId },
+                data: { status: 'AVAILABLE' }
+            });
+            console.log(`[Queue] Released server ${match.serverId} (match cancelled before start)`);
+        }
+
         await prisma.match.update({
             where: { id: matchId },
             data: {
@@ -413,8 +426,17 @@ async function finalizeMapVoting(matchId: string) {
         });
 
         if (remainingPlayers < 8) {
-            // Not enough players - cancel match
+            // Not enough players - cancel match and RELEASE SERVER
             console.log(`[Queue] Only ${remainingPlayers} players left, cancelling match`);
+
+            // Release the server first
+            if (match.serverId) {
+                await prisma.gameServer.update({
+                    where: { id: match.serverId },
+                    data: { status: 'AVAILABLE' }
+                });
+                console.log(`[Queue] Released server ${match.serverId} (match cancelled during veto)`);
+            }
 
             await prisma.match.update({
                 where: { id: matchId },
