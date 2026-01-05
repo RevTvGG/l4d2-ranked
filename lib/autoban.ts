@@ -122,6 +122,11 @@ export async function cancelMatchAndBanPlayer(
     description?: string
 ): Promise<{ success: boolean; error?: string }> {
     try {
+        // Get match to find serverId
+        const match = await prisma.match.findUnique({
+            where: { id: matchId }
+        });
+
         // Update match status
         await prisma.match.update({
             where: { id: matchId },
@@ -130,6 +135,15 @@ export async function cancelMatchAndBanPlayer(
                 cancelReason: `Player banned: ${reason}`
             }
         });
+
+        // Release the server
+        if (match?.serverId) {
+            await prisma.gameServer.update({
+                where: { id: match.serverId },
+                data: { status: 'AVAILABLE' }
+            });
+            console.log(`[CancelMatch] Released server ${match.serverId}`);
+        }
 
         // Remove all queue entries for this match
         await prisma.queueEntry.deleteMany({
@@ -260,6 +274,15 @@ export async function forfeitMatchAndBanPlayer(
                 cancelReason: `Forfeit: ${reason} by ${quitterUser.name}`
             }
         });
+
+        // Release the server
+        if (match.serverId) {
+            await prisma.gameServer.update({
+                where: { id: match.serverId },
+                data: { status: 'AVAILABLE' }
+            });
+            console.log(`[Forfeit] Released server ${match.serverId}`);
+        }
 
         // Remove queue entries
         await prisma.queueEntry.deleteMany({
