@@ -44,6 +44,13 @@ char g_sWhitelistedSteamIDs[8][32];  // Max 8 players per match
 int g_iWhitelistCount = 0;
 bool g_bWhitelistActive = false;
 
+// Team Assignment System - Enforces correct teams from matchmaking
+char g_sTeamA[4][32];  // SteamIDs for Team A (Survivors first)
+char g_sTeamB[4][32];  // SteamIDs for Team B (Infected first)
+int g_iTeamACount = 0;
+int g_iTeamBCount = 0;
+bool g_bTeamAssignmentActive = false;
+
 // Join Timeout System (5 minutes to connect after match found)
 #define JOIN_TIMEOUT_SECONDS 300.0  // 5 minutes
 bool g_bPlayerConnected[8];  // Track which whitelisted players have connected
@@ -127,7 +134,7 @@ public void OnCheckServerStatusResponse(Handle hRequest, bool bFailure, bool bRe
         SteamWorks_GetHTTPResponseBodyData(hRequest, sBody, iBodySize);
         
         // Simple JSON parsing for match_id
-        // Look for "match_id":"..." or "match_id":null
+        // Look for "has_match":true or "has_match":null
         if (StrContains(sBody, "\"has_match\":true") != -1)
         {
             // Extract match_id value
@@ -150,6 +157,9 @@ public void OnCheckServerStatusResponse(Handle hRequest, bool bFailure, bool bRe
                     
                     PrintToServer("[Match Reporter] Found assigned match: %s", g_sMatchId);
                     PrintToChatAll("\x04[L4D2 Ranked]\x01 Match ID loaded: \x03%s", g_sMatchId);
+                    
+                    // Parse team assignments from players array
+                    ParseTeamAssignments(sBody);
                 }
             }
         }
@@ -198,6 +208,7 @@ public void OnPluginStart()
     HookEvent("versus_match_finished", OnMatchFinished);
     HookEvent("round_end", OnRoundEnd);
     HookEvent("player_disconnect", OnPlayerDisconnect, EventHookMode_Pre);
+    HookEvent("player_team", OnPlayerTeamChange, EventHookMode_Pre); // Team assignment enforcement
     
     // Admin command for canceling matches
     RegAdminCmd("sm_ranked_cancel_match", Cmd_CancelMatch, ADMFLAG_ROOT, "Cancels match and kicks all players");
@@ -1382,8 +1393,193 @@ void PerformMatchCancellation(const char[] sReason)
     ResetPlayerStats();
     g_iWhitelistCount = 0;
     g_bWhitelistActive = false;
+    ClearTeamAssignments();
     
     ServerCommand("sm_resetmatch");
 }
 
+// ============================================================================
+// TEAM ASSIGNMENT SYSTEM - Enforces correct teams from matchmaking
+// ============================================================================
 
+void ClearTeamAssignments()
+{
+    g_iTeamACount = 0;
+    g_iTeamBCount = 0;
+    g_bTeamAssignmentActive = false;
+    PrintToServer("[Match Reporter] Team assignments cleared");
+}
+
+/**
+ * Parses team assignments from the API response JSON.
+ * Format: {"players":[{"steam_id":"STEAM_...","team":"TEAM_A"}, ...]}
+ */
+void ParseTeamAssignments(const char[] sBody)
+{
+    // Clear existing assignments
+    g_iTeamACount = 0;
+    g_iTeamBCount = 0;
+    
+    // Find the players array
+    int playersStart = StrContains(sBody, "\"players\":[");
+    if (playersStart == -1)
+    {
+        PrintToServer("[Match Reporter] No players array found in response");
+        return;
+    }
+    
+    // Simple parsing: look for each player object
+    // Format: {"steam_id":"STEAM_1:0:123","name":"Player","team":"TEAM_A"}
+    int pos = playersStart;
+    int maxLen = strlen(sBody);
+    
+    while (pos < maxLen)
+    {
+        // Find next steam_id
+        int steamIdStart = StrContains(sBody[pos], "\"steam_id\":\"");
+        if (steamIdStart == -1) break;
+        steamIdStart += pos + 12; // Move past "steam_id":"
+        
+        // Extract steam_id value
+        char steamId[32];
+        int steamIdEnd = steamIdStart;
+        while (sBody[steamIdEnd] != '"' && sBody[steamIdEnd] != '\0' && steamIdEnd - steamIdStart < 31)
+            steamIdEnd++;
+        
+        int steamLen = steamIdEnd - steamIdStart;
+        for (int i = 0; i < steamLen && i < 31; i++)
+            steamId[i] = sBody[steamIdStart + i];
+        steamId[steamLen] = '\0';
+        
+        // Find team for this player
+        int teamStart = StrContains(sBody[steamIdEnd], "\"team\":\"");
+        if (teamStart == -1)
+        {
+            pos = steamIdEnd;
+            continue;
+        }
+        teamStart += steamIdEnd + 8; // Move past "team":"
+        
+        // Check team value
+        if (StrContains(sBody[teamStart], "TEAM_A") == 0 || StrContains(sBody[teamStart], "A") == 0)
+        {
+            if (g_iTeamACount < 4)
+            {
+                strcopy(g_sTeamA[g_iTeamACount], 32, steamId);
+                g_iTeamACount++;
+                PrintToServer("[Match Reporter] Team A: %s", steamId);
+            }
+        }
+        else if (StrContains(sBody[teamStart], "TEAM_B") == 0 || StrContains(sBody[teamStart], "B") == 0)
+        {
+            if (g_iTeamBCount < 4)
+            {
+                strcopy(g_sTeamB[g_iTeamBCount], 32, steamId);
+                g_iTeamBCount++;
+                PrintToServer("[Match Reporter] Team B: %s", steamId);
+            }
+        }
+        
+        pos = teamStart + 6; // Move forward
+    }
+    
+    if (g_iTeamACount > 0 || g_iTeamBCount > 0)
+    {
+        g_bTeamAssignmentActive = true;
+        PrintToServer("[Match Reporter] Team assignment active: %d vs %d", g_iTeamACount, g_iTeamBCount);
+        PrintToChatAll("\x04[L4D2 Ranked]\x01 Teams loaded: \x05%d vs %d\x01", g_iTeamACount, g_iTeamBCount);
+        
+        // Assign all currently connected players
+        for (int i = 1; i <= MaxClients; i++)
+        {
+            if (IsClientInGame(i) && !IsFakeClient(i))
+            {
+                AssignPlayerToCorrectTeam(i);
+            }
+        }
+    }
+}
+
+int GetPlayerCorrectTeam(int client)
+{
+    if (!g_bTeamAssignmentActive)
+        return 0; // No team assignment active
+    
+    char steamId[32];
+    if (!GetClientAuthId(client, AuthId_Steam2, steamId, sizeof(steamId)))
+        return 0;
+    
+    // Check Team A (Survivors = 2)
+    for (int i = 0; i < g_iTeamACount; i++)
+    {
+        if (StrEqual(steamId, g_sTeamA[i], false))
+            return 2;
+    }
+    
+    // Check Team B (Infected = 3)
+    for (int i = 0; i < g_iTeamBCount; i++)
+    {
+        if (StrEqual(steamId, g_sTeamB[i], false))
+            return 3;
+    }
+    
+    return 0; // Not in either team
+}
+
+void AssignPlayerToCorrectTeam(int client)
+{
+    if (!g_bTeamAssignmentActive || IsFakeClient(client))
+        return;
+    
+    int correctTeam = GetPlayerCorrectTeam(client);
+    if (correctTeam > 0)
+    {
+        int currentTeam = GetClientTeam(client);
+        if (currentTeam != correctTeam)
+        {
+            ChangeClientTeam(client, correctTeam);
+            char teamName[16];
+            Format(teamName, sizeof(teamName), correctTeam == 2 ? "Survivors" : "Infected");
+            PrintToChat(client, "\x04[L4D2 Ranked]\x01 You have been assigned to \x05%s\x01.", teamName);
+            PrintToServer("[Match Reporter] Assigned %N to team %d (%s)", client, correctTeam, teamName);
+        }
+    }
+}
+
+public Action OnPlayerTeamChange(Event event, const char[] name, bool dontBroadcast)
+{
+    if (!g_bTeamAssignmentActive)
+        return Plugin_Continue;
+    
+    int client = GetClientOfUserId(event.GetInt("userid"));
+    int newTeam = event.GetInt("team");
+    
+    if (client == 0 || IsFakeClient(client))
+        return Plugin_Continue;
+    
+    // Allow spectator (1) and none (0)
+    if (newTeam <= 1)
+        return Plugin_Continue;
+    
+    int correctTeam = GetPlayerCorrectTeam(client);
+    
+    // If player should be on a team and is trying to switch to wrong team
+    if (correctTeam > 0 && newTeam != correctTeam)
+    {
+        PrintToChat(client, "\x04[L4D2 Ranked]\x03 You cannot change teams during a ranked match!");
+        CreateTimer(0.1, Timer_ForceCorrectTeam, GetClientUserId(client), TIMER_FLAG_NO_MAPCHANGE);
+        return Plugin_Handled;
+    }
+    
+    return Plugin_Continue;
+}
+
+public Action Timer_ForceCorrectTeam(Handle timer, int userid)
+{
+    int client = GetClientOfUserId(userid);
+    if (client > 0 && IsClientInGame(client))
+    {
+        AssignPlayerToCorrectTeam(client);
+    }
+    return Plugin_Stop;
+}
